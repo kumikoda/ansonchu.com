@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Geolocation with Wifi — my first patent — Anson Chu</title>
+  <meta name="description" content="How Uber located you indoors when GPS failed: wifi fingerprints, cosine similarity, and the pickup-location suggestions that earned a patent.">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="wrap">
+
+    <a class="backlink" href="/">← Anson Chu</a>
+
+    <article>
+      <h1>Geolocation with Wifi — my first patent</h1>
+      <p class="post-meta">2023 · building · uber maps</p>
+
+      <p>Recently I got an ad pamphlet in my mailbox for custom patent frames. It congratulated me on my newly awarded patent. Naturally I was very suspicious, except it actually quoted a patent number, which out of curiosity I looked up. And to my surprise it was real!</p>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-01.png" alt="figure"></figure>
+      <p>Turns out this was something that my team at Uber filed after I left. Amazingly they decided to put my name as the primary author of this patent. Thanks team! “Chu et al” 😬</p>
+      <p><a href="https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11709220">US Patent 11,709,220 (PDF)</a></p>
+      <h2>Background</h2>
+      <p>I spent 4 years working at Uber from 2013 to 2017. My first 2 years was spent on the Dispatch (now Marketplace) team. I worked on a little bit of everything, but mostly focused on putting out fires and scaling our distributed backend services. At the end of these two years, I decided to it was time to work on something new so I transferred to the the Maps team to work on search.</p>
+      <p>Uber Maps was then a new organization, mandated to replace our usage of the Google Maps API, which was one of the biggest costs. But apart from saving money, we also believed that we could <em>do better</em> than Google Maps in specific areas that were bespoke to the Uber product (more on this later).</p>
+      <p>The Maps Search team was responsible for search and recommendations across the text and spatial modalities. While I had helped out on the text side and built some of the shared infrastructure across both, my main focus was on spatial side.</p>
+      <p>Spatial search powered 2 important product features: the “drop a pin” experience to set your pickup location, and the “query-less” nearby suggestions. The goal here was the minimize the number of interactions it took for a user to select a pickup location.</p>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-02.png" alt="The pin drop experience. Old screenshot of Uber for nostalgia. Back in the day, you selected your pickup location first, and the pin drop experience was front and center!"><figcaption>The pin drop experience. Old screenshot of Uber for nostalgia. Back in the day, you selected your pickup location first, and the pin drop experience was front and center!</figcaption></figure>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-03.png" alt="Query-less suggestions. When you haven’t typed anything in the search box yet, we show you saved locations like home/work, nearby historical locations from your trip history, and nearby locations in general. "><figcaption>Query-less suggestions. When you haven’t typed anything in the search box yet, we show you saved locations like home/work, nearby historical locations from your trip history, and nearby locations in general. </figcaption></figure>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-04.png" alt="figure"></figure>
+      <p>But things were trickier from a product perspective. The very first spatial search request that the app fires off was <em>in the background</em> when a user first opens the app. However, the GPS latitude and longitude was often not very accurate, leading to a wrong starting pin location which needed to be corrected, and useless suggestions that were not nearby.</p>
+      <p>The UX is the worst when you are indoors in a dense urban environment, with poor cell reception but are connected to wifi. Because you are connected to wifi, you expect your internet enabled apps to work perfectly. After all, you are able to connect to Uber’s servers, but somehow the app doesn’t know where you are. What is this, amateur hour!?</p>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-05.png" alt="a person using the uber app, but the uber app doesn&#x27;t know where they are, mockery and laughter ensues - Bing Image Creator"><figcaption>a person using the uber app, but the uber app doesn&#x27;t know where they are, mockery and laughter ensues - Bing Image Creator</figcaption></figure>
+      <p>It is worth nothing that this was not a problem with our implementation of reverse geocoding. We had the exact same problem when we were using the Google Maps API. This was a problem in our usage of the spatial search. After all, you can’t expect good results if you give it a bad query to begin with.</p>
+      <h2>Wifi to the rescue</h2>
+      <p>Say you are in the lobby of Uber HQ on the corner of 10th and Market. Your phone has no reception but you are connected to Uber HQ wifi. Your phone is also able to detect the wifi base stations in the nearby Blue Bottle Coffee and Starbucks.</p>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-06.png" alt="figure"></figure>
+      <p>If you examine your wifi connections closely, you may see that you have full bars to Uber HQ, 2 bars to Blue Bottle, and only 1 bar to Starbucks. Intuitively, this makes sense since wifi signal usually drops over distance (and obstacles). Under the hood, this signal strength measure is called RSSI (received signal strength indicator) and is given in continuous real values (instead of bars). The combined reading of your all of phone’s wifi RSSI values together is called a “fingerprint”.</p>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-07.png" alt="figure"></figure>
+      <p>If we know the location of these wifi base stations, we can easily triangulate your (approximate) location based on your phone’s wifi fingerprint. Here we only have 3 visible base stations, but you can easily extend this same idea to many more base stations. The more the better!</p>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-08.png" alt="figure"></figure>
+      <p>Now this is all simple and easy if you had the precise geolocation of every single wifi base station in the world. But of course we don’t. Even if we could get them for public places like Starbucks through some type of partnership, there was no way we could get them for the base stations inside people’s homes or private offices. Plus - the location of these base stations change all the time, or they just get swapped out or reconfigured. We needed this data to be up to date for it to be useful.</p>
+      <p>So in reality, our view of your device in wifi space was something closer to the below, where the axis are devices with unknown location. Places with low cosine similarity are considered “nearby” in wifi space.</p>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-09.png" alt="figure"></figure>
+      <p>In order for us to place Uber HQ within this wifi space, we needed to first collect wifi fingerprint data based on all the riders who has selected Uber HQ as their pickup location (we got permission for this of course!!!). Luckily, we had a lot of rides and so we were able to map out many locations fairly quickly, especially the tricky ones in dense urban environments where GPS did not work well AND keep our database of fingerprints up to date.</p>
+      <p>Basically, every time someone ran into this problem and manually selected a nearby pickup location, our system would index that location against the wifi fingerprint. The next time someone is in that same problematic location (with a “similar” wifi fingerprint), we were able to serve up those pickup locations as suggestions, ranked by popularity.</p>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-10.png" alt="figure"></figure>
+      <p>The cool thing about this solution is that it also helped in tricky situations like airports or large complexes. Say you were in some hotel in Vegas and you a very accurate read on your GPS. Even though your coordinates put you very close to the pickup location B, for whatever reason you will need to walk a long way to get there. While pickup location A that is technical farther away, it is actually much closer in terms of how fast you can walk there. While our reverse geocoder would correctly suggest pickup location B as the closest, our wifi based search system would give the better suggestion of location A since this was what most other people picked.</p>
+      <figure><img src="/writing/img/wifi-geolocation-uber-patent-11.png" alt="figure"></figure>
+    </article>
+
+    <footer class="site-footer">
+      © 2026 Anson Chu · <a href="/">home</a>
+    </footer>
+
+  </main>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Numerai Tutorial Notebooks — Anson Chu</title>
+  <meta name="description" content="Rewriting Numerai&#x27;s onboarding: three tutorial notebooks and the Model Uploads platform that removed infrastructure pain from the tournament.">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="wrap">
+
+    <a class="backlink" href="/">← Anson Chu</a>
+
+    <article>
+      <h1>Numerai Tutorial Notebooks</h1>
+      <p class="post-meta">2023 · building · numerai</p>
+
+      <p>One project I enjoyed working on recently was writing new tutorial notebooks for the Numerai data science tournament.</p>
+      <p>In my day to day job as CTO, I don’t get to write much code that makes it into production, so it was a joy for me to be able to work on a small codebase by myself and being able to push to master without having to go through code review 😇.</p>
+      <h2>Background</h2>
+      <p>Numerai is <a href="https://numerai.fund/">quantitative hedge fund</a> powered a <a href="https://numer.ai/">data science tournament</a>. One key driver of hedge fund performance is the growth of tournament users who create the machine learning models.</p>
+      <p>When new users join the tournament, they are shown these 3 tutorials to help them get started quickly.</p>
+      <figure><img src="/writing/img/numerai-tutorial-notebooks-01.png" alt="figure"></figure>
+      <h2>Setup</h2>
+      <p>I really liked the way I set the workflow of this project. Definitely one of the smoothest notebook development and sharing experiences ever.</p>
+      <ul>
+        <li>I develop all of my locally code in <a href="https://code.visualstudio.com/docs/datascience/jupyter-notebooks">VSCode with the Jupyter Plugin</a> and <a href="https://github.com/features/copilot">Github Copilot</a></li>
+        <li>Then I published code to a public <a href="https://github.com/numerai/example-scripts">Github repository</a> as I normally do</li>
+        <li>Users can then open and run the latest notebooks on Google Colab (for free!)</li>
+      </ul>
+      <h2>The Notebooks</h2>
+      <p><strong>Build your first model (Hello Numerai)</strong></p>
+      <p>This is the hello world for Numerai. I walk through the absolute basics of the Numerai dataset and how to train your first model using our example code based on LightGBM. Along the way, I demonstrate how to interact with our API to download the data, upload submissions, and explain how scoring works.</p>
+      <p>One of the main challenges creating this notebook was deciding what to put in and what to leave out. How much information does a new user actually need to get started? I ended up glossing over a lot of things for the sake of streamlining the overall experience. But I think it strikes the right balance of getting new users a little taste of everything vs getting them to the “<a href="https://www.youtube.com/watch?v=URiIsrdplbo">magic moment</a>” ASAP.</p>
+      <p><a href="https://colab.research.google.com/github/numerai/example-scripts/blob/master/hello_numerai.ipynb">Google Colaboratory</a></p>
+      <p><strong>Learn about risk</strong> (<strong>Feature Neutralization)</strong></p>
+      <p>One key thing not mentioned in Hello Numerai is how to actually improve the performance of your model beyond the example model provided. Now there is actually a ton of information in our <a href="https://forum.numer.ai/">forums</a> on this topic, but it is incredibly difficult to sift through all of it. My approach here was to pick one topic to go deep on, and use it as an example for how to run experiments in general.</p>
+      <p>I ended up focusing this chapter on Feature Neutralization, a concept that is very much idiosyncratic to Numerai. The key idea is that because the stock market is non-stationary, exposure to features poses a risk which can hurt performance, and feature neutralization is a way to control this risk.</p>
+      <p><a href="https://colab.research.google.com/github/numerai/example-scripts/blob/master/feature_neutralization.ipynb">Google Colaboratory</a></p>
+      <p><strong>Create an ensemble</strong> (<strong>Target Ensemble)</strong></p>
+      <p>For this final notebook, I wanted to pick a subject to explore that gave me an excuse to dive deeper into the dataset and build a more complex model. One key thing that</p>
+      <p>I ended up picking the idea of building a ensemble model using multiple targets, since this was a concept that only a few advanced users knew about. The key thing that I explain here is that apart from the main “target” that models are scored against, we actually have many “auxiliary” targets in the dataset that can be used to build ensembles.</p>
+      <p><a href="https://colab.research.google.com/github/numerai/example-scripts/blob/master/target_ensemble.ipynb">Google Colaboratory</a></p>
+      <h2>Bonus: Model Uploads</h2>
+      <p>One related project worth mentioning here is Model Uploads, which is a new feature that my team developed in conjunction with these new notebooks.</p>
+      <p>In order for users to compete in the tournament, they must setup and deploy their models into a production environment to generate predictions on live data every day. This is because the tournament needs to integrate with our daily trading pipieline.</p>
+      <figure><img src="/writing/img/numerai-tutorial-notebooks-02.png" alt="figure"></figure>
+      <p>This is a huge pain for new users (who are generally data scientists and mathematicians, not infrastructure engineers) and many of them churn at this point without getting into the meat of the core data science problem.</p>
+      <figure><img src="/writing/img/numerai-tutorial-notebooks-03.png" alt="figure"></figure>
+      <p>Model Uploads is essentially a free and simple to use model hosting platform that we provide to abstract away all the complexities of setting up a production environment, model deployment, and integrating with our data and submission APIs.</p>
+      <figure><img src="/writing/img/numerai-tutorial-notebooks-04.png" alt="figure"></figure>
+      <p>With Model Uploads, users can now deploy their model straight from a Jupyter notebook and manage their models with this simple management console UI on our website.</p>
+      <figure><img src="/writing/img/numerai-tutorial-notebooks-05.png" alt="figure"></figure>
+      <p>You can read more about Model Uploads in this medium post I wrote:</p>
+      <p><a href="https://medium.com/numerai/numerai-model-uploads-d27c6571f12e">Numerai Model Uploads</a></p>
+      <p>It was only by getting all of this infrastructure complexity out of the way that we could make the new user onboarding experience streamlined and focused on the core data science problem, which is the more interesting and engaging part of Numerai.</p>
+    </article>
+
+    <footer class="site-footer">
+      © 2026 Anson Chu · <a href="/">home</a>
+    </footer>
+
+  </main>
+</body>
+</html>
