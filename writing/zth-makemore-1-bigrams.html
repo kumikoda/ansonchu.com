@@ -13,6 +13,7 @@
     <article>
       <h1>Makemore Part 1 - Bigram Model</h1>
       <p class="post-meta">2023-10 · notes · zero to hero</p>
+      <p>Video: <a href="https://www.youtube.com/watch?v=PaCmpygFfXo">The spelled-out intro to language modeling: building makemore</a></p>
 
       <h2>Problem</h2>
       <p>How do you create a model of natural language and use it generate text?</p>
@@ -23,7 +24,7 @@
 
       <h3>Bigrams</h3>
       <p>A “bigram” is just a pair of adjacent characters (or syllables or words). For example, the character bigrams of the string <code>anson</code> would just be <code>an</code>, <code>ns</code>, <code>so</code>, and <code>on</code>. If we also consider the start and end of words as special characters <code>.</code>, then we end up with 2 additional bigrams <code>.a</code> and <code>n.</code></p>
-      <!-- missing image: zth-makemore-1-bigrams-01.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-01.png" alt="figure"></figure>
       <pre><code># break "Anson" into bigrams
 w = 'anson'
 chs = ['.'] + list(w) + ['.']
@@ -37,8 +38,8 @@ list(bigrams)
         <li>Each cell in the table contains the bigram and its observed frequency. The darker the background the higher the frequency.</li>
         <li>Cells within the same row contain bigrams that start with the same character. For example, the first row contain all bigrams starting with <code>.</code>.</li>
       </ul>
-      <!-- missing image: zth-makemore-1-bigrams-02.png (no caption) -->
-      <!-- missing image: zth-makemore-1-bigrams-03.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-02.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-03.png" alt="figure"></figure>
       <pre><code># Initialize empty matrix
 N = torch.zeros((27, 27), dtype=torch.int32)
 
@@ -60,8 +61,8 @@ for w in words:
         <li>Each cell in the table contains the bigram and the probability that the second character in the bigram follows the first.</li>
         <li>Since cells within the same row contain bigrams that start with the same character, the sum of probabilities within a row is exactly 1.</li>
       </ul>
-      <!-- missing image: zth-makemore-1-bigrams-04.png (no caption) -->
-      <!-- missing image: zth-makemore-1-bigrams-05.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-04.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-05.png" alt="figure"></figure>
       <pre><code># Add a bit of smoothing to prevent 0 probabilities
 P = (N+1).float()
 # normalize counts N into probabilities P (with smoothing)
@@ -94,7 +95,7 @@ for i in range(10):
       <h2>Loss</h2>
       <p>How do we measure the quality of our model? It is conventional in ML to measure quality of models in terms of “loss”, where loss=0 is considered the perfect score.</p>
       <p>There are many different “loss functions”. In this example, we will use the “negative log likelihood” or NLL loss function.</p>
-      <!-- missing image: zth-makemore-1-bigrams-06.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-06.png" alt="figure"></figure>
       <p>For example, to compute our model’s NLL over our list of names, we can simply break down each name into <code>N</code> bigrams, sum up the <code>log</code> probabilities of the 2nd character following the 1st character (<code>P_i</code>), then negate and divide by <code>N</code>.</p>
       <pre><code>log_likelihood = 0 # running sum of log probabilities
 n = 0 # number of samples
@@ -169,9 +170,9 @@ logits = xenc @ W</code></pre>
       <p>In the code above, we are using one hot encoding and matrix multiplication to “pluck out” the desired row of weights from <code>W</code>. How does this work?</p>
       <p>Recall that <code>xs</code> is just the list of every 1st character (index) and <code>ys</code> is the list of every 2nd character (index) in our dataset. For example if our dataset only contains one name <code>anson</code>, then <code>xs</code> would be the indices corresponding to [<code>.</code>, <code>a</code>, <code>n</code>, <code>s</code>, <code>o</code>, <code>n</code>] and <code>ys</code> would be indices corresponding to [<code>a</code>, <code>n</code>, <code>s</code>, <code>o</code>, <code>n</code>, <code>.</code>], and <code>N=6</code>.</p>
       <p>One hot encoding is a technique used to transform categorical labels into binary vectors. In our case, we are encoding each character label into a binary vector in character space, where we have 27 characters. For example, the character <code>a</code> would have a <code>1</code> in the <code>a</code> column and <code>0</code> for all other columns. In this way, the list of characters <code>xs</code> with length <code>N</code> would be transformed into a list of binary vectors <code>xenc</code> with shape <code>Nx27</code>.</p>
-      <!-- missing image: zth-makemore-1-bigrams-07.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-07.png" alt="figure"></figure>
       <p>To illustrate how <code>xenc @ w</code> is the same as “plucking out” the rows from <code>W</code> corresponding to each character in <code>xs</code>, let us just consider the following toy example.</p>
-      <!-- missing image: zth-makemore-1-bigrams-08.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-08.png" alt="figure"></figure>
 
       <h3>Logits and Probabilities</h3>
       <pre><code># exponentiate to get counts (equivalent to row in N matrix above)

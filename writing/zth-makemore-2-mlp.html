@@ -13,13 +13,14 @@
     <article>
       <h1>Makemore Part 2 - Multilayer Perceptron</h1>
       <p class="post-meta">2023-10 · notes · zero to hero</p>
+      <p>Video: <a href="https://www.youtube.com/watch?v=TCH_1BHY58I">Building makemore Part 2: MLP</a></p>
 
       <h2>Background</h2>
       <p>Based on the paper <em>A Neural Probabilistic Language Model</em> by Bengio et al. in 2003.</p>
 
       <h3>Problem</h3>
       <p>N-gram language models are limited by the <em>curse of dimensionality</em>.</p>
-      <!-- missing image: zth-makemore-2-mlp-01.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-2-mlp-01.png" alt="figure"></figure>
       <p>Since the number of permutations of sequences (and thus number of model parameters) <u>scale exponentially with</u> <code>N</code>, it is not practical to scale <code>N</code> even though there is obvious value in considering more context.</p>
       <p>At the same time, the high number of sequence permutations makes it is unlikely that sequences in the test set will also be in the training set, which limits the model’s ability to generalize.</p>
 
@@ -29,9 +30,9 @@
 
       <h3>Embedding</h3>
       <p>The sentence “The cat is walking in the bedroom” should help us generalize to make the sentence “A dog was running in a room” because “cat” and “dog” (resp. “is” and “was”, … etc) have similar semantic and grammatical roles.</p>
-      <!-- missing image: zth-makemore-2-mlp-02.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-2-mlp-02.png" alt="figure"></figure>
       <p>A hypothetical 3-dimensional embedding of these words might look something like this. Each word is represented by a 3-dimensional vector. Words that are semantically similar would be “close” to each other, and the similarity of two words can be measured by the distance between the two vectors with cosine similarity.</p>
-      <!-- missing image: zth-makemore-2-mlp-03.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-2-mlp-03.png" alt="figure"></figure>
       <p>The higher the number of dimensions in the embedding, the deeper the semantic relationship potentially captured.</p>
 
       <h3>Network Architecture</h3>
@@ -39,7 +40,7 @@
       <p>First, each of the <code>N</code> previous words in the context are transformed into vectors via a learned embedding lookup table <code>C</code> with <code>D</code> number of dimensions. These embedded vectors are concatenated to form the values of the input layer, so the size of the input layer is simply <code>NxD</code>.</p>
       <p>Then, the hidden layer is a linear layer with learned weights <code>W_1</code> and biases <code>B_1</code> and a <code>tanh</code> activation function. The size of the hidden layer is a hyper-parameter.</p>
       <p>Finally, the output layer is also a linear layer with learned weights <code>W_2</code>, biases <code>B_2</code> and a <code>softmax</code> activation function. The size of the output layer is <code>V</code> (number of words in the vocabulary).</p>
-      <!-- missing image: zth-makemore-2-mlp-04.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-2-mlp-04.png" alt="figure"></figure>
 
       <h2>Implementation</h2>
       <p>Let’s implement a MLP, but at the character level instead of at the word level. We will be using the same list of names we used in our previous bigram model.</p>
@@ -131,7 +132,7 @@ for i in range(training_steps):
     losstri.append(loss.item())
 
     print(i, loss.item())</code></pre>
-      <!-- missing image: zth-makemore-2-mlp-05.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-2-mlp-05.png" alt="figure"></figure>
 
       <h3>Evaluation</h3>
       <p>Note that the loss we looked at above was only the loss of each mini batch during the training phase. Here is the actual loss on the train, val, and test splits.</p>
@@ -158,7 +159,7 @@ for i in range(training_steps):
 
       <h3>Visualizing the character embedding</h3>
       <p>Here is a plot of the first dimension of the embedding. You can sort of see some structure here: the vowels are grouped together in the top left region, all the consonants are in the middle area, and the letters “v” and “q” are far away in the bottom right.</p>
-      <!-- missing image: zth-makemore-2-mlp-06.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-2-mlp-06.png" alt="figure"></figure>
 
       <h3>Sampling from the model</h3>
       <p>Here is the code to sample from the model. We initialize the context with all <code>.</code> characters so the model is free to generate any name.</p>

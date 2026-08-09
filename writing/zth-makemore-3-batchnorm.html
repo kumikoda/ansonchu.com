@@ -13,6 +13,7 @@
     <article>
       <h1>Makemore Part 3 - Activations &amp; Gradients, BatchNorm</h1>
       <p class="post-meta">2023-10 · notes · zero to hero</p>
+      <p>Video: <a href="https://www.youtube.com/watch?v=P6sfmUTpUmc">Building makemore Part 3: Activations & Gradients, BatchNorm</a></p>
 
       <h2>Improving our basic MLP</h2>
       <p>This is the MLP we ended up with in the previous lesson.</p>
@@ -64,27 +65,27 @@ for i in range(training_steps):
 
       <h3>Fixing the initial loss</h3>
       <p>Recall that our training loss chart looked like this, where start with a very high loss and quickly descend in the first few thousand iterations like a hockey stick. The reason why we have this high loss in the beginning is because we initialized our weights with random values. The result is that the logits coming out of the model (right before softmax) are taking on extreme values in the beginning. In a sense, this is like being very “confidently wrong” when in reality we should be much less confident.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-01.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-01.png" alt="figure"></figure>
       <p>What we want instead is for the logits to be more uniform and for symmetry ideally around 0. Recall that <code>logits = h @ W2 + b2</code>. So the simple way we can do this is just to multiply <code>w1</code> by <code>0.01</code> (greatly reduce magnitude) and set <code>b2</code> to <code>0</code> (no bias).</p>
       <pre><code>W2 = torch.randn((neurons, vocab_size),             generator=g) * 0.01
 b2 = torch.randn(vocab_size,                        generator=g) * 0</code></pre>
       <p>By make this simple change, our train loss no longer exhibits the hockey stick shape in the beginning. This is desirable because the training loop is spending less iterations fixing the overconfidence in the beginning, and more iterations actually learning something useful.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-02.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-02.png" alt="figure"></figure>
 
       <h3>Fixing the initial saturated tanh</h3>
       <p>If we pause our training loop and visualize the values of <code>h</code> (across all neurons) we can see that the values it takes on is mostly <code>-1</code> or <code>1</code>. Recall that <code>h = torch.tanh(hpreact)</code>. If we take a look at <code>hpreact</code>, we see that the values have a wide distribution.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-03.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-04.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-03.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-04.png" alt="figure"></figure>
       <p>Recall that <code>tanh</code> has this shape. So if the distribution of the inputs are too wide, then you will almost always just be in the flat regions near <code>-1</code> and <code>1</code>. This is a problem because the gradient near the flat parts of the tails is very close to 0. This means that backward pass won’t have any impact on it.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-05.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-05.png" alt="figure"></figure>
       <p>If any single neuron only ever takes on the <code>-1</code> and <code>1</code> values, then it is basically a dead neuron and can never learn. One way to visualize this is to check if any neuron has <code>h</code> in the tail regions for all its inputs (a solid white column). Fortunately, we don’t have any dead neurons here. This means that each neuron at least SOME inputs where it is not completely  <code>-1</code> and <code>1</code>, so it will learn.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-06.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-06.png" alt="figure"></figure>
       <p>To fix this problem, we just need to squash the distribution of <code>hpreact</code>. Recall that <code>hpreact = embcat @ W1 + b1</code>. The activations now look much better.</p>
       <pre><code>W1 = torch.randn((dimensions*block_size, neurons),  generator=g) * 0.2
 b1 = torch.randn(neurons,                           generator=g) * 0.01</code></pre>
-      <!-- missing image: zth-makemore-3-batchnorm-07.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-08.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-09.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-07.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-08.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-09.png" alt="figure"></figure>
 
       <h3>Kaiming initialization</h3>
       <p>Is there a more principled way to set these multipliers?</p>
@@ -92,25 +93,25 @@ b1 = torch.randn(neurons,                           generator=g) * 0.01</code></
       <pre><code>x = torch.randn(1000, 10)
 w = torch.randn(10, 200)
 y = x @ w</code></pre>
-      <!-- missing image: zth-makemore-3-batchnorm-10.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-11.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-10.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-11.png" alt="figure"></figure>
       <p>This is not what we want. What we want is unit Gaussian distributions throughout the layers of the neural net. The question is: how do we scale the <code>w</code> in such a way to preserve the unit Gaussian distribution in <code>y</code>?</p>
       <p>Turns out you are supposed to divide <code>w</code> by the square root of the “fan-in” (number of input elements). In this case, since our <code>w</code>.</p>
       <pre><code>x = torch.randn(1000, 10)
 w = torch.randn(10, 200) / 10**0.5
 y = x @ w</code></pre>
-      <!-- missing image: zth-makemore-3-batchnorm-12.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-12.png" alt="figure"></figure>
       <p>But what if we have a non-linear activation after the linear layer? How do we initialize the weights such that these activations take on reasonable values throughout the network?</p>
       <p>Turns out there is a principled way to initialize these weights known as Kaiming initialization, introduced in the paper <a href="https://arxiv.org/abs/1502.01852">Delving Deep into Rectifiers</a>. Basically our goal is to initialize weights such that <code>std = gain / root(fan_mode)</code>, where <code>fan_mode</code> is either <code>fan_in</code> to preserve variance in the forward pass or <code>fan_out</code> for the backward pass. In the paper the analysis shows the difference between controlling either mode is about the same, so most people just use the default which is <code>fan_in</code>.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-13.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-13.png" alt="figure"></figure>
       <p>For every non-linearity, there is an associated “gain” multiplier, to counteract the “squashing” (lowering standard deviation) of non-linearities. The different gains can be found in the <a href="https://pytorch.org/docs/stable/nn.init.html">PyTorch docs</a>.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-14.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-14.png" alt="figure"></figure>
       <p>Back to our actual implementation. Because we are using <code>tanh</code>, we will use the gain of <code>5/3</code> and we will also be using the default <code>fan_in</code> mode. Setting the standard deviation of a unit gaussian is the same as just multiplying by the target number.</p>
       <pre><code> W1 = torch.randn((dimensions*block_size, neurons),  generator=g) * 5/3 / (dimensions*block_size)**0.5</code></pre>
 
       <h3>Batch Normalization</h3>
       <p>So we have these hidden states, and we want them to be unit Gaussian, why not just make them exactly unit Gaussian (at least in the beginning)? That is the key idea of Batch Normalization introduced in the <a href="https://arxiv.org/abs/1502.03167">Batch Normalization paper</a>.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-15.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-15.png" alt="figure"></figure>
       <p>So instead of feeding <code>hpreact</code> directly into <code>tanh</code>, we just have to normalize it first. We will initialize <code>bngain</code> to <code>1</code> and <code>bnbias</code> to <code>0</code> so that we start with a unit Gaussian for <code>hpreact</code>. But as the network trains, it will be allowed to move the distribution around, allowing some neurons to be more active and others less active.</p>
       <pre><code>bngain = torch.ones((1, neurons))
 bnbias = torch.zeros((1, neurons))</code></pre>
@@ -303,7 +304,7 @@ for i in range(max_steps):
     break # AFTER DEBUG: would take out obviously to run full optimization</code></pre>
 
       <h3>Architecture</h3>
-      <!-- missing image: zth-makemore-3-batchnorm-16.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-16.png" alt="figure"></figure>
 
       <h3>Visualizing layer activations</h3>
       <p>Let’s take a look at the activations for our new deeper model.</p>
@@ -324,8 +325,8 @@ with torch.no_grad():
     for l in layers[:-1]:
         if isinstance(l, Linear):
             l.weight *= 5/3</code></pre>
-      <!-- missing image: zth-makemore-3-batchnorm-17.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-18.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-17.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-18.png" alt="figure"></figure>
       <p>If we instead set the gain to <code>1.0</code> (the correct setting for no non-linearity), we end up with activations that look much better (stable across layers) for both forward and backwards.</p>
       <pre><code>layers = [
     Linear(n_emb*block_size, n_hidden),
@@ -343,24 +344,24 @@ with torch.no_grad():
     for l in layers[:-1]:
         if isinstance(l, Linear):
             l.weight *= 1</code></pre>
-      <!-- missing image: zth-makemore-3-batchnorm-19.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-20.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-19.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-20.png" alt="figure"></figure>
       <p>If we bring the Tanh layers back along with the gain of 5/3, then we will also see a nice plot of the activations. The shapes are different because we are now looking at the output of Tanh instead of Linear.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-21.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-22.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-21.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-22.png" alt="figure"></figure>
 
       <h3>Gradient statistics</h3>
       <p>Another thing we can look at is the gradients of our parameters. This plot is a bit troubling since the final layer looks extremely wide, compared to all the other layers, at least at initialization. In other words, this final layer is being trained about 10x faster than all the other layers.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-23.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-23.png" alt="figure"></figure>
       <p>However, if we just let the training loop run for a few iterations (say 1000), the problem somewhat fixes itself. As you can see the last layer is coming in a bit.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-24.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-24.png" alt="figure"></figure>
 
       <h3>Gradient update ratios</h3>
       <p>But perhaps what is more informative is looking at the update ratios (ie how fast our layers are training) over time.</p>
       <p>The black line is a benchmark set to <em>~1e-3</em> which is the recommended level.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-25.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-25.png" alt="figure"></figure>
       <p>If our learning rate is too low (say we set it to 0.001), then we can easily spot it using this chart.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-26.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-26.png" alt="figure"></figure>
 
       <h3>Using these charts to spot problems</h3>
       <p>Let’s say we forgot to divide by the square root of fan-in in our linear layer weight initialization.</p>
@@ -369,11 +370,11 @@ with torch.no_grad():
         self.weight = torch.randn((fan_in, fan_out), generator=g) # / fan_in**0.5
         self.bias = torch.zeros(fan_out) if bias else None</code></pre>
       <p>We will be able to quickly notice that something is wrong by looking at all of our charts. The forward activations are way too saturated. The backward activations go from extremely narrow to extremely wide. Same for the weights. We notice a lot of asymmetry across the layers in general.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-27.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-28.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-29.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-27.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-28.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-29.png" alt="figure"></figure>
       <p>In this chart, we can see a lot of dispersion in terms of how fast each layer is learning, with some layers learning way too fast while others being too slow.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-30.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-30.png" alt="figure"></figure>
 
       <h3>Batch Normalization</h3>
       <p>Above, we saw (again) how the network is somewhat sensitive to how we initialize the weights of the network without Batch Normalization. Adding Batch Normalization should make this more robust since it is forcing a normalization at the end of every linear layer.</p>
@@ -399,13 +400,13 @@ with torch.no_grad():
     for l in layers[:-1]:
         if isinstance(l, Linear):
             l.weight *= 1</code></pre>
-      <!-- missing image: zth-makemore-3-batchnorm-31.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-32.png (no caption) -->
-      <!-- missing image: zth-makemore-3-batchnorm-33.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-31.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-32.png" alt="figure"></figure>
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-33.png" alt="figure"></figure>
       <p>The only thing is that we may still need to re-tune our learning rates. So it is not a complete free pass. Here it looks like our learning rate is too low.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-34.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-34.png" alt="figure"></figure>
       <p>Bumping the learning rate from 0.1 to 1 looks good.</p>
-      <!-- missing image: zth-makemore-3-batchnorm-35.png (no caption) -->
+      <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-35.png" alt="figure"></figure>
     </article>
     <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
   </main>

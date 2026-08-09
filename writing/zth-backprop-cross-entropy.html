@@ -16,44 +16,47 @@
       <p>Okay if you are like me, you probably struggled a bit to follow the math from exercise 2 in this video.</p>
       <p><a href="https://youtu.be/q8SA3rM6ckI?si=on2Bu9lDcWlOtIwQ&amp;t=5453">https://youtu.be/q8SA3rM6ckI?si=on2Bu9lDcWlOtIwQ&amp;t=5453</a></p>
       <p>The first section containing the problem setup was pretty clear, though some of the handwriting is barely legible 😅</p>
-      <!-- missing image: Karpathy's problem setup -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-01.png" alt="Karpathy&#x27;s problem setup"><figcaption>Karpathy&#x27;s problem setup</figcaption></figure>
       <p>Here is my version.</p>
-      <!-- missing image: my version of the problem setup -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-02.png" alt="my version of the problem setup"><figcaption>my version of the problem setup</figcaption></figure>
       <p>This first part of his derivation was also pretty straightforward. Note that we are skipping the mean part since we are only trying to compute the loss of a single example.</p>
-      <!-- missing image: first part of Karpathy's derivation -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-03.png" alt="first part of Karpathy&#x27;s derivation"><figcaption>first part of Karpathy&#x27;s derivation</figcaption></figure>
       <p>Here is my version of it. At first I was a bit confused about the usage of both <code>i</code>, <code>y</code>, and <code>j</code>, and thought maybe there was a typo here. But then I realized that they are indeed distinct things. What helped me link these 3 variables together was the phrase “loss with respect to the <code>ith</code> logit of a single example <code>y</code>”, where <code>j</code> is just local variable inside the summation expression.</p>
-      <!-- missing image: my version of the first part of the derivation -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-04.png" alt="my version of the first part of the derivation"><figcaption>my version of the first part of the derivation</figcaption></figure>
       <p>Note that we only sorta applied the chain rule here. At this point, all we did was use chain rule to take care of the <code>log</code> part of the derivative. We don’t actually know what the derivative of the softmax function is yet, we need to further simplify.</p>
       <p>This next part of the derivation took me quite a bit of time to grok, as “first or second year of bachelors math” was over 10 years ago for me 😅.</p>
-      <!-- missing image: next part of the derivation -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-05.png" alt="next part of the derivation"><figcaption>next part of the derivation</figcaption></figure>
       <p>One of the main things that confused me a lot was the way Karpathy crossed out the negative sign, yielding this strange symbol that looks like a negative sign with an arrow pointing downwards. At first I thought maybe this was a branch of mathematics I have never seen before, but after reading through comments on the discord channel, I surmised that this is just how he crosses out the negative sign. In my work above, I prefer to just cross out the negative sign like I cross out any other term</p>
-      <!-- missing image: Karpathy's crossed-out negative sign -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-06.png" alt="Karpathy&#x27;s crossed-out negative sign"><figcaption>Karpathy&#x27;s crossed-out negative sign</figcaption></figure>
       <p>Here is my version for the first branch where <code>i ≠ y</code> . The most important thing to note is that we are applying the quotient rule as opposed to the product rule + power rule as noted in his notes. Yes the quotient rule can be derived from the product rule but I am pretty sure the power rule here is a typo.</p>
-      <!-- missing image: my version of the first branch (i ≠ y) -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-07.png" alt="my version of the first branch (i ≠ y)"><figcaption>my version of the first branch (i ≠ y)</figcaption></figure>
       <p>The core thing to understand here is what the following expression even means. The derivative of <code>l_y</code> with respect to <code>l_i</code> may seem a bit confusing, since <code>l_y</code> is not a function of <code>l_i</code>, they are referring to different things, right? Well not really. If <code>y = i</code>, then they are indeed the same thing, and so the derivative of something with respect to itself is just 1. But if i <strong><em>≠</em></strong> y, then they are indeed different things, so the derivative of something with respect to another unrelated thing is just 0!</p>
-      <!-- missing image: derivative of l_y with respect to l_i -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-08.png" alt="derivative of l_y with respect to l_i"><figcaption>derivative of l_y with respect to l_i</figcaption></figure>
       <p>In other words…</p>
-      <!-- missing image: the two cases written out -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-09.png" alt="the two cases written out"><figcaption>the two cases written out</figcaption></figure>
       <p>Now that we understand the above, we can use this to help us simplify this part of our quotient rule. Since we are in the  i <strong><em>≠</em></strong> y branch, this entire expression simplifies to 0.</p>
-      <!-- missing image: simplifying this part of the quotient rule to 0 -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-10.png" alt="simplifying this part of the quotient rule to 0"><figcaption>simplifying this part of the quotient rule to 0</figcaption></figure>
       <p>The second tricky thing to understand is how this line works.</p>
-      <!-- missing image: the tricky line with the summation -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-11.png" alt="the tricky line with the summation"><figcaption>the tricky line with the summation</figcaption></figure>
       <p>In particular, what does this even mean? Again we have this strangeness where we are trying to get a derivative <code>l_i</code> but we don’t even see <code>l_i</code> in the expression! Well turns out <code>l_i</code> is actually in the expression if you unroll the summation into its individual terms. Since <code>j</code> spans all possible values of <code>i</code>, you can think of the sum to just be a single e to the <code>l_i</code> plus a bunch of other arbitrary constants. Since the derivative of a constant is 0 we can just ignore them. And the derivative of exponent is just exponent, so we are left with just the single e to the <code>l_i</code>.</p>
-      <!-- missing image: unrolling the summation into individual terms -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-12.png" alt="unrolling the summation into individual terms"><figcaption>unrolling the summation into individual terms</figcaption></figure>
       <p>Okay so I admit it took me a bit of time to actually understand these few lines (which Karpathy does not even write out 😅). I had to google around to find some hints and I found this following article very useful.</p>
-      <!-- bookmark block from Notion (URL not exposed via API) -->
+      <p><a href="https://youtu.be/q8SA3rM6ckI?si=on2Bu9lDcWlOtIwQ&t=5453">https://youtu.be/q8SA3rM6ckI?si=on2Bu9lDcWlOtIwQ&amp;t=5453</a></p>
       <p>Now once you understand the above, getting to the final answer for this branch is quite trivial. Well deserved smiley face indeed.</p>
-      <!-- missing image: final answer for the i ≠ y branch -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-13.png" alt="final answer for the i ≠ y branch"><figcaption>final answer for the i ≠ y branch</figcaption></figure>
       <p>The other branch is actually pretty much the exact same thing except for one term.</p>
-      <!-- missing image: the other branch (i = y) -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-14.png" alt="the other branch (i = y)"><figcaption>the other branch (i = y)</figcaption></figure>
       <p>Recall that now i = y</p>
-      <!-- missing image: recall that i = y -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-15.png" alt="recall that i = y"><figcaption>recall that i = y</figcaption></figure>
       <p>Which means that we can’t simplify this expression to 0. Instead we get a e to the <code>l_i</code> term.</p>
-      <!-- missing image: the e to the l_i term -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-16.png" alt="the e to the l_i term"><figcaption>the e to the l_i term</figcaption></figure>
       <p>Plugging this into our expression in the quotient rule gives us this beauty. Note that I changed the order of the terms to make it less ambiguous what is inside vs outside of the summation.</p>
-      <!-- missing image: plugging into the quotient rule -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-17.png" alt="plugging into the quotient rule"><figcaption>plugging into the quotient rule</figcaption></figure>
       <p>The rest of it is just basic math. But again, well deserved smiley face.</p>
-      <!-- missing image: final answer for the i = y branch -->
+      <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-18.png" alt="final answer for the i = y branch"><figcaption>final answer for the i = y branch</figcaption></figure>
+    
+      <hr>
+      <p>Reference: <a href="https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative">The Softmax function and its derivative — Eli Bendersky</a></p>
     </article>
     <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
   </main>

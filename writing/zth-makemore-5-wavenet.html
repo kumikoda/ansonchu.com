@@ -13,7 +13,7 @@
     <article>
       <h1>Makemore Part 5 - Building a WaveNet</h1>
       <p class="post-meta">2023-11 · notes · zero to hero</p>
-      <!-- bookmark block in Notion (URL not resolvable from export) -->
+      <p><a href="https://www.youtube.com/watch?v=t3YJ5hKiMQ0">Building makemore Part 5: Building a WaveNet</a></p>
       <h2>Overview</h2>
       <p>We take the 2-layer MLP from part 3 and we make it deeper with a tree-like structure (instead of just stacking more layers like we did before).</p>
       <h2>Some code improvements</h2>
@@ -71,10 +71,10 @@ for i in range(max_steps):
       <p><strong>Fixing the learning rate plot</strong></p>
       <p>This is what our original plot of our looks like. But it is kind of difficult to read given how wide the band of values are. The wide distribution of values come from the fact that we are training in batches.</p>
       <pre><code>plt.plot(lossi)</code></pre>
-      <!-- missing image: raw loss plot (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-01.png" alt="raw loss plot (no caption in Notion)"><figcaption>raw loss plot (no caption in Notion)</figcaption></figure>
       <p>Instead of plotting each datapoint, we can plot the mean of each 1000 points to get a smoother line. This plot is much more informative. We can even start to see the effect of our learning rate decay, which was previously completely obfuscated by the wide band of values.</p>
       <pre><code>plt.plot(torch.tensor(lossi).view(-1, 1000).mean(1))</code></pre>
-      <!-- missing image: smoothed loss plot (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-02.png" alt="smoothed loss plot (no caption in Notion)"><figcaption>smoothed loss plot (no caption in Notion)</figcaption></figure>
       <p><strong>Pytorchifying the embedding</strong></p>
       <p>In order to clean up our code a bit, we can introduce these two classes to replace the special case code we have for our embedding.</p>
       <pre><code>class Embedding:
@@ -137,16 +137,16 @@ logits = model(Xb)
 loss = F.cross_entropy(logits, Yb) # loss function</code></pre>
       <h2>Wavenet</h2>
       <p>Recall the architecture of our initial MLP.</p>
-      <!-- missing image: initial MLP architecture diagram (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-03.png" alt="initial MLP architecture diagram (no caption in Notion)"><figcaption>initial MLP architecture diagram (no caption in Notion)</figcaption></figure>
       <p>And then recall how we tried to make it deeper by adding more hidden layers.</p>
-      <!-- missing image: deeper MLP with more hidden layers (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-04.png" alt="deeper MLP with more hidden layers (no caption in Notion)"><figcaption>deeper MLP with more hidden layers (no caption in Notion)</figcaption></figure>
       <p>But even though we are adding more hidden layers, we are still “crushing” the context of the input layer too soon, which limits our ability to increase the context length.</p>
       <p>Instead, we want to fuse the earlier layers together progressively (or hierarchically) like they did in the Wavenet paper.</p>
-      <!-- bookmark block in Notion (URL not resolvable from export) -->
-      <!-- missing image: WaveNet dilated causal convolutions figure (no caption in Notion) -->
+      <p><a href="https://arxiv.org/abs/1609.03499">WaveNet: A Generative Model for Raw Audio</a></p>
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-05.png" alt="WaveNet dilated causal convolutions figure (no caption in Notion)"><figcaption>WaveNet dilated causal convolutions figure (no caption in Notion)</figcaption></figure>
       <p><strong>Batch dimensions</strong></p>
       <p>For us, we will be increasing our block_size from 3 to 8, which makes our graph look like this.</p>
-      <!-- missing image: hierarchical fusion graph with block_size 8 (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-06.png" alt="hierarchical fusion graph with block_size 8 (no caption in Notion)"><figcaption>hierarchical fusion graph with block_size 8 (no caption in Notion)</figcaption></figure>
       <p>Say we have a batch of 4 examples, let’s try to visualize the shapes of the tensors through the forward pass.</p>
       <pre><code>block_size = 8
 n_embd = 10
@@ -164,15 +164,15 @@ model = Sequential([
         <li>output of flatten is <code>4 examples x 80 character embeddings</code> where the embeddings of all 8 characters got flattened or concatenated into a single array</li>
         <li>output of linear layer is <code>4 examples x 200 neurons</code> otherwise known as 200 “channels”</li>
       </ul>
-      <!-- missing image: tensor shapes through the forward pass (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-07.png" alt="tensor shapes through the forward pass (no caption in Notion)"><figcaption>tensor shapes through the forward pass (no caption in Notion)</figcaption></figure>
       <p>What happens inside the linear layer looks like this. <code>4</code> is our batch dimension and <code>80</code> is the dimension of the input. Since we have <code>200</code> channels, we end up with <code>4x200</code> as our output.</p>
-      <!-- missing image: linear layer matrix multiply diagram (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-08.png" alt="linear layer matrix multiply diagram (no caption in Notion)"><figcaption>linear layer matrix multiply diagram (no caption in Notion)</figcaption></figure>
       <p>But we can actually add more batch dimensions. For example if we added 2 more batch dimensions so that our input was <code>4x5x6</code> then our output will just be <code>4x5x6x200</code>. Essentially the matrix multiplication only happens on the last dimension of the input, and all preceding dimensions are treated as batch dimensions and simply passes through.</p>
-      <!-- missing image: extra batch dimensions diagram (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-09.png" alt="extra batch dimensions diagram (no caption in Notion)"><figcaption>extra batch dimensions diagram (no caption in Notion)</figcaption></figure>
       <p>This is useful because we can essentially break up the 8 characters of each example into, say, 4 groups of 2 characters, and our linear layer would still work as expected. This is</p>
-      <!-- missing image: grouping characters diagram (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-10.png" alt="grouping characters diagram (no caption in Notion)"><figcaption>grouping characters diagram (no caption in Notion)</figcaption></figure>
       <p>So instead of having <code>4x80</code> as our input, we can actually rewrite this as <code>4x4x20</code> where the first 4 is our initial batch dimension, and the <code>80</code> (which was 8 characters x 10 dimensions) got split into <code>4x20</code> (which is 4 groups of 2 characters x 10 dimensions).</p>
-      <!-- missing image: 4x80 reshaped to 4x4x20 diagram (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-11.png" alt="4x80 reshaped to 4x4x20 diagram (no caption in Notion)"><figcaption>4x80 reshaped to 4x4x20 diagram (no caption in Notion)</figcaption></figure>
       <p><strong>Flatten Consecutive</strong></p>
       <p>Recall that we have this Flatten layer. Basically all it does is keep the first (or zeroth) dimension and flatten the rest of the dimensions. So a <code>4x8x10</code> would become <code>4x80</code>.</p>
       <pre><code>class Flatten:
@@ -244,9 +244,9 @@ model = Sequential([
         </li>
         <li>Linear <code>4x27</code> (batch of 4, fan-out 27)</li>
       </ul>
-      <!-- missing image: layer-by-layer output shapes (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-12.png" alt="layer-by-layer output shapes (no caption in Notion)"><figcaption>layer-by-layer output shapes (no caption in Notion)</figcaption></figure>
       <p>Basically, every time we go through a <code>FlattenConsecutive(2)</code>, we reduce the number of groups by 2. In the last FlattenConsecutive, since we end up with a single group, that dimension gets squeezed out. Doing <code>FlattenConsecutive(2)</code> 3 times is equivalent (in terms of shape) of calling <code>FlattenConsecutive(8)</code> a single time.</p>
-      <!-- missing image: FlattenConsecutive(2) x3 vs FlattenConsecutive(8) diagram (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-13.png" alt="FlattenConsecutive(2) x3 vs FlattenConsecutive(8) diagram (no caption in Notion)"><figcaption>FlattenConsecutive(2) x3 vs FlattenConsecutive(8) diagram (no caption in Notion)</figcaption></figure>
       <p>Also note that every time we go through a Linear layer, we fan-out back to 200 channels. This does not change. It is only the group dimension that is being crushed at each FlattenConsecutive layer.</p>
       <p><strong>Reducing n_hidden</strong></p>
       <p>Before we move on, we will just reduce our n_hidden (or channel dimension) from 200 to 68 so that our total number of parameters stays approximately the same.</p>
@@ -309,15 +309,15 @@ model = Sequential([
       <p>Performance gets a bit better but since we don’t have an experimental harness its going to be hard for us to tune these numbers any further.</p>
       <p><strong>Convolution is like a for-loop</strong></p>
       <p>Let’s say we are only considering this one name, which gives us 8 independent examples.</p>
-      <!-- missing image: one name as 8 independent examples (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-14.png" alt="one name as 8 independent examples (no caption in Notion)"><figcaption>one name as 8 independent examples (no caption in Notion)</figcaption></figure>
       <p>If we wanted to forward this single example, we can put the single example in a 1D tensor.</p>
-      <!-- missing image: single example in a 1D tensor (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-15.png" alt="single example in a 1D tensor (no caption in Notion)"><figcaption>single example in a 1D tensor (no caption in Notion)</figcaption></figure>
       <p>If we wanted to forward all 8 examples, we could put it in a for loop but we would then have to call our model 8 times (one for each example).</p>
-      <!-- missing image: for loop over 8 examples (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-16.png" alt="for loop over 8 examples (no caption in Notion)"><figcaption>for loop over 8 examples (no caption in Notion)</figcaption></figure>
       <p>We could also calculate all of them at the same time as a batch, but we are still treating each of the examples as independent examples.</p>
-      <!-- missing image: batched examples still independent (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-17.png" alt="batched examples still independent (no caption in Notion)"><figcaption>batched examples still independent (no caption in Notion)</figcaption></figure>
       <p>If we consider the original diagram in the Wavenet paper, what we implemented is basically just the black tree-like structure which calculates a single output. Even if we batched all of our 8 examples, we would need to then recreate the tree 8 times, each one unit shifted over. With convolutions (which we did not implement), the intermediate nodes actually can get reused since we are computing all of the outputs in parallel (ie the dotted lines).</p>
-      <!-- missing image: WaveNet paper tree diagram with reused intermediate nodes (no caption in Notion) -->
+      <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-18.png" alt="WaveNet paper tree diagram with reused intermediate nodes (no caption in Notion)"><figcaption>WaveNet paper tree diagram with reused intermediate nodes (no caption in Notion)</figcaption></figure>
     </article>
     <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
   </main>
