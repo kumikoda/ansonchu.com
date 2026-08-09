@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backpropagating through batch norm — Anson Chu</title>
+  <meta name="description" content="A step-by-step manual derivation of the batch norm backward pass, including the chain rule mistake that tripped me up.">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="wrap">
+    <a class="backlink" href="/writing/zero-to-hero.html">← Zero to Hero notes</a>
+    <article>
+      <h1>Backpropagating through batch norm</h1>
+      <p class="post-meta">2023-10 · notes · zero to hero</p>
+      <p>Are we having fun with matrix calculus yet? 🙂</p>
+      <p>My wife is noticing that I am spending a lot of time “doing math homework” and asked me, “is this applicable to anything?”. Well the answer is that its probably not really necessary in the grand theme of things. I gave a long answer about how modern ML is all about apply these small tricks like batch normalization to neural nets, so really understanding how this math works in a deep way is the key to understanding modern ML.</p>
+      <p>I think the reality though is just that I am really enjoying these exercises. In comparison, I am blitzing through the coding portions since I feel like they are too easy. Working through these matrix calculus problems though is really scratching that itch for me.</p>
+      <p>Alright so still following along this wonderful video.</p>
+      <!-- bookmark block from Notion (URL not exposed via API) -->
+      <p>The exercise here is to manually backpropagate through the batch norm layer. Here is Karpathy’s solution. As usual, he goes through the math pretty quickly and does not explain every single step, so its easy to get confused.</p>
+      <!-- missing image: Karpathy's solution for the batch norm backward pass -->
+      <p>First we got the problem setup. Below is the computation graph. The numbers 1 2 3 4 are just the suggest intermediate steps he suggests that we follow.</p>
+      <p>The key thing to notice is that some of the elements like <code>x</code> and <code>\hat{x}</code> and <code>y</code> are matrices, while others like <code>µ</code> and <code>σ^2</code> and <code>β</code> and <code>Γ</code> are just single values. This is significant when it comes to chain rule because this means that there are actually many arrows that connect the single values and matrices. When this happens, we need to make sure we sum up all the derivatives instead of just doing it once. You will see below.</p>
+      <!-- missing image: batch norm computation graph with intermediate steps 1-4 -->
+      <p>Step 1 is pretty easy. Nothing much to say here.</p>
+      <!-- missing image: step 1 derivation -->
+      <p>Step 2 is a little bit more interesting. Like I mentioned above, we need to make sure the sum all of the derivatves since <code>σ^2</code> “fans out” to all the elements of <code>\hat{x}</code>. By now I am pretty familiar with the quotient / chain rule, so can breeze through some of these steps.</p>
+      <!-- missing image: step 2 derivation -->
+      <p>Step 3 is a bit hairy. We got two sub derivatives we need to solve for. The first one was pretty straight forward. Quotient rule, easy.</p>
+      <!-- missing image: step 3 first sub-derivative -->
+      <p>But for some reason I got really tripped up at the second one (maybe its the crying baby the in background), not understanding how we got that negative 2. Isn’t the derivative of <code>x^2</code> just <code>2x</code>? Surely this was a typo by Karpathy right??? I even started just googling around to see if I can get some inspiration from other people’s solution to this problem. I couldn’t find any detailed writeups for Karpathy’s course specifically (probably because everyone else finds this so easy) but I did find another person’s notes on the exact same problem.</p>
+      <!-- bookmark block from Notion (URL not exposed via API) -->
+      <p>I stared at this line in disbelief for longer than I care to admit. How is this possible!?</p>
+      <!-- missing image: the confusing line with the negative 2 -->
+      <p>I even asked ChatGPT for help (even though I don’t super trust ChatGPT with symbolic math problems).</p>
+      <!-- missing image: ChatGPT conversation (1 of 2) -->
+      <!-- missing image: ChatGPT conversation (2 of 2) -->
+      <p>It was only when I saw this, that I realized my simple mistake. Of course, I forgot to apply the chain rule 🤦. I wrote this lil note for future self in case I get confused about this basic thing again.</p>
+      <!-- missing image: note to future self about the chain rule -->
+      <p>Okay step 4 was surprisingly easy, though I did take me a bit of time to write it out. The only tricky thing here is the usage of <code>j</code> in the summation.</p>
+      <!-- missing image: step 4 derivation -->
+      <p>Let’s zoom in to that section. Notice that we all of a sudden went from using <code>i</code> to <code>j</code> as the variable in the summation. At first glance it seems like the symbol we decide to use is arbitrary and so maybe Karpathy just decided to do it for fun. But actually he does explain that he switches it up to avoid conflicting with the <code>i</code> in <code>x_i</code>. The <code>i</code> in <code>x_i</code> refers to the ith element of the matrix <code>x</code> whereas the <code>j</code> is the local variable used in the summation — and these are different things!</p>
+      <!-- missing image: zoomed-in section on the i vs j summation variable -->
+      <p>This distinction is important to understand because in the final line of the derivation here, we use it remove the summation from the expression. As Jonathan on discord explains, when we unroll the sum, only one of the terms where <code>i=j</code>, will matter in our derivative which is with respect to <code>x_i</code>, all the other terms where <code>i{=}\mathllap{/\,}j</code> will have a derivative of 0, so can be ignored.</p>
+      <!-- missing image: unrolling the sum to remove the summation -->
+      <p>Hope my lil write up here helps someone!</p>
+      <p>My final parting thoughts is that I am starting to question my decision to use <a href="https://excalidraw.com/">https://excalidraw.com/</a>. On the one hand its quite nice to be able to easily add colored boxes and position random notes just like pen and paper. On the other hand, its kinda annoying how I have to “draw out” simple things like <code>σ^2</code> by typing out 2 in a smaller font and just positioning it near the <code>σ</code>. Maybe I will try another tool in the next exercise.</p>
+    </article>
+    <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
+  </main>
+</body>
+</html>

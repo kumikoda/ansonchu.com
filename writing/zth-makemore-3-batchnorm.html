@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Makemore Part 3 - Activations &amp; Gradients, BatchNorm — Anson Chu</title>
+  <meta name="description" content="Notes on diagnosing activations and gradients in an MLP: fixing initialization, Kaiming init, and Batch Normalization.">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="wrap">
+    <a class="backlink" href="/writing/zero-to-hero.html">← Zero to Hero notes</a>
+    <article>
+      <h1>Makemore Part 3 - Activations &amp; Gradients, BatchNorm</h1>
+      <p class="post-meta">2023-10 · notes · zero to hero</p>
+
+      <h2>Improving our basic MLP</h2>
+      <p>This is the MLP we ended up with in the previous lesson.</p>
+      <pre><code>g = torch.Generator().manual_seed(2147483647)
+dimensions = 10
+neurons = 200
+C = torch.randn((vocab_size, dimensions),           generator=g)
+W1 = torch.randn((dimensions*block_size, neurons),  generator=g)
+b1 = torch.randn(neurons,                           generator=g)
+W2 = torch.randn((neurons, vocab_size),             generator=g)
+b2 = torch.randn(vocab_size,                        generator=g)
+
+params = [C, W1, b1, W2, b2]
+for p in params:
+    p.requires_grad_()
+
+stepi = []
+lossi = []
+training_steps = 200000
+
+for i in range(training_steps):
+    # minibatch
+    batch_size = 32
+    ix = torch.randint(0, Xtr.shape[0], (batch_size,))
+
+    # forward pass
+    emb = C[Xtr[ix]]
+    embcat = emb.view(emb.shape[0], -1)
+    hpreact = embcat @ W1 + b1
+    h = torch.tanh(hpreact)
+    logits = h @ W2 + b2
+    loss = F.cross_entropy(logits, Ytr[ix])
+
+    # backward pass
+    for p in params:
+        p.grad = None
+    loss.backward()
+
+    # update
+    lr = 0.1 if i &lt; (training_steps * 0.5) else 0.01
+    for p in params:
+        p.data -= lr * p.grad
+
+    stepi.append(i)
+    lossi.append(loss.log().item())
+
+    if i % 1000 == 0:
+        print(f'{i:6d}/{training_steps:6d}: {loss.item():.4f}')</code></pre>
+
+      <h3>Fixing the initial loss</h3>
+      <p>Recall that our training loss chart looked like this, where start with a very high loss and quickly descend in the first few thousand iterations like a hockey stick. The reason why we have this high loss in the beginning is because we initialized our weights with random values. The result is that the logits coming out of the model (right before softmax) are taking on extreme values in the beginning. In a sense, this is like being very “confidently wrong” when in reality we should be much less confident.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-01.png (no caption) -->
+      <p>What we want instead is for the logits to be more uniform and for symmetry ideally around 0. Recall that <code>logits = h @ W2 + b2</code>. So the simple way we can do this is just to multiply <code>w1</code> by <code>0.01</code> (greatly reduce magnitude) and set <code>b2</code> to <code>0</code> (no bias).</p>
+      <pre><code>W2 = torch.randn((neurons, vocab_size),             generator=g) * 0.01
+b2 = torch.randn(vocab_size,                        generator=g) * 0</code></pre>
+      <p>By make this simple change, our train loss no longer exhibits the hockey stick shape in the beginning. This is desirable because the training loop is spending less iterations fixing the overconfidence in the beginning, and more iterations actually learning something useful.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-02.png (no caption) -->
+
+      <h3>Fixing the initial saturated tanh</h3>
+      <p>If we pause our training loop and visualize the values of <code>h</code> (across all neurons) we can see that the values it takes on is mostly <code>-1</code> or <code>1</code>. Recall that <code>h = torch.tanh(hpreact)</code>. If we take a look at <code>hpreact</code>, we see that the values have a wide distribution.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-03.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-04.png (no caption) -->
+      <p>Recall that <code>tanh</code> has this shape. So if the distribution of the inputs are too wide, then you will almost always just be in the flat regions near <code>-1</code> and <code>1</code>. This is a problem because the gradient near the flat parts of the tails is very close to 0. This means that backward pass won’t have any impact on it.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-05.png (no caption) -->
+      <p>If any single neuron only ever takes on the <code>-1</code> and <code>1</code> values, then it is basically a dead neuron and can never learn. One way to visualize this is to check if any neuron has <code>h</code> in the tail regions for all its inputs (a solid white column). Fortunately, we don’t have any dead neurons here. This means that each neuron at least SOME inputs where it is not completely  <code>-1</code> and <code>1</code>, so it will learn.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-06.png (no caption) -->
+      <p>To fix this problem, we just need to squash the distribution of <code>hpreact</code>. Recall that <code>hpreact = embcat @ W1 + b1</code>. The activations now look much better.</p>
+      <pre><code>W1 = torch.randn((dimensions*block_size, neurons),  generator=g) * 0.2
+b1 = torch.randn(neurons,                           generator=g) * 0.01</code></pre>
+      <!-- missing image: zth-makemore-3-batchnorm-07.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-08.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-09.png (no caption) -->
+
+      <h3>Kaiming initialization</h3>
+      <p>Is there a more principled way to set these multipliers?</p>
+      <p>We first notice that activations tend to increase in variance as we go forward through the layers. This is because two unit Gaussian distributions (<em>μ</em>=0, <em>σ</em>=1) multiplied together will yield a Gaussian distribution that has higher standard deviation.</p>
+      <pre><code>x = torch.randn(1000, 10)
+w = torch.randn(10, 200)
+y = x @ w</code></pre>
+      <!-- missing image: zth-makemore-3-batchnorm-10.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-11.png (no caption) -->
+      <p>This is not what we want. What we want is unit Gaussian distributions throughout the layers of the neural net. The question is: how do we scale the <code>w</code> in such a way to preserve the unit Gaussian distribution in <code>y</code>?</p>
+      <p>Turns out you are supposed to divide <code>w</code> by the square root of the “fan-in” (number of input elements). In this case, since our <code>w</code>.</p>
+      <pre><code>x = torch.randn(1000, 10)
+w = torch.randn(10, 200) / 10**0.5
+y = x @ w</code></pre>
+      <!-- missing image: zth-makemore-3-batchnorm-12.png (no caption) -->
+      <p>But what if we have a non-linear activation after the linear layer? How do we initialize the weights such that these activations take on reasonable values throughout the network?</p>
+      <p>Turns out there is a principled way to initialize these weights known as Kaiming initialization, introduced in the paper <a href="https://arxiv.org/abs/1502.01852">Delving Deep into Rectifiers</a>. Basically our goal is to initialize weights such that <code>std = gain / root(fan_mode)</code>, where <code>fan_mode</code> is either <code>fan_in</code> to preserve variance in the forward pass or <code>fan_out</code> for the backward pass. In the paper the analysis shows the difference between controlling either mode is about the same, so most people just use the default which is <code>fan_in</code>.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-13.png (no caption) -->
+      <p>For every non-linearity, there is an associated “gain” multiplier, to counteract the “squashing” (lowering standard deviation) of non-linearities. The different gains can be found in the <a href="https://pytorch.org/docs/stable/nn.init.html">PyTorch docs</a>.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-14.png (no caption) -->
+      <p>Back to our actual implementation. Because we are using <code>tanh</code>, we will use the gain of <code>5/3</code> and we will also be using the default <code>fan_in</code> mode. Setting the standard deviation of a unit gaussian is the same as just multiplying by the target number.</p>
+      <pre><code> W1 = torch.randn((dimensions*block_size, neurons),  generator=g) * 5/3 / (dimensions*block_size)**0.5</code></pre>
+
+      <h3>Batch Normalization</h3>
+      <p>So we have these hidden states, and we want them to be unit Gaussian, why not just make them exactly unit Gaussian (at least in the beginning)? That is the key idea of Batch Normalization introduced in the <a href="https://arxiv.org/abs/1502.03167">Batch Normalization paper</a>.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-15.png (no caption) -->
+      <p>So instead of feeding <code>hpreact</code> directly into <code>tanh</code>, we just have to normalize it first. We will initialize <code>bngain</code> to <code>1</code> and <code>bnbias</code> to <code>0</code> so that we start with a unit Gaussian for <code>hpreact</code>. But as the network trains, it will be allowed to move the distribution around, allowing some neurons to be more active and others less active.</p>
+      <pre><code>bngain = torch.ones((1, neurons))
+bnbias = torch.zeros((1, neurons))</code></pre>
+      <pre><code>for i in range(training_steps):
+    # minibatch
+    batch_size = 32
+    ix = torch.randint(0, Xtr.shape[0], (batch_size,))
+
+    # forward pass
+    emb = C[Xtr[ix]]
+    embcat = emb.view(emb.shape[0], -1)
+    hpreact = embcat @ W1 + b1
+    bnmeani = hpreact.mean(0, keepdim=True)
+    bnstdi = hpreact.std(0, keepdim=True)
+    hpreact = bngain * (hpreact-bnmeani) / bnstdi + bnbias
+		h = torch.tanh(hpreact)</code></pre>
+      <p>In conclusion, Batch Normalization allows us to not have to worry about carefully tuning the initial weights of our neural net. Instead, we can just put a Batch Normalization layer after every linear layer.</p>
+
+      <h3>The regularization effect of Batch Normalization</h3>
+      <p>The stability of Batch Normalization comes at a cost. Instead of each example flowing through the neural net independently, we are coupling examples within the batches together. The activations of one example will now impact the activations of another because of the normalization across batches. Recall that we introduced mini batches just for efficiency and we never intended for this coupling.</p>
+      <p>However, in a somewhat round about way, this coupling of activations across randomly sampled batches actually has a beneficial regularization effect, discouraging the model from overfitting.</p>
+
+      <h3>Batch normalization during inference</h3>
+      <p>Another consequence of using Batch Normalization is that the forward pass now expects batches instead of examples. Instead of normalizing the activations based on the batch during inference, the paper suggest that we normalize based on the mean and standard deviation of the entire training set.</p>
+      <p>We can do this as a post-training step. But a more convenient way to do this is to keep a running mean and standard deviation during training loop. It’s important to note that these two values are not model parameters and so is outside of backpropagation and we don’t need PyTorch to compute the gradient for it.</p>
+      <pre><code>bnmean_running = torch.zeros((1, neurons))
+bnstd_running = torch.ones((1, neurons))
+
+for i in range(training_steps):
+	# minibatch
+	batch_size = 32
+	ix = torch.randint(0, Xtr.shape[0], (batch_size,))
+
+	# forward pass
+	emb = C[Xtr[ix]]
+	embcat = emb.view(emb.shape[0], -1)
+	hpreact = embcat @ W1 + b1
+	bnmeani = hpreact.mean(0, keepdim=True)
+	bnstdi = hpreact.std(0, keepdim=True)
+	hpreact = bngain * (hpreact-bnmeani) / bnstdi + bnbias
+	h = torch.tanh(hpreact)
+
+	# keep running mean and std for inference
+	with torch.no_grad():
+        bnmean_running = 0.999 * bnmean_running + 0.001 * bnmeani
+        bnstd_running = 0.999 * bnstd_running + 0.001 * bnstdi</code></pre>
+      <p>During inference, we will use the mean and std this way.</p>
+      <pre><code>def split_loss(split):
+    x, y = {
+        'train': (Xtr, Ytr),
+        'val': (Xdev, Ydev),
+        'test': (Xte, Yte)
+    }[split]
+    emb = C[x]
+    embcat = emb.view(emb.shape[0], -1)
+    hpreact = embcat @ W1 + b1
+    hpreact = bngain * (hpreact - bnmean_running) / bnstd_running + bnbias
+    h = torch.tanh(hpreact)
+
+    logits = h @ W2 + b2
+    loss = F.cross_entropy(logits, y)
+    print(f'{split} loss: {loss:.4f}')</code></pre>
+
+      <h3>A note on bias</h3>
+      <p>If we have a batch normalization layer after a linear layer, the bias of the linear layer is actually not needed.</p>
+
+      <h2>PyTorch Implementation</h2>
+      <p>Let’s PyTorchify our model and make the network deeper! We will extract the initialization, forward, and backward logic of our layers so that we can easily scale our network without having to replicate our code.</p>
+      <pre><code>class Linear:
+    def __init__(self, fan_in, fan_out, bias=True):
+        self.weight = torch.randn((fan_in, fan_out), generator=g) / fan_in**0.5
+        self.bias = torch.zeros(fan_out) if bias else None
+
+    def __call__(self, x):
+        self.out = x @ self.weight
+        if self.bias is not None:
+            self.out += self.bias
+        return self.out
+
+    def parameters(self):
+        return [self.weight] + ([self.bias] if self.bias is not None else [])
+
+class BatchNorm1d:
+    def __init__(self, dim, eps=1e-5, momentum=0.1):
+        self.eps = eps
+        self.momentum = momentum
+        self.training = True
+        # parameters (trained with backprop)
+        self.gamma = torch.ones(dim)
+        self.beta = torch.zeros(dim)
+        # buffers (not trained with backprop)
+        self.running_mean = torch.zeros(dim)
+        self.running_var = torch.ones(dim)
+
+    def __call__(self, x):
+        # calculate the forward pass
+        if self.training:
+            # calculate the mean and variance on the batch
+            xmean = x.mean(0, keepdim=True)
+            xvar = x.var(0, keepdim=True)
+        else:
+            xmean = self.running_mean
+            xvar = self.running_var
+        # normalize the batch
+        xhat = (x - xmean) / torch.sqrt(xvar + self.eps)
+        self.out = self.gamma * xhat + self.beta
+        # update the running mean and variance
+        if self.training:
+            with torch.no_grad():
+                self.running_mean = (1-self.momentum) * self.running_mean + self.momentum * xmean
+                self.running_var = (1-self.momentum) * self.running_var + self.momentum * xvar
+        return self.out
+
+    def parameters(self):
+        return [self.gamma, self.beta]
+
+class Tanh:
+    def __call__(self, x):
+        self.out = torch.tanh(x)
+        return self.out
+    def parameters(self):
+        return []</code></pre>
+      <pre><code>n_emb = 10 # the dimension of the embedding
+n_hidden = 100 # the number of neurons in the hidden layer of the MLP
+g = torch.Generator().manual_seed(2147483647)
+
+C = torch.randn((vocab_size, n_emb), generator=g)
+layers = [
+    Linear(n_emb*block_size, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, vocab_size), BatchNorm1d(vocab_size),
+]
+
+with torch.no_grad():
+    # last layer: make less confident
+	  layers[-1].weight *= 0.1
+		# layers[-1].weight *= 0.1
+    # all other layers: apply gain
+    for l in layers[:-1]:
+        if isinstance(l, Linear):
+            l.weight *= 5/3
+
+parameters = [C] + [p for l in layers for p in l.parameters()]
+print(sum(p.nelement() for p in parameters))
+for p in parameters:
+    p.requires_grad_()
+
+# same optimization as last time
+max_steps = 200000
+batch_size = 32
+lossi = []
+ud = []
+
+for i in range(max_steps):
+    # minibatch construct
+    ix = torch.randint(0, Xtr.shape[0], (batch_size,), generator=g)
+    Xb, Yb = Xtr[ix], Ytr[ix] # batch X, Y
+
+    # forward pass
+    emb = C[Xb]
+    x = emb.view(emb.shape[0], -1)
+    for l in layers:
+        x = l(x)
+    loss = F.cross_entropy(x, Yb)
+
+    # backward pass
+    for layer in layers:
+        layer.out.retain_grad() # AFTER DEBUG: would take out retain_graph
+    for p in parameters:
+        p.grad = None
+    loss.backward()
+
+    # update
+    lr = 0.1 if i &lt; (max_steps * 0.5) else 0.01
+    for p in parameters:
+        p.data -= lr * p.grad
+
+    # track stats
+    if i % 1000 == 0:
+        print(f'{i:6d}/{max_steps:6d}: {loss.item():.4f}')
+    lossi.append(loss.log10().item())
+
+    with torch.no_grad():
+        ud.append([(lr * p.grad.std() / p.data.std()).log10().item() for p in parameters])
+
+
+    break # AFTER DEBUG: would take out obviously to run full optimization</code></pre>
+
+      <h3>Architecture</h3>
+      <!-- missing image: zth-makemore-3-batchnorm-16.png (no caption) -->
+
+      <h3>Visualizing layer activations</h3>
+      <p>Let’s take a look at the activations for our new deeper model.</p>
+      <p>If we remove the BatchNorm and Tanh layers (leaving only Linear layers), we end up with a gain of <code>5/3</code> that is too high (since we don’t have the Tanh). This leads to the forward activations to get wider and wider, and the backward activations to get narrower and narrower.</p>
+      <pre><code>layers = [
+    Linear(n_emb*block_size, n_hidden),
+    Linear(n_hidden, n_hidden),
+    Linear(n_hidden, n_hidden),
+    Linear(n_hidden, n_hidden),
+    Linear(n_hidden, n_hidden),
+    Linear(n_hidden, vocab_size),
+]
+
+with torch.no_grad():
+    # last layer: make less confident
+    layers[-1].weight *= 0.1
+    # all other layers: apply gain
+    for l in layers[:-1]:
+        if isinstance(l, Linear):
+            l.weight *= 5/3</code></pre>
+      <!-- missing image: zth-makemore-3-batchnorm-17.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-18.png (no caption) -->
+      <p>If we instead set the gain to <code>1.0</code> (the correct setting for no non-linearity), we end up with activations that look much better (stable across layers) for both forward and backwards.</p>
+      <pre><code>layers = [
+    Linear(n_emb*block_size, n_hidden),
+    Linear(n_hidden, n_hidden),
+    Linear(n_hidden, n_hidden),
+    Linear(n_hidden, n_hidden),
+    Linear(n_hidden, n_hidden),
+    Linear(n_hidden, vocab_size),
+]
+
+with torch.no_grad():
+    # last layer: make less confident
+    layers[-1].weight *= 0.1
+    # all other layers: apply gain
+    for l in layers[:-1]:
+        if isinstance(l, Linear):
+            l.weight *= 1</code></pre>
+      <!-- missing image: zth-makemore-3-batchnorm-19.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-20.png (no caption) -->
+      <p>If we bring the Tanh layers back along with the gain of 5/3, then we will also see a nice plot of the activations. The shapes are different because we are now looking at the output of Tanh instead of Linear.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-21.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-22.png (no caption) -->
+
+      <h3>Gradient statistics</h3>
+      <p>Another thing we can look at is the gradients of our parameters. This plot is a bit troubling since the final layer looks extremely wide, compared to all the other layers, at least at initialization. In other words, this final layer is being trained about 10x faster than all the other layers.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-23.png (no caption) -->
+      <p>However, if we just let the training loop run for a few iterations (say 1000), the problem somewhat fixes itself. As you can see the last layer is coming in a bit.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-24.png (no caption) -->
+
+      <h3>Gradient update ratios</h3>
+      <p>But perhaps what is more informative is looking at the update ratios (ie how fast our layers are training) over time.</p>
+      <p>The black line is a benchmark set to <em>~1e-3</em> which is the recommended level.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-25.png (no caption) -->
+      <p>If our learning rate is too low (say we set it to 0.001), then we can easily spot it using this chart.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-26.png (no caption) -->
+
+      <h3>Using these charts to spot problems</h3>
+      <p>Let’s say we forgot to divide by the square root of fan-in in our linear layer weight initialization.</p>
+      <pre><code>class Linear:
+    def __init__(self, fan_in, fan_out, bias=True):
+        self.weight = torch.randn((fan_in, fan_out), generator=g) # / fan_in**0.5
+        self.bias = torch.zeros(fan_out) if bias else None</code></pre>
+      <p>We will be able to quickly notice that something is wrong by looking at all of our charts. The forward activations are way too saturated. The backward activations go from extremely narrow to extremely wide. Same for the weights. We notice a lot of asymmetry across the layers in general.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-27.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-28.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-29.png (no caption) -->
+      <p>In this chart, we can see a lot of dispersion in terms of how fast each layer is learning, with some layers learning way too fast while others being too slow.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-30.png (no caption) -->
+
+      <h3>Batch Normalization</h3>
+      <p>Above, we saw (again) how the network is somewhat sensitive to how we initialize the weights of the network without Batch Normalization. Adding Batch Normalization should make this more robust since it is forcing a normalization at the end of every linear layer.</p>
+      <p>For example, say we just didn’t do any of the weight initialization (don’t divide by sqrt of fan in for the linear layer, don’t set a gain). The network will still be completely fine.</p>
+      <pre><code>class Linear:
+    def __init__(self, fan_in, fan_out, bias=True):
+        self.weight = torch.randn((fan_in, fan_out), generator=g) # / fan_in**0.5
+        self.bias = torch.zeros(fan_out) if bias else None</code></pre>
+      <pre><code>layers = [
+    Linear(n_emb*block_size, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
+    Linear(n_hidden, vocab_size), BatchNorm1d(vocab_size),
+]
+
+with torch.no_grad():
+    # last layer: make less confident
+    layers[-1].gamma *= 0.1
+    # layers[-1].weight *= 0.1
+    # all other layers: apply gain
+    for l in layers[:-1]:
+        if isinstance(l, Linear):
+            l.weight *= 1</code></pre>
+      <!-- missing image: zth-makemore-3-batchnorm-31.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-32.png (no caption) -->
+      <!-- missing image: zth-makemore-3-batchnorm-33.png (no caption) -->
+      <p>The only thing is that we may still need to re-tune our learning rates. So it is not a complete free pass. Here it looks like our learning rate is too low.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-34.png (no caption) -->
+      <p>Bumping the learning rate from 0.1 to 1 looks good.</p>
+      <!-- missing image: zth-makemore-3-batchnorm-35.png (no caption) -->
+    </article>
+    <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
+  </main>
+</body>
+</html>

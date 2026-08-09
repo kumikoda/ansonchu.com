@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Makemore Part 2 - Multilayer Perceptron — Anson Chu</title>
+  <meta name="description" content="Notes on the Bengio et al. neural probabilistic language model: embeddings, MLP architecture, and a character-level implementation in PyTorch.">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="wrap">
+    <a class="backlink" href="/writing/zero-to-hero.html">← Zero to Hero notes</a>
+    <article>
+      <h1>Makemore Part 2 - Multilayer Perceptron</h1>
+      <p class="post-meta">2023-10 · notes · zero to hero</p>
+
+      <h2>Background</h2>
+      <p>Based on the paper <em>A Neural Probabilistic Language Model</em> by Bengio et al. in 2003.</p>
+
+      <h3>Problem</h3>
+      <p>N-gram language models are limited by the <em>curse of dimensionality</em>.</p>
+      <!-- missing image: zth-makemore-2-mlp-01.png (no caption) -->
+      <p>Since the number of permutations of sequences (and thus number of model parameters) <u>scale exponentially with</u> <code>N</code>, it is not practical to scale <code>N</code> even though there is obvious value in considering more context.</p>
+      <p>At the same time, the high number of sequence permutations makes it is unlikely that sequences in the test set will also be in the training set, which limits the model’s ability to generalize.</p>
+
+      <h3>Multilayer Perceptron (MLP)</h3>
+      <p>The MLP model solves the curse of dimensionality by projecting high-dimensional word sequences (in discrete space) into a lower-dimensional vector space “embedding”, which captures the semantic relationship between words (in smooth continuous space).</p>
+      <p>Instead of learning the joint distribution of exact word sequences directly, the MLP model simultaneously learns the embedding and the joint distribution of word sequences expressed by the embedding. With this approach, the number of parameters only <u>scale linearly with</u> <code>V</code>.</p>
+
+      <h3>Embedding</h3>
+      <p>The sentence “The cat is walking in the bedroom” should help us generalize to make the sentence “A dog was running in a room” because “cat” and “dog” (resp. “is” and “was”, … etc) have similar semantic and grammatical roles.</p>
+      <!-- missing image: zth-makemore-2-mlp-02.png (no caption) -->
+      <p>A hypothetical 3-dimensional embedding of these words might look something like this. Each word is represented by a 3-dimensional vector. Words that are semantically similar would be “close” to each other, and the similarity of two words can be measured by the distance between the two vectors with cosine similarity.</p>
+      <!-- missing image: zth-makemore-2-mlp-03.png (no caption) -->
+      <p>The higher the number of dimensions in the embedding, the deeper the semantic relationship potentially captured.</p>
+
+      <h3>Network Architecture</h3>
+      <p>There are 3 layers to the neural network: the input layer, the hidden layer, and the output layer.</p>
+      <p>First, each of the <code>N</code> previous words in the context are transformed into vectors via a learned embedding lookup table <code>C</code> with <code>D</code> number of dimensions. These embedded vectors are concatenated to form the values of the input layer, so the size of the input layer is simply <code>NxD</code>.</p>
+      <p>Then, the hidden layer is a linear layer with learned weights <code>W_1</code> and biases <code>B_1</code> and a <code>tanh</code> activation function. The size of the hidden layer is a hyper-parameter.</p>
+      <p>Finally, the output layer is also a linear layer with learned weights <code>W_2</code>, biases <code>B_2</code> and a <code>softmax</code> activation function. The size of the output layer is <code>V</code> (number of words in the vocabulary).</p>
+      <!-- missing image: zth-makemore-2-mlp-04.png (no caption) -->
+
+      <h2>Implementation</h2>
+      <p>Let’s implement a MLP, but at the character level instead of at the word level. We will be using the same list of names we used in our previous bigram model.</p>
+
+      <h3>Data</h3>
+      <p>We will split the list of words into train (80%), validation (10%) and test (10%). Each set of words will then be made into blocks of 5 characters, where the first 4 characters will be used as the context, and the 5th character will be used as the target.</p>
+      <pre><code>import torch
+import torch.nn.functional as F
+
+# read in all the words
+words = open('names.txt', 'r').read().splitlines()
+
+# build the vocabulary of characters and mappings to/from integers
+chars = sorted(list(set(''.join(words))))
+stoi = {c:i+1 for i,c in enumerate(chars)}
+stoi['.'] = 0
+itos = {i:c for c,i in stoi.items()}
+print(itos)
+
+# build the train/test/split
+block_size = 5
+def build_dataset(words):
+    X, Y = [], []
+    for w in words:
+        context = [0] * block_size
+        for ch in w + '.':
+            ix = stoi[ch]
+            X.append(context)
+            Y.append(ix)
+            context = context[1:] + [ix]
+    return torch.tensor(X), torch.tensor(Y)
+
+import random
+random.seed(42)
+random.shuffle(words)
+n1 = int(len(words) * 0.8)
+n2 = int(len(words) * 0.9)
+
+Xtr, Ytr = build_dataset(words[:n1])
+Xdev, Ydev = build_dataset(words[n1:n2])
+Xte, Yte = build_dataset(words[n2:])</code></pre>
+
+      <h3>Training</h3>
+      <p>Below is the code for model initialization and training. Once we understand the background of the MLP model, the actual code to train it is pretty straightforward.</p>
+      <pre><code>g = torch.Generator().manual_seed(2147483647)
+
+chars = 27 # number of characters in vocabulary
+dimensions = 10 # number of dimensions in embedding
+neurons = 10 # number of neurons in hidden layer
+
+# initialize parameters with random values
+C = torch.randn((chars, dimensions), generator=g)
+W1 = torch.randn((dimensions*block_size, neurons), generator=g)
+b1 = torch.randn(neurons, generator=g)
+W2 = torch.randn((neurons, chars), generator=g)
+b2 = torch.randn(chars, generator=g)
+params = [C, W1, b1, W2, b2]
+
+# tell PyTorch to track gradients for all parameters
+for p in params:
+    p.requires_grad_()
+
+stepi = []
+losstri = []
+training_steps = 200000
+for i in range(training_steps):
+    # minibatch
+    batch_size = 32
+    ix = torch.randint(0, Xtr.shape[0], (batch_size,))
+
+    # forward pass on just minibatch
+    emb = C[Xtr[ix]]
+    h = torch.tanh(emb.view(-1, block_size*dimensions) @ W1 + b1)
+    logits = h @ W2 + b2
+    loss = F.cross_entropy(logits, Ytr[ix])
+
+    # backward pass
+    for p in params:
+        p.grad = None
+    loss.backward()
+
+    # update parameters
+    lr = 0.1 if i &lt; 100000 else 0.01
+    for p in params:
+        p.data -= lr * p.grad
+
+    # track stats
+    stepi.append(i)
+    losstri.append(loss.item())
+
+    print(i, loss.item())</code></pre>
+      <!-- missing image: zth-makemore-2-mlp-05.png (no caption) -->
+
+      <h3>Evaluation</h3>
+      <p>Note that the loss we looked at above was only the loss of each mini batch during the training phase. Here is the actual loss on the train, val, and test splits.</p>
+      <pre><code>for X, Y in [(Xtr, Ytr), (Xdev, Ydev), (Xte, Yte)]:
+    emb = C[X] # embedding lookup (32, 3, 2)
+    h = torch.tanh(emb.view(-1, block_size*dimensions) @ W1 + b1) # (32, 100)
+    logits = h @ W2 + b2 # (32, 27)
+    loss = F.cross_entropy(logits, Y) # (32, 100)
+    print(loss.item())
+
+# 2.2879016399383545
+# 2.2845089435577393
+# 2.2882678508758545</code></pre>
+
+      <h3>Cross Entropy Loss</h3>
+      <p>We are actually using the same loss function (negative log likelihood) as before. But instead of writing it out we are using PyTorch <code>cross_entropy</code> which is the same thing.</p>
+
+      <h3>Minibatch</h3>
+      <p>Instead of feeding in the entire dataset of training data to the forward pass on every training loop, we only feed in a randomly sampled “minibatch” of training data.</p>
+      <p>This makes the training loop much faster.</p>
+
+      <h3>Learning rate decay</h3>
+      <p>Instead of using a single learning rate throughout the training loop, we decay the learning rate in fixed intervals of steps to help the model “fine tune” itself.</p>
+
+      <h3>Visualizing the character embedding</h3>
+      <p>Here is a plot of the first dimension of the embedding. You can sort of see some structure here: the vowels are grouped together in the top left region, all the consonants are in the middle area, and the letters “v” and “q” are far away in the bottom right.</p>
+      <!-- missing image: zth-makemore-2-mlp-06.png (no caption) -->
+
+      <h3>Sampling from the model</h3>
+      <p>Here is the code to sample from the model. We initialize the context with all <code>.</code> characters so the model is free to generate any name.</p>
+      <pre><code># sample fom the model
+g = torch.Generator().manual_seed(2147483647)
+for _ in range(1000):
+    out = []
+		# initialize context with all `.` characters
+    context = [0] * (block_size)
+    while True:
+        emb = C[torch.tensor([context])]
+        h = torch.tanh(emb.view(1, -1) @ W1 + b1)
+        logits = h @ W2 + b2
+        probs = F.softmax(logits, dim=1)
+        ix = torch.multinomial(probs, 1, generator=g).item()
+        context = context[1:] + [ix]
+        out.append(ix)
+        if ix == 0:
+            break
+
+    print(''.join([itos[i] for i in out[:-1]]))</code></pre>
+    </article>
+    <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
+  </main>
+</body>
+</html>
