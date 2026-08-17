@@ -17,58 +17,58 @@
 
       <h2>Improving our basic MLP</h2>
       <p>This is the MLP we ended up with in the previous lesson.</p>
-      <pre><code>g = torch.Generator().manual_seed(2147483647)
-dimensions = 10
-neurons = 200
-C = torch.randn((vocab_size, dimensions),           generator=g)
-W1 = torch.randn((dimensions*block_size, neurons),  generator=g)
-b1 = torch.randn(neurons,                           generator=g)
-W2 = torch.randn((neurons, vocab_size),             generator=g)
-b2 = torch.randn(vocab_size,                        generator=g)
+      <pre><code class="py">g <span class="o">=</span> torch<span class="o">.</span>Generator<span class="o">(</span><span class="o">)</span><span class="o">.</span>manual_seed<span class="o">(</span><span class="m">2147483647</span><span class="o">)</span>
+dimensions <span class="o">=</span> <span class="m">10</span>
+neurons <span class="o">=</span> <span class="m">200</span>
+C <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>vocab_size<span class="o">,</span> dimensions<span class="o">)</span><span class="o">,</span>           generator<span class="o">=</span>g<span class="o">)</span>
+W1 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>dimensions<span class="o">*</span>block_size<span class="o">,</span> neurons<span class="o">)</span><span class="o">,</span>  generator<span class="o">=</span>g<span class="o">)</span>
+b1 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span>neurons<span class="o">,</span>                           generator<span class="o">=</span>g<span class="o">)</span>
+W2 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>neurons<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>             generator<span class="o">=</span>g<span class="o">)</span>
+b2 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span>vocab_size<span class="o">,</span>                        generator<span class="o">=</span>g<span class="o">)</span>
 
-params = [C, W1, b1, W2, b2]
-for p in params:
-    p.requires_grad_()
+params <span class="o">=</span> <span class="o">[</span>C<span class="o">,</span> W1<span class="o">,</span> b1<span class="o">,</span> W2<span class="o">,</span> b2<span class="o">]</span>
+<span class="k">for</span> p <span class="o">in</span> params<span class="o">:</span>
+    p<span class="o">.</span>requires_grad_<span class="o">(</span><span class="o">)</span>
 
-stepi = []
-lossi = []
-training_steps = 200000
+stepi <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
+lossi <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
+training_steps <span class="o">=</span> <span class="m">200000</span>
 
-for i in range(training_steps):
-    # minibatch
-    batch_size = 32
-    ix = torch.randint(0, Xtr.shape[0], (batch_size,))
+<span class="k">for</span> i <span class="o">in</span> <span class="b">range</span><span class="o">(</span>training_steps<span class="o">)</span><span class="o">:</span>
+    <span class="c"># minibatch</span>
+    batch_size <span class="o">=</span> <span class="m">32</span>
+    ix <span class="o">=</span> torch<span class="o">.</span>randint<span class="o">(</span><span class="m">0</span><span class="o">,</span> Xtr<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">(</span>batch_size<span class="o">,</span><span class="o">)</span><span class="o">)</span>
 
-    # forward pass
-    emb = C[Xtr[ix]]
-    embcat = emb.view(emb.shape[0], -1)
-    hpreact = embcat @ W1 + b1
-    h = torch.tanh(hpreact)
-    logits = h @ W2 + b2
-    loss = F.cross_entropy(logits, Ytr[ix])
+    <span class="c"># forward pass</span>
+    emb <span class="o">=</span> C<span class="o">[</span>Xtr<span class="o">[</span>ix<span class="o">]</span><span class="o">]</span>
+    embcat <span class="o">=</span> emb<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
+    hpreact <span class="o">=</span> embcat <span class="o">@</span> W1 <span class="o">+</span> b1
+    h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>hpreact<span class="o">)</span>
+    logits <span class="o">=</span> h <span class="o">@</span> W2 <span class="o">+</span> b2
+    loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> Ytr<span class="o">[</span>ix<span class="o">]</span><span class="o">)</span>
 
-    # backward pass
-    for p in params:
-        p.grad = None
-    loss.backward()
+    <span class="c"># backward pass</span>
+    <span class="k">for</span> p <span class="o">in</span> params<span class="o">:</span>
+        p<span class="o">.</span>grad <span class="o">=</span> <span class="k">None</span>
+    loss<span class="o">.</span>backward<span class="o">(</span><span class="o">)</span>
 
-    # update
-    lr = 0.1 if i &lt; (training_steps * 0.5) else 0.01
-    for p in params:
-        p.data -= lr * p.grad
+    <span class="c"># update</span>
+    lr <span class="o">=</span> <span class="m">0.1</span> <span class="k">if</span> i <span class="o">&lt;</span> <span class="o">(</span>training_steps <span class="o">*</span> <span class="m">0.5</span><span class="o">)</span> <span class="k">else</span> <span class="m">0.01</span>
+    <span class="k">for</span> p <span class="o">in</span> params<span class="o">:</span>
+        p<span class="o">.</span>data <span class="o">-</span><span class="o">=</span> lr <span class="o">*</span> p<span class="o">.</span>grad
 
-    stepi.append(i)
-    lossi.append(loss.log().item())
+    stepi<span class="o">.</span>append<span class="o">(</span>i<span class="o">)</span>
+    lossi<span class="o">.</span>append<span class="o">(</span>loss<span class="o">.</span>log<span class="o">(</span><span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="o">)</span>
 
-    if i % 1000 == 0:
-        print(f'{i:6d}/{training_steps:6d}: {loss.item():.4f}')</code></pre>
+    <span class="k">if</span> i <span class="o">%</span> <span class="m">1000</span> <span class="o">==</span> <span class="m">0</span><span class="o">:</span>
+        <span class="b">print</span><span class="o">(</span><span class="s">f</span><span class="s">'</span><span class="s">{</span>i<span class="s">:</span><span class="s">6d</span><span class="s">}</span><span class="s">/</span><span class="s">{</span>training_steps<span class="s">:</span><span class="s">6d</span><span class="s">}</span><span class="s">: </span><span class="s">{</span>loss<span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="s">:</span><span class="s">.4f</span><span class="s">}</span><span class="s">'</span><span class="o">)</span></code></pre>
 
       <h3>Fixing the initial loss</h3>
       <p>Recall that our training loss chart looked like this, where start with a very high loss and quickly descend in the first few thousand iterations like a hockey stick. The reason why we have this high loss in the beginning is because we initialized our weights with random values. The result is that the logits coming out of the model (right before softmax) are taking on extreme values in the beginning. In a sense, this is like being very “confidently wrong” when in reality we should be much less confident.</p>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-01.png" alt="figure"></figure>
       <p>What we want instead is for the logits to be more uniform and for symmetry ideally around 0. Recall that <code>logits = h @ W2 + b2</code>. So the simple way we can do this is just to multiply <code>w1</code> by <code>0.01</code> (greatly reduce magnitude) and set <code>b2</code> to <code>0</code> (no bias).</p>
-      <pre><code>W2 = torch.randn((neurons, vocab_size),             generator=g) * 0.01
-b2 = torch.randn(vocab_size,                        generator=g) * 0</code></pre>
+      <pre><code class="py">W2 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>neurons<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>             generator<span class="o">=</span>g<span class="o">)</span> <span class="o">*</span> <span class="m">0.01</span>
+b2 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span>vocab_size<span class="o">,</span>                        generator<span class="o">=</span>g<span class="o">)</span> <span class="o">*</span> <span class="m">0</span></code></pre>
       <p>By make this simple change, our train loss no longer exhibits the hockey stick shape in the beginning. This is desirable because the training loop is spending less iterations fixing the overconfidence in the beginning, and more iterations actually learning something useful.</p>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-02.png" alt="figure"></figure>
 
@@ -81,8 +81,8 @@ b2 = torch.randn(vocab_size,                        generator=g) * 0</code></pre
       <p>If any single neuron only ever takes on the <code>-1</code> and <code>1</code> values, then it is basically a dead neuron and can never learn. One way to visualize this is to check if any neuron has <code>h</code> in the tail regions for all its inputs (a solid white column). Fortunately, we don’t have any dead neurons here. This means that each neuron at least SOME inputs where it is not completely  <code>-1</code> and <code>1</code>, so it will learn.</p>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-06.png" alt="figure"></figure>
       <p>To fix this problem, we just need to squash the distribution of <code>hpreact</code>. Recall that <code>hpreact = embcat @ W1 + b1</code>. The activations now look much better.</p>
-      <pre><code>W1 = torch.randn((dimensions*block_size, neurons),  generator=g) * 0.2
-b1 = torch.randn(neurons,                           generator=g) * 0.01</code></pre>
+      <pre><code class="py">W1 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>dimensions<span class="o">*</span>block_size<span class="o">,</span> neurons<span class="o">)</span><span class="o">,</span>  generator<span class="o">=</span>g<span class="o">)</span> <span class="o">*</span> <span class="m">0.2</span>
+b1 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span>neurons<span class="o">,</span>                           generator<span class="o">=</span>g<span class="o">)</span> <span class="o">*</span> <span class="m">0.01</span></code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-07.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-08.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-09.png" alt="figure"></figure>
@@ -90,16 +90,16 @@ b1 = torch.randn(neurons,                           generator=g) * 0.01</code></
       <h3>Kaiming initialization</h3>
       <p>Is there a more principled way to set these multipliers?</p>
       <p>We first notice that activations tend to increase in variance as we go forward through the layers. This is because two unit Gaussian distributions (<em>μ</em>=0, <em>σ</em>=1) multiplied together will yield a Gaussian distribution that has higher standard deviation.</p>
-      <pre><code>x = torch.randn(1000, 10)
-w = torch.randn(10, 200)
-y = x @ w</code></pre>
+      <pre><code class="py">x <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="m">1000</span><span class="o">,</span> <span class="m">10</span><span class="o">)</span>
+w <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="m">10</span><span class="o">,</span> <span class="m">200</span><span class="o">)</span>
+y <span class="o">=</span> x <span class="o">@</span> w</code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-10.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-11.png" alt="figure"></figure>
       <p>This is not what we want. What we want is unit Gaussian distributions throughout the layers of the neural net. The question is: how do we scale the <code>w</code> in such a way to preserve the unit Gaussian distribution in <code>y</code>?</p>
       <p>Turns out you are supposed to divide <code>w</code> by the square root of the “fan-in” (number of input elements). In this case, since our <code>w</code>.</p>
-      <pre><code>x = torch.randn(1000, 10)
-w = torch.randn(10, 200) / 10**0.5
-y = x @ w</code></pre>
+      <pre><code class="py">x <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="m">1000</span><span class="o">,</span> <span class="m">10</span><span class="o">)</span>
+w <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="m">10</span><span class="o">,</span> <span class="m">200</span><span class="o">)</span> <span class="o">/</span> <span class="m">10</span><span class="o">*</span><span class="o">*</span><span class="m">0.5</span>
+y <span class="o">=</span> x <span class="o">@</span> w</code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-12.png" alt="figure"></figure>
       <p>But what if we have a non-linear activation after the linear layer? How do we initialize the weights such that these activations take on reasonable values throughout the network?</p>
       <p>Turns out there is a principled way to initialize these weights known as Kaiming initialization, introduced in the paper <a href="https://arxiv.org/abs/1502.01852">Delving Deep into Rectifiers</a>. Basically our goal is to initialize weights such that <code>std = gain / root(fan_mode)</code>, where <code>fan_mode</code> is either <code>fan_in</code> to preserve variance in the forward pass or <code>fan_out</code> for the backward pass. In the paper the analysis shows the difference between controlling either mode is about the same, so most people just use the default which is <code>fan_in</code>.</p>
@@ -107,27 +107,27 @@ y = x @ w</code></pre>
       <p>For every non-linearity, there is an associated “gain” multiplier, to counteract the “squashing” (lowering standard deviation) of non-linearities. The different gains can be found in the <a href="https://pytorch.org/docs/stable/nn.init.html">PyTorch docs</a>.</p>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-14.png" alt="figure"></figure>
       <p>Back to our actual implementation. Because we are using <code>tanh</code>, we will use the gain of <code>5/3</code> and we will also be using the default <code>fan_in</code> mode. Setting the standard deviation of a unit gaussian is the same as just multiplying by the target number.</p>
-      <pre><code> W1 = torch.randn((dimensions*block_size, neurons),  generator=g) * 5/3 / (dimensions*block_size)**0.5</code></pre>
+      <pre><code class="py"> W1 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>dimensions<span class="o">*</span>block_size<span class="o">,</span> neurons<span class="o">)</span><span class="o">,</span>  generator<span class="o">=</span>g<span class="o">)</span> <span class="o">*</span> <span class="m">5</span><span class="o">/</span><span class="m">3</span> <span class="o">/</span> <span class="o">(</span>dimensions<span class="o">*</span>block_size<span class="o">)</span><span class="o">*</span><span class="o">*</span><span class="m">0.5</span></code></pre>
 
       <h3>Batch Normalization</h3>
       <p>So we have these hidden states, and we want them to be unit Gaussian, why not just make them exactly unit Gaussian (at least in the beginning)? That is the key idea of Batch Normalization introduced in the <a href="https://arxiv.org/abs/1502.03167">Batch Normalization paper</a>.</p>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-15.png" alt="figure"></figure>
       <p>So instead of feeding <code>hpreact</code> directly into <code>tanh</code>, we just have to normalize it first. We will initialize <code>bngain</code> to <code>1</code> and <code>bnbias</code> to <code>0</code> so that we start with a unit Gaussian for <code>hpreact</code>. But as the network trains, it will be allowed to move the distribution around, allowing some neurons to be more active and others less active.</p>
-      <pre><code>bngain = torch.ones((1, neurons))
-bnbias = torch.zeros((1, neurons))</code></pre>
-      <pre><code>for i in range(training_steps):
-    # minibatch
-    batch_size = 32
-    ix = torch.randint(0, Xtr.shape[0], (batch_size,))
+      <pre><code class="py">bngain <span class="o">=</span> torch<span class="o">.</span>ones<span class="o">(</span><span class="o">(</span><span class="m">1</span><span class="o">,</span> neurons<span class="o">)</span><span class="o">)</span>
+bnbias <span class="o">=</span> torch<span class="o">.</span>zeros<span class="o">(</span><span class="o">(</span><span class="m">1</span><span class="o">,</span> neurons<span class="o">)</span><span class="o">)</span></code></pre>
+      <pre><code class="py"><span class="k">for</span> i <span class="o">in</span> <span class="b">range</span><span class="o">(</span>training_steps<span class="o">)</span><span class="o">:</span>
+    <span class="c"># minibatch</span>
+    batch_size <span class="o">=</span> <span class="m">32</span>
+    ix <span class="o">=</span> torch<span class="o">.</span>randint<span class="o">(</span><span class="m">0</span><span class="o">,</span> Xtr<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">(</span>batch_size<span class="o">,</span><span class="o">)</span><span class="o">)</span>
 
-    # forward pass
-    emb = C[Xtr[ix]]
-    embcat = emb.view(emb.shape[0], -1)
-    hpreact = embcat @ W1 + b1
-    bnmeani = hpreact.mean(0, keepdim=True)
-    bnstdi = hpreact.std(0, keepdim=True)
-    hpreact = bngain * (hpreact-bnmeani) / bnstdi + bnbias
-		h = torch.tanh(hpreact)</code></pre>
+    <span class="c"># forward pass</span>
+    emb <span class="o">=</span> C<span class="o">[</span>Xtr<span class="o">[</span>ix<span class="o">]</span><span class="o">]</span>
+    embcat <span class="o">=</span> emb<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
+    hpreact <span class="o">=</span> embcat <span class="o">@</span> W1 <span class="o">+</span> b1
+    bnmeani <span class="o">=</span> hpreact<span class="o">.</span>mean<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+    bnstdi <span class="o">=</span> hpreact<span class="o">.</span>std<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+    hpreact <span class="o">=</span> bngain <span class="o">*</span> <span class="o">(</span>hpreact<span class="o">-</span>bnmeani<span class="o">)</span> <span class="o">/</span> bnstdi <span class="o">+</span> bnbias
+        h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>hpreact<span class="o">)</span></code></pre>
       <p>In conclusion, Batch Normalization allows us to not have to worry about carefully tuning the initial weights of our neural net. Instead, we can just put a Batch Normalization layer after every linear layer.</p>
 
       <h3>The regularization effect of Batch Normalization</h3>
@@ -137,171 +137,171 @@ bnbias = torch.zeros((1, neurons))</code></pre>
       <h3>Batch normalization during inference</h3>
       <p>Another consequence of using Batch Normalization is that the forward pass now expects batches instead of examples. Instead of normalizing the activations based on the batch during inference, the paper suggest that we normalize based on the mean and standard deviation of the entire training set.</p>
       <p>We can do this as a post-training step. But a more convenient way to do this is to keep a running mean and standard deviation during training loop. It’s important to note that these two values are not model parameters and so is outside of backpropagation and we don’t need PyTorch to compute the gradient for it.</p>
-      <pre><code>bnmean_running = torch.zeros((1, neurons))
-bnstd_running = torch.ones((1, neurons))
+      <pre><code class="py">bnmean_running <span class="o">=</span> torch<span class="o">.</span>zeros<span class="o">(</span><span class="o">(</span><span class="m">1</span><span class="o">,</span> neurons<span class="o">)</span><span class="o">)</span>
+bnstd_running <span class="o">=</span> torch<span class="o">.</span>ones<span class="o">(</span><span class="o">(</span><span class="m">1</span><span class="o">,</span> neurons<span class="o">)</span><span class="o">)</span>
 
-for i in range(training_steps):
-	# minibatch
-	batch_size = 32
-	ix = torch.randint(0, Xtr.shape[0], (batch_size,))
+<span class="k">for</span> i <span class="o">in</span> <span class="b">range</span><span class="o">(</span>training_steps<span class="o">)</span><span class="o">:</span>
+    <span class="c"># minibatch</span>
+    batch_size <span class="o">=</span> <span class="m">32</span>
+    ix <span class="o">=</span> torch<span class="o">.</span>randint<span class="o">(</span><span class="m">0</span><span class="o">,</span> Xtr<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">(</span>batch_size<span class="o">,</span><span class="o">)</span><span class="o">)</span>
 
-	# forward pass
-	emb = C[Xtr[ix]]
-	embcat = emb.view(emb.shape[0], -1)
-	hpreact = embcat @ W1 + b1
-	bnmeani = hpreact.mean(0, keepdim=True)
-	bnstdi = hpreact.std(0, keepdim=True)
-	hpreact = bngain * (hpreact-bnmeani) / bnstdi + bnbias
-	h = torch.tanh(hpreact)
+    <span class="c"># forward pass</span>
+    emb <span class="o">=</span> C<span class="o">[</span>Xtr<span class="o">[</span>ix<span class="o">]</span><span class="o">]</span>
+    embcat <span class="o">=</span> emb<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
+    hpreact <span class="o">=</span> embcat <span class="o">@</span> W1 <span class="o">+</span> b1
+    bnmeani <span class="o">=</span> hpreact<span class="o">.</span>mean<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+    bnstdi <span class="o">=</span> hpreact<span class="o">.</span>std<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+    hpreact <span class="o">=</span> bngain <span class="o">*</span> <span class="o">(</span>hpreact<span class="o">-</span>bnmeani<span class="o">)</span> <span class="o">/</span> bnstdi <span class="o">+</span> bnbias
+    h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>hpreact<span class="o">)</span>
 
-	# keep running mean and std for inference
-	with torch.no_grad():
-        bnmean_running = 0.999 * bnmean_running + 0.001 * bnmeani
-        bnstd_running = 0.999 * bnstd_running + 0.001 * bnstdi</code></pre>
+    <span class="c"># keep running mean and std for inference</span>
+    <span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+        bnmean_running <span class="o">=</span> <span class="m">0.999</span> <span class="o">*</span> bnmean_running <span class="o">+</span> <span class="m">0.001</span> <span class="o">*</span> bnmeani
+        bnstd_running <span class="o">=</span> <span class="m">0.999</span> <span class="o">*</span> bnstd_running <span class="o">+</span> <span class="m">0.001</span> <span class="o">*</span> bnstdi</code></pre>
       <p>During inference, we will use the mean and std this way.</p>
-      <pre><code>def split_loss(split):
-    x, y = {
-        'train': (Xtr, Ytr),
-        'val': (Xdev, Ydev),
-        'test': (Xte, Yte)
-    }[split]
-    emb = C[x]
-    embcat = emb.view(emb.shape[0], -1)
-    hpreact = embcat @ W1 + b1
-    hpreact = bngain * (hpreact - bnmean_running) / bnstd_running + bnbias
-    h = torch.tanh(hpreact)
+      <pre><code class="py"><span class="k">def</span> <span class="f">split_loss</span><span class="o">(</span>split<span class="o">)</span><span class="o">:</span>
+    x<span class="o">,</span> y <span class="o">=</span> <span class="o">{</span>
+        <span class="s">'</span><span class="s">train</span><span class="s">'</span><span class="o">:</span> <span class="o">(</span>Xtr<span class="o">,</span> Ytr<span class="o">)</span><span class="o">,</span>
+        <span class="s">'</span><span class="s">val</span><span class="s">'</span><span class="o">:</span> <span class="o">(</span>Xdev<span class="o">,</span> Ydev<span class="o">)</span><span class="o">,</span>
+        <span class="s">'</span><span class="s">test</span><span class="s">'</span><span class="o">:</span> <span class="o">(</span>Xte<span class="o">,</span> Yte<span class="o">)</span>
+    <span class="o">}</span><span class="o">[</span>split<span class="o">]</span>
+    emb <span class="o">=</span> C<span class="o">[</span>x<span class="o">]</span>
+    embcat <span class="o">=</span> emb<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
+    hpreact <span class="o">=</span> embcat <span class="o">@</span> W1 <span class="o">+</span> b1
+    hpreact <span class="o">=</span> bngain <span class="o">*</span> <span class="o">(</span>hpreact <span class="o">-</span> bnmean_running<span class="o">)</span> <span class="o">/</span> bnstd_running <span class="o">+</span> bnbias
+    h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>hpreact<span class="o">)</span>
 
-    logits = h @ W2 + b2
-    loss = F.cross_entropy(logits, y)
-    print(f'{split} loss: {loss:.4f}')</code></pre>
+    logits <span class="o">=</span> h <span class="o">@</span> W2 <span class="o">+</span> b2
+    loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> y<span class="o">)</span>
+    <span class="b">print</span><span class="o">(</span><span class="s">f</span><span class="s">'</span><span class="s">{</span>split<span class="s">}</span><span class="s"> loss: </span><span class="s">{</span>loss<span class="s">:</span><span class="s">.4f</span><span class="s">}</span><span class="s">'</span><span class="o">)</span></code></pre>
 
       <h3>A note on bias</h3>
       <p>If we have a batch normalization layer after a linear layer, the bias of the linear layer is actually not needed.</p>
 
       <h2>PyTorch Implementation</h2>
       <p>Let’s PyTorchify our model and make the network deeper! We will extract the initialization, forward, and backward logic of our layers so that we can easily scale our network without having to replicate our code.</p>
-      <pre><code>class Linear:
-    def __init__(self, fan_in, fan_out, bias=True):
-        self.weight = torch.randn((fan_in, fan_out), generator=g) / fan_in**0.5
-        self.bias = torch.zeros(fan_out) if bias else None
+      <pre><code class="py"><span class="k">class</span> <span class="f">Linear</span><span class="o">:</span>
+    <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> fan_in<span class="o">,</span> fan_out<span class="o">,</span> bias<span class="o">=</span><span class="k">True</span><span class="o">)</span><span class="o">:</span>
+        <span class="b">self</span><span class="o">.</span>weight <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>fan_in<span class="o">,</span> fan_out<span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span> <span class="o">/</span> fan_in<span class="o">*</span><span class="o">*</span><span class="m">0.5</span>
+        <span class="b">self</span><span class="o">.</span>bias <span class="o">=</span> torch<span class="o">.</span>zeros<span class="o">(</span>fan_out<span class="o">)</span> <span class="k">if</span> bias <span class="k">else</span> <span class="k">None</span>
 
-    def __call__(self, x):
-        self.out = x @ self.weight
-        if self.bias is not None:
-            self.out += self.bias
-        return self.out
+    <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+        <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> x <span class="o">@</span> <span class="b">self</span><span class="o">.</span>weight
+        <span class="k">if</span> <span class="b">self</span><span class="o">.</span>bias <span class="o">is</span> <span class="o">not</span> <span class="k">None</span><span class="o">:</span>
+            <span class="b">self</span><span class="o">.</span>out <span class="o">+</span><span class="o">=</span> <span class="b">self</span><span class="o">.</span>bias
+        <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out
 
-    def parameters(self):
-        return [self.weight] + ([self.bias] if self.bias is not None else [])
+    <span class="k">def</span> <span class="f">parameters</span><span class="o">(</span><span class="b">self</span><span class="o">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="o">[</span><span class="b">self</span><span class="o">.</span>weight<span class="o">]</span> <span class="o">+</span> <span class="o">(</span><span class="o">[</span><span class="b">self</span><span class="o">.</span>bias<span class="o">]</span> <span class="k">if</span> <span class="b">self</span><span class="o">.</span>bias <span class="o">is</span> <span class="o">not</span> <span class="k">None</span> <span class="k">else</span> <span class="o">[</span><span class="o">]</span><span class="o">)</span>
 
-class BatchNorm1d:
-    def __init__(self, dim, eps=1e-5, momentum=0.1):
-        self.eps = eps
-        self.momentum = momentum
-        self.training = True
-        # parameters (trained with backprop)
-        self.gamma = torch.ones(dim)
-        self.beta = torch.zeros(dim)
-        # buffers (not trained with backprop)
-        self.running_mean = torch.zeros(dim)
-        self.running_var = torch.ones(dim)
+<span class="k">class</span> <span class="f">BatchNorm1d</span><span class="o">:</span>
+    <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> dim<span class="o">,</span> eps<span class="o">=</span><span class="m">1e-5</span><span class="o">,</span> momentum<span class="o">=</span><span class="m">0.1</span><span class="o">)</span><span class="o">:</span>
+        <span class="b">self</span><span class="o">.</span>eps <span class="o">=</span> eps
+        <span class="b">self</span><span class="o">.</span>momentum <span class="o">=</span> momentum
+        <span class="b">self</span><span class="o">.</span>training <span class="o">=</span> <span class="k">True</span>
+        <span class="c"># parameters (trained with backprop)</span>
+        <span class="b">self</span><span class="o">.</span>gamma <span class="o">=</span> torch<span class="o">.</span>ones<span class="o">(</span>dim<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>beta <span class="o">=</span> torch<span class="o">.</span>zeros<span class="o">(</span>dim<span class="o">)</span>
+        <span class="c"># buffers (not trained with backprop)</span>
+        <span class="b">self</span><span class="o">.</span>running_mean <span class="o">=</span> torch<span class="o">.</span>zeros<span class="o">(</span>dim<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>running_var <span class="o">=</span> torch<span class="o">.</span>ones<span class="o">(</span>dim<span class="o">)</span>
 
-    def __call__(self, x):
-        # calculate the forward pass
-        if self.training:
-            # calculate the mean and variance on the batch
-            xmean = x.mean(0, keepdim=True)
-            xvar = x.var(0, keepdim=True)
-        else:
-            xmean = self.running_mean
-            xvar = self.running_var
-        # normalize the batch
-        xhat = (x - xmean) / torch.sqrt(xvar + self.eps)
-        self.out = self.gamma * xhat + self.beta
-        # update the running mean and variance
-        if self.training:
-            with torch.no_grad():
-                self.running_mean = (1-self.momentum) * self.running_mean + self.momentum * xmean
-                self.running_var = (1-self.momentum) * self.running_var + self.momentum * xvar
-        return self.out
+    <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+        <span class="c"># calculate the forward pass</span>
+        <span class="k">if</span> <span class="b">self</span><span class="o">.</span>training<span class="o">:</span>
+            <span class="c"># calculate the mean and variance on the batch</span>
+            xmean <span class="o">=</span> x<span class="o">.</span>mean<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+            xvar <span class="o">=</span> x<span class="o">.</span>var<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+        <span class="k">else</span><span class="o">:</span>
+            xmean <span class="o">=</span> <span class="b">self</span><span class="o">.</span>running_mean
+            xvar <span class="o">=</span> <span class="b">self</span><span class="o">.</span>running_var
+        <span class="c"># normalize the batch</span>
+        xhat <span class="o">=</span> <span class="o">(</span>x <span class="o">-</span> xmean<span class="o">)</span> <span class="o">/</span> torch<span class="o">.</span>sqrt<span class="o">(</span>xvar <span class="o">+</span> <span class="b">self</span><span class="o">.</span>eps<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> <span class="b">self</span><span class="o">.</span>gamma <span class="o">*</span> xhat <span class="o">+</span> <span class="b">self</span><span class="o">.</span>beta
+        <span class="c"># update the running mean and variance</span>
+        <span class="k">if</span> <span class="b">self</span><span class="o">.</span>training<span class="o">:</span>
+            <span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+                <span class="b">self</span><span class="o">.</span>running_mean <span class="o">=</span> <span class="o">(</span><span class="m">1</span><span class="o">-</span><span class="b">self</span><span class="o">.</span>momentum<span class="o">)</span> <span class="o">*</span> <span class="b">self</span><span class="o">.</span>running_mean <span class="o">+</span> <span class="b">self</span><span class="o">.</span>momentum <span class="o">*</span> xmean
+                <span class="b">self</span><span class="o">.</span>running_var <span class="o">=</span> <span class="o">(</span><span class="m">1</span><span class="o">-</span><span class="b">self</span><span class="o">.</span>momentum<span class="o">)</span> <span class="o">*</span> <span class="b">self</span><span class="o">.</span>running_var <span class="o">+</span> <span class="b">self</span><span class="o">.</span>momentum <span class="o">*</span> xvar
+        <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out
 
-    def parameters(self):
-        return [self.gamma, self.beta]
+    <span class="k">def</span> <span class="f">parameters</span><span class="o">(</span><span class="b">self</span><span class="o">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="o">[</span><span class="b">self</span><span class="o">.</span>gamma<span class="o">,</span> <span class="b">self</span><span class="o">.</span>beta<span class="o">]</span>
 
-class Tanh:
-    def __call__(self, x):
-        self.out = torch.tanh(x)
-        return self.out
-    def parameters(self):
-        return []</code></pre>
-      <pre><code>n_emb = 10 # the dimension of the embedding
-n_hidden = 100 # the number of neurons in the hidden layer of the MLP
-g = torch.Generator().manual_seed(2147483647)
+<span class="k">class</span> <span class="f">Tanh</span><span class="o">:</span>
+    <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+        <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>x<span class="o">)</span>
+        <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out
+    <span class="k">def</span> <span class="f">parameters</span><span class="o">(</span><span class="b">self</span><span class="o">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="o">[</span><span class="o">]</span></code></pre>
+      <pre><code class="py">n_emb <span class="o">=</span> <span class="m">10</span> <span class="c"># the dimension of the embedding</span>
+n_hidden <span class="o">=</span> <span class="m">100</span> <span class="c"># the number of neurons in the hidden layer of the MLP</span>
+g <span class="o">=</span> torch<span class="o">.</span>Generator<span class="o">(</span><span class="o">)</span><span class="o">.</span>manual_seed<span class="o">(</span><span class="m">2147483647</span><span class="o">)</span>
 
-C = torch.randn((vocab_size, n_emb), generator=g)
-layers = [
-    Linear(n_emb*block_size, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, vocab_size), BatchNorm1d(vocab_size),
-]
+C <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>vocab_size<span class="o">,</span> n_emb<span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span>
+layers <span class="o">=</span> <span class="o">[</span>
+    Linear<span class="o">(</span>n_emb<span class="o">*</span>block_size<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span>
 
-with torch.no_grad():
-    # last layer: make less confident
-	  layers[-1].weight *= 0.1
-		# layers[-1].weight *= 0.1
-    # all other layers: apply gain
-    for l in layers[:-1]:
-        if isinstance(l, Linear):
-            l.weight *= 5/3
+<span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+    <span class="c"># last layer: make less confident</span>
+      layers<span class="o">[</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">.</span>weight <span class="o">*</span><span class="o">=</span> <span class="m">0.1</span>
+        <span class="c"># layers[-1].weight *= 0.1</span>
+    <span class="c"># all other layers: apply gain</span>
+    <span class="k">for</span> l <span class="o">in</span> layers<span class="o">[</span><span class="o">:</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">:</span>
+        <span class="k">if</span> <span class="b">isinstance</span><span class="o">(</span>l<span class="o">,</span> Linear<span class="o">)</span><span class="o">:</span>
+            l<span class="o">.</span>weight <span class="o">*</span><span class="o">=</span> <span class="m">5</span><span class="o">/</span><span class="m">3</span>
 
-parameters = [C] + [p for l in layers for p in l.parameters()]
-print(sum(p.nelement() for p in parameters))
-for p in parameters:
-    p.requires_grad_()
+parameters <span class="o">=</span> <span class="o">[</span>C<span class="o">]</span> <span class="o">+</span> <span class="o">[</span>p <span class="k">for</span> l <span class="o">in</span> layers <span class="k">for</span> p <span class="o">in</span> l<span class="o">.</span>parameters<span class="o">(</span><span class="o">)</span><span class="o">]</span>
+<span class="b">print</span><span class="o">(</span><span class="b">sum</span><span class="o">(</span>p<span class="o">.</span>nelement<span class="o">(</span><span class="o">)</span> <span class="k">for</span> p <span class="o">in</span> parameters<span class="o">)</span><span class="o">)</span>
+<span class="k">for</span> p <span class="o">in</span> parameters<span class="o">:</span>
+    p<span class="o">.</span>requires_grad_<span class="o">(</span><span class="o">)</span>
 
-# same optimization as last time
-max_steps = 200000
-batch_size = 32
-lossi = []
-ud = []
+<span class="c"># same optimization as last time</span>
+max_steps <span class="o">=</span> <span class="m">200000</span>
+batch_size <span class="o">=</span> <span class="m">32</span>
+lossi <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
+ud <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
 
-for i in range(max_steps):
-    # minibatch construct
-    ix = torch.randint(0, Xtr.shape[0], (batch_size,), generator=g)
-    Xb, Yb = Xtr[ix], Ytr[ix] # batch X, Y
+<span class="k">for</span> i <span class="o">in</span> <span class="b">range</span><span class="o">(</span>max_steps<span class="o">)</span><span class="o">:</span>
+    <span class="c"># minibatch construct</span>
+    ix <span class="o">=</span> torch<span class="o">.</span>randint<span class="o">(</span><span class="m">0</span><span class="o">,</span> Xtr<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">(</span>batch_size<span class="o">,</span><span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span>
+    Xb<span class="o">,</span> Yb <span class="o">=</span> Xtr<span class="o">[</span>ix<span class="o">]</span><span class="o">,</span> Ytr<span class="o">[</span>ix<span class="o">]</span> <span class="c"># batch X, Y</span>
 
-    # forward pass
-    emb = C[Xb]
-    x = emb.view(emb.shape[0], -1)
-    for l in layers:
-        x = l(x)
-    loss = F.cross_entropy(x, Yb)
+    <span class="c"># forward pass</span>
+    emb <span class="o">=</span> C<span class="o">[</span>Xb<span class="o">]</span>
+    x <span class="o">=</span> emb<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
+    <span class="k">for</span> l <span class="o">in</span> layers<span class="o">:</span>
+        x <span class="o">=</span> l<span class="o">(</span>x<span class="o">)</span>
+    loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>x<span class="o">,</span> Yb<span class="o">)</span>
 
-    # backward pass
-    for layer in layers:
-        layer.out.retain_grad() # AFTER DEBUG: would take out retain_graph
-    for p in parameters:
-        p.grad = None
-    loss.backward()
+    <span class="c"># backward pass</span>
+    <span class="k">for</span> layer <span class="o">in</span> layers<span class="o">:</span>
+        layer<span class="o">.</span>out<span class="o">.</span>retain_grad<span class="o">(</span><span class="o">)</span> <span class="c"># AFTER DEBUG: would take out retain_graph</span>
+    <span class="k">for</span> p <span class="o">in</span> parameters<span class="o">:</span>
+        p<span class="o">.</span>grad <span class="o">=</span> <span class="k">None</span>
+    loss<span class="o">.</span>backward<span class="o">(</span><span class="o">)</span>
 
-    # update
-    lr = 0.1 if i &lt; (max_steps * 0.5) else 0.01
-    for p in parameters:
-        p.data -= lr * p.grad
+    <span class="c"># update</span>
+    lr <span class="o">=</span> <span class="m">0.1</span> <span class="k">if</span> i <span class="o">&lt;</span> <span class="o">(</span>max_steps <span class="o">*</span> <span class="m">0.5</span><span class="o">)</span> <span class="k">else</span> <span class="m">0.01</span>
+    <span class="k">for</span> p <span class="o">in</span> parameters<span class="o">:</span>
+        p<span class="o">.</span>data <span class="o">-</span><span class="o">=</span> lr <span class="o">*</span> p<span class="o">.</span>grad
 
-    # track stats
-    if i % 1000 == 0:
-        print(f'{i:6d}/{max_steps:6d}: {loss.item():.4f}')
-    lossi.append(loss.log10().item())
+    <span class="c"># track stats</span>
+    <span class="k">if</span> i <span class="o">%</span> <span class="m">1000</span> <span class="o">==</span> <span class="m">0</span><span class="o">:</span>
+        <span class="b">print</span><span class="o">(</span><span class="s">f</span><span class="s">'</span><span class="s">{</span>i<span class="s">:</span><span class="s">6d</span><span class="s">}</span><span class="s">/</span><span class="s">{</span>max_steps<span class="s">:</span><span class="s">6d</span><span class="s">}</span><span class="s">: </span><span class="s">{</span>loss<span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="s">:</span><span class="s">.4f</span><span class="s">}</span><span class="s">'</span><span class="o">)</span>
+    lossi<span class="o">.</span>append<span class="o">(</span>loss<span class="o">.</span>log10<span class="o">(</span><span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="o">)</span>
 
-    with torch.no_grad():
-        ud.append([(lr * p.grad.std() / p.data.std()).log10().item() for p in parameters])
+    <span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+        ud<span class="o">.</span>append<span class="o">(</span><span class="o">[</span><span class="o">(</span>lr <span class="o">*</span> p<span class="o">.</span>grad<span class="o">.</span>std<span class="o">(</span><span class="o">)</span> <span class="o">/</span> p<span class="o">.</span>data<span class="o">.</span>std<span class="o">(</span><span class="o">)</span><span class="o">)</span><span class="o">.</span>log10<span class="o">(</span><span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span> <span class="k">for</span> p <span class="o">in</span> parameters<span class="o">]</span><span class="o">)</span>
 
 
-    break # AFTER DEBUG: would take out obviously to run full optimization</code></pre>
+    <span class="k">break</span> <span class="c"># AFTER DEBUG: would take out obviously to run full optimization</span></code></pre>
 
       <h3>Architecture</h3>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-16.png" alt="figure"></figure>
@@ -309,41 +309,41 @@ for i in range(max_steps):
       <h3>Visualizing layer activations</h3>
       <p>Let’s take a look at the activations for our new deeper model.</p>
       <p>If we remove the BatchNorm and Tanh layers (leaving only Linear layers), we end up with a gain of <code>5/3</code> that is too high (since we don’t have the Tanh). This leads to the forward activations to get wider and wider, and the backward activations to get narrower and narrower.</p>
-      <pre><code>layers = [
-    Linear(n_emb*block_size, n_hidden),
-    Linear(n_hidden, n_hidden),
-    Linear(n_hidden, n_hidden),
-    Linear(n_hidden, n_hidden),
-    Linear(n_hidden, n_hidden),
-    Linear(n_hidden, vocab_size),
-]
+      <pre><code class="py">layers <span class="o">=</span> <span class="o">[</span>
+    Linear<span class="o">(</span>n_emb<span class="o">*</span>block_size<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span>
 
-with torch.no_grad():
-    # last layer: make less confident
-    layers[-1].weight *= 0.1
-    # all other layers: apply gain
-    for l in layers[:-1]:
-        if isinstance(l, Linear):
-            l.weight *= 5/3</code></pre>
+<span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+    <span class="c"># last layer: make less confident</span>
+    layers<span class="o">[</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">.</span>weight <span class="o">*</span><span class="o">=</span> <span class="m">0.1</span>
+    <span class="c"># all other layers: apply gain</span>
+    <span class="k">for</span> l <span class="o">in</span> layers<span class="o">[</span><span class="o">:</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">:</span>
+        <span class="k">if</span> <span class="b">isinstance</span><span class="o">(</span>l<span class="o">,</span> Linear<span class="o">)</span><span class="o">:</span>
+            l<span class="o">.</span>weight <span class="o">*</span><span class="o">=</span> <span class="m">5</span><span class="o">/</span><span class="m">3</span></code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-17.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-18.png" alt="figure"></figure>
       <p>If we instead set the gain to <code>1.0</code> (the correct setting for no non-linearity), we end up with activations that look much better (stable across layers) for both forward and backwards.</p>
-      <pre><code>layers = [
-    Linear(n_emb*block_size, n_hidden),
-    Linear(n_hidden, n_hidden),
-    Linear(n_hidden, n_hidden),
-    Linear(n_hidden, n_hidden),
-    Linear(n_hidden, n_hidden),
-    Linear(n_hidden, vocab_size),
-]
+      <pre><code class="py">layers <span class="o">=</span> <span class="o">[</span>
+    Linear<span class="o">(</span>n_emb<span class="o">*</span>block_size<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span>
 
-with torch.no_grad():
-    # last layer: make less confident
-    layers[-1].weight *= 0.1
-    # all other layers: apply gain
-    for l in layers[:-1]:
-        if isinstance(l, Linear):
-            l.weight *= 1</code></pre>
+<span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+    <span class="c"># last layer: make less confident</span>
+    layers<span class="o">[</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">.</span>weight <span class="o">*</span><span class="o">=</span> <span class="m">0.1</span>
+    <span class="c"># all other layers: apply gain</span>
+    <span class="k">for</span> l <span class="o">in</span> layers<span class="o">[</span><span class="o">:</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">:</span>
+        <span class="k">if</span> <span class="b">isinstance</span><span class="o">(</span>l<span class="o">,</span> Linear<span class="o">)</span><span class="o">:</span>
+            l<span class="o">.</span>weight <span class="o">*</span><span class="o">=</span> <span class="m">1</span></code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-19.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-20.png" alt="figure"></figure>
       <p>If we bring the Tanh layers back along with the gain of 5/3, then we will also see a nice plot of the activations. The shapes are different because we are now looking at the output of Tanh instead of Linear.</p>
@@ -365,10 +365,10 @@ with torch.no_grad():
 
       <h3>Using these charts to spot problems</h3>
       <p>Let’s say we forgot to divide by the square root of fan-in in our linear layer weight initialization.</p>
-      <pre><code>class Linear:
-    def __init__(self, fan_in, fan_out, bias=True):
-        self.weight = torch.randn((fan_in, fan_out), generator=g) # / fan_in**0.5
-        self.bias = torch.zeros(fan_out) if bias else None</code></pre>
+      <pre><code class="py"><span class="k">class</span> <span class="f">Linear</span><span class="o">:</span>
+    <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> fan_in<span class="o">,</span> fan_out<span class="o">,</span> bias<span class="o">=</span><span class="k">True</span><span class="o">)</span><span class="o">:</span>
+        <span class="b">self</span><span class="o">.</span>weight <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>fan_in<span class="o">,</span> fan_out<span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span> <span class="c"># / fan_in**0.5</span>
+        <span class="b">self</span><span class="o">.</span>bias <span class="o">=</span> torch<span class="o">.</span>zeros<span class="o">(</span>fan_out<span class="o">)</span> <span class="k">if</span> bias <span class="k">else</span> <span class="k">None</span></code></pre>
       <p>We will be able to quickly notice that something is wrong by looking at all of our charts. The forward activations are way too saturated. The backward activations go from extremely narrow to extremely wide. Same for the weights. We notice a lot of asymmetry across the layers in general.</p>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-27.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-28.png" alt="figure"></figure>
@@ -379,27 +379,27 @@ with torch.no_grad():
       <h3>Batch Normalization</h3>
       <p>Above, we saw (again) how the network is somewhat sensitive to how we initialize the weights of the network without Batch Normalization. Adding Batch Normalization should make this more robust since it is forcing a normalization at the end of every linear layer.</p>
       <p>For example, say we just didn’t do any of the weight initialization (don’t divide by sqrt of fan in for the linear layer, don’t set a gain). The network will still be completely fine.</p>
-      <pre><code>class Linear:
-    def __init__(self, fan_in, fan_out, bias=True):
-        self.weight = torch.randn((fan_in, fan_out), generator=g) # / fan_in**0.5
-        self.bias = torch.zeros(fan_out) if bias else None</code></pre>
-      <pre><code>layers = [
-    Linear(n_emb*block_size, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, n_hidden), BatchNorm1d(n_hidden), Tanh(),
-    Linear(n_hidden, vocab_size), BatchNorm1d(vocab_size),
-]
+      <pre><code class="py"><span class="k">class</span> <span class="f">Linear</span><span class="o">:</span>
+    <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> fan_in<span class="o">,</span> fan_out<span class="o">,</span> bias<span class="o">=</span><span class="k">True</span><span class="o">)</span><span class="o">:</span>
+        <span class="b">self</span><span class="o">.</span>weight <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>fan_in<span class="o">,</span> fan_out<span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span> <span class="c"># / fan_in**0.5</span>
+        <span class="b">self</span><span class="o">.</span>bias <span class="o">=</span> torch<span class="o">.</span>zeros<span class="o">(</span>fan_out<span class="o">)</span> <span class="k">if</span> bias <span class="k">else</span> <span class="k">None</span></code></pre>
+      <pre><code class="py">layers <span class="o">=</span> <span class="o">[</span>
+    Linear<span class="o">(</span>n_emb<span class="o">*</span>block_size<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+    Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span>
 
-with torch.no_grad():
-    # last layer: make less confident
-    layers[-1].gamma *= 0.1
-    # layers[-1].weight *= 0.1
-    # all other layers: apply gain
-    for l in layers[:-1]:
-        if isinstance(l, Linear):
-            l.weight *= 1</code></pre>
+<span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+    <span class="c"># last layer: make less confident</span>
+    layers<span class="o">[</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">.</span>gamma <span class="o">*</span><span class="o">=</span> <span class="m">0.1</span>
+    <span class="c"># layers[-1].weight *= 0.1</span>
+    <span class="c"># all other layers: apply gain</span>
+    <span class="k">for</span> l <span class="o">in</span> layers<span class="o">[</span><span class="o">:</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">:</span>
+        <span class="k">if</span> <span class="b">isinstance</span><span class="o">(</span>l<span class="o">,</span> Linear<span class="o">)</span><span class="o">:</span>
+            l<span class="o">.</span>weight <span class="o">*</span><span class="o">=</span> <span class="m">1</span></code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-31.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-32.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-3-batchnorm-33.png" alt="figure"></figure>

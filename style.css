@@ -16,6 +16,15 @@
 
   --measure: 40rem;      /* ~640px reading column */
   --gap: 1.6rem;
+
+  /* syntax tokens — all ≥4.7:1 on the code panel */
+  --tok-comment: #66696F;
+  --tok-keyword: #1F4FC4;
+  --tok-string:  #1F6F4A;
+  --tok-number:  #8A4B10;
+  --tok-func:    #5B3E9E;
+  --tok-builtin: #0F6B7A;
+  --tok-op:      #5A5D66;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,6 +35,14 @@
     --faint:  #2A2C31;
     --accent: #86A8FF;
     --accent-soft: #1b2130;
+
+    --tok-comment: #8B909B;
+    --tok-keyword: #86A8FF;
+    --tok-string:  #7BC79E;
+    --tok-number:  #DFA173;
+    --tok-func:    #C3A6F0;
+    --tok-builtin: #6FC4D3;
+    --tok-op:      #9AA0AA;
   }
 }
 
@@ -243,6 +260,16 @@ pre {
   margin: 0 0 1.5rem;
 }
 pre code { background: none; padding: 0; font-size: inherit; }
+
+/* syntax highlighting — baked in by tools/highlight.py, no JS at runtime */
+.py .c { color: var(--tok-comment); font-style: italic; }
+.py .k { color: var(--tok-keyword); }
+.py .s { color: var(--tok-string); }
+.py .m { color: var(--tok-number); }
+.py .f { color: var(--tok-func); }
+.py .b { color: var(--tok-builtin); }
+.py .d { color: var(--tok-func); font-style: italic; }
+.py .o { color: var(--tok-op); }
 
 hr {
   border: none;

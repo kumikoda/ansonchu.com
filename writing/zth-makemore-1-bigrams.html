@@ -25,12 +25,12 @@
       <h3>Bigrams</h3>
       <p>A “bigram” is just a pair of adjacent characters (or syllables or words). For example, the character bigrams of the string <code>anson</code> would just be <code>an</code>, <code>ns</code>, <code>so</code>, and <code>on</code>. If we also consider the start and end of words as special characters <code>.</code>, then we end up with 2 additional bigrams <code>.a</code> and <code>n.</code></p>
       <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-01.png" alt="figure"></figure>
-      <pre><code># break "Anson" into bigrams
-w = 'anson'
-chs = ['.'] + list(w) + ['.']
-bigrams = zip(chs, chs[1:])
-list(bigrams)
-# --&gt; [('.', 'a'), ('a', 'n'), ('n', 's'), ('s', 'o'), ('o', 'n'), ('n', '.')]</code></pre>
+      <pre><code class="py"><span class="c"># break "Anson" into bigrams</span>
+w <span class="o">=</span> <span class="s">'</span><span class="s">anson</span><span class="s">'</span>
+chs <span class="o">=</span> <span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span> <span class="o">+</span> <span class="b">list</span><span class="o">(</span>w<span class="o">)</span> <span class="o">+</span> <span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span>
+bigrams <span class="o">=</span> <span class="b">zip</span><span class="o">(</span>chs<span class="o">,</span> chs<span class="o">[</span><span class="m">1</span><span class="o">:</span><span class="o">]</span><span class="o">)</span>
+<span class="b">list</span><span class="o">(</span>bigrams<span class="o">)</span>
+<span class="c"># --&gt; [('.', 'a'), ('a', 'n'), ('n', 's'), ('s', 'o'), ('o', 'n'), ('n', '.')]</span></code></pre>
 
       <h3>Frequency Matrix</h3>
       <p>Given a list of names, we can deconstruct each name into its bigrams, and store the <u>frequencies</u> of each unique bigram into a table.</p>
@@ -40,20 +40,20 @@ list(bigrams)
       </ul>
       <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-02.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-03.png" alt="figure"></figure>
-      <pre><code># Initialize empty matrix
-N = torch.zeros((27, 27), dtype=torch.int32)
+      <pre><code class="py"><span class="c"># Initialize empty matrix</span>
+N <span class="o">=</span> torch<span class="o">.</span>zeros<span class="o">(</span><span class="o">(</span><span class="m">27</span><span class="o">,</span> <span class="m">27</span><span class="o">)</span><span class="o">,</span> dtype<span class="o">=</span>torch<span class="o">.</span>int32<span class="o">)</span>
 
-# Create helper mappings between characters and positional indices
-chars = sorted(list(set(''.join(words))))
-stoi = {ch: i+1 for i, ch in enumerate(chars)}
-stoi['.'] = 0
-itos = {i: ch for ch, i in stoi.items()}
+<span class="c"># Create helper mappings between characters and positional indices</span>
+chars <span class="o">=</span> <span class="b">sorted</span><span class="o">(</span><span class="b">list</span><span class="o">(</span><span class="b">set</span><span class="o">(</span><span class="s">'</span><span class="s">'</span><span class="o">.</span>join<span class="o">(</span>words<span class="o">)</span><span class="o">)</span><span class="o">)</span><span class="o">)</span>
+stoi <span class="o">=</span> <span class="o">{</span>ch<span class="o">:</span> i<span class="o">+</span><span class="m">1</span> <span class="k">for</span> i<span class="o">,</span> ch <span class="o">in</span> <span class="b">enumerate</span><span class="o">(</span>chars<span class="o">)</span><span class="o">}</span>
+stoi<span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span> <span class="o">=</span> <span class="m">0</span>
+itos <span class="o">=</span> <span class="o">{</span>i<span class="o">:</span> ch <span class="k">for</span> ch<span class="o">,</span> i <span class="o">in</span> stoi<span class="o">.</span>items<span class="o">(</span><span class="o">)</span><span class="o">}</span>
 
-# Count frequencies
-for w in words:
-    chs = ['.'] + list(w) + ['.']
-    for ch1, ch2 in zip(chs, chs[1:]):
-        N[stoi[ch1], stoi[ch2]] += 1</code></pre>
+<span class="c"># Count frequencies</span>
+<span class="k">for</span> w <span class="o">in</span> words<span class="o">:</span>
+    chs <span class="o">=</span> <span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span> <span class="o">+</span> <span class="b">list</span><span class="o">(</span>w<span class="o">)</span> <span class="o">+</span> <span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span>
+    <span class="k">for</span> ch1<span class="o">,</span> ch2 <span class="o">in</span> <span class="b">zip</span><span class="o">(</span>chs<span class="o">,</span> chs<span class="o">[</span><span class="m">1</span><span class="o">:</span><span class="o">]</span><span class="o">)</span><span class="o">:</span>
+        N<span class="o">[</span>stoi<span class="o">[</span>ch1<span class="o">]</span><span class="o">,</span> stoi<span class="o">[</span>ch2<span class="o">]</span><span class="o">]</span> <span class="o">+</span><span class="o">=</span> <span class="m">1</span></code></pre>
 
       <h3>Probability Matrix</h3>
       <p>If we normalize each row into probabilities, we will have a lookup table that allows us to easily look up the probabilities of the next character given the current character.</p>
@@ -63,10 +63,10 @@ for w in words:
       </ul>
       <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-04.png" alt="figure"></figure>
       <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-05.png" alt="figure"></figure>
-      <pre><code># Add a bit of smoothing to prevent 0 probabilities
-P = (N+1).float()
-# normalize counts N into probabilities P (with smoothing)
-P /= P.sum(dim=1, keepdim=True)</code></pre>
+      <pre><code class="py"><span class="c"># Add a bit of smoothing to prevent 0 probabilities</span>
+P <span class="o">=</span> <span class="o">(</span>N<span class="o">+</span><span class="m">1</span><span class="o">)</span><span class="o">.</span>float<span class="o">(</span><span class="o">)</span>
+<span class="c"># normalize counts N into probabilities P (with smoothing)</span>
+P <span class="o">/</span><span class="o">=</span> P<span class="o">.</span>sum<span class="o">(</span>dim<span class="o">=</span><span class="m">1</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span></code></pre>
       <p>Note that we added a “fake count” of 1 to each cell to prevent any cell from having exactly 0 probability which will cause us to have infinite loss below which is ugly and also potentially undesirable since our model will never be able to generate any bigrams it has never seen before. We call this “smoothing”, and the more fake counts we add, the more uniform the probability distributions will become.</p>
 
       <h3>Name generation</h3>
@@ -76,97 +76,97 @@ P /= P.sum(dim=1, keepdim=True)</code></pre>
         <li>randomly pick the next character based on the distribution of probabilities</li>
         <li>repeat the process until you get the <code>.</code> character again</li>
       </ol>
-      <pre><code># generate 10 samples
-for i in range(10):
-    # start with `.`
-		ix = 0
-    print(itos[ix], end='')
-    while True:
-        # pick out the row of probabilities corresponding to the current character
-				p = P[ix]
-				# randomly pick the next character by sampling the row of probabilities
-        ix = torch.multinomial(p, num_samples=1, replacement=True, generator=g).item()
-        print(itos[ix], end='')
-				# repeat until we get `.` again
-				if ix == 0:
-            print()
-            break</code></pre>
+      <pre><code class="py"><span class="c"># generate 10 samples</span>
+<span class="k">for</span> i <span class="o">in</span> <span class="b">range</span><span class="o">(</span><span class="m">10</span><span class="o">)</span><span class="o">:</span>
+    <span class="c"># start with `.`</span>
+        ix <span class="o">=</span> <span class="m">0</span>
+    <span class="b">print</span><span class="o">(</span>itos<span class="o">[</span>ix<span class="o">]</span><span class="o">,</span> end<span class="o">=</span><span class="s">'</span><span class="s">'</span><span class="o">)</span>
+    <span class="k">while</span> <span class="k">True</span><span class="o">:</span>
+        <span class="c"># pick out the row of probabilities corresponding to the current character</span>
+                p <span class="o">=</span> P<span class="o">[</span>ix<span class="o">]</span>
+                <span class="c"># randomly pick the next character by sampling the row of probabilities</span>
+        ix <span class="o">=</span> torch<span class="o">.</span>multinomial<span class="o">(</span>p<span class="o">,</span> num_samples<span class="o">=</span><span class="m">1</span><span class="o">,</span> replacement<span class="o">=</span><span class="k">True</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span>
+        <span class="b">print</span><span class="o">(</span>itos<span class="o">[</span>ix<span class="o">]</span><span class="o">,</span> end<span class="o">=</span><span class="s">'</span><span class="s">'</span><span class="o">)</span>
+                <span class="c"># repeat until we get `.` again</span>
+                <span class="k">if</span> ix <span class="o">==</span> <span class="m">0</span><span class="o">:</span>
+            <span class="b">print</span><span class="o">(</span><span class="o">)</span>
+            <span class="k">break</span></code></pre>
 
       <h2>Loss</h2>
       <p>How do we measure the quality of our model? It is conventional in ML to measure quality of models in terms of “loss”, where loss=0 is considered the perfect score.</p>
       <p>There are many different “loss functions”. In this example, we will use the “negative log likelihood” or NLL loss function.</p>
       <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-06.png" alt="figure"></figure>
       <p>For example, to compute our model’s NLL over our list of names, we can simply break down each name into <code>N</code> bigrams, sum up the <code>log</code> probabilities of the 2nd character following the 1st character (<code>P_i</code>), then negate and divide by <code>N</code>.</p>
-      <pre><code>log_likelihood = 0 # running sum of log probabilities
-n = 0 # number of samples
+      <pre><code class="py">log_likelihood <span class="o">=</span> <span class="m">0</span> <span class="c"># running sum of log probabilities</span>
+n <span class="o">=</span> <span class="m">0</span> <span class="c"># number of samples</span>
 
-# for every word in the dataset
-for w in words:
+<span class="c"># for every word in the dataset</span>
+<span class="k">for</span> w <span class="o">in</span> words<span class="o">:</span>
 
-    # break down into bigrams
-    chs = ['.'] + list(w) + ['.']
-    bigrams = zip(chs, chs[1:])
+    <span class="c"># break down into bigrams</span>
+    chs <span class="o">=</span> <span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span> <span class="o">+</span> <span class="b">list</span><span class="o">(</span>w<span class="o">)</span> <span class="o">+</span> <span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span>
+    bigrams <span class="o">=</span> <span class="b">zip</span><span class="o">(</span>chs<span class="o">,</span> chs<span class="o">[</span><span class="m">1</span><span class="o">:</span><span class="o">]</span><span class="o">)</span>
 
-    # for every bigram
-    for ch1, ch2 in bigrams:
-        # lookup probability of ch2 given ch1
-        ix1 = stoi[ch1]
-        ix2 = stoi[ch2]
-        prob = P[ix1, ix2]
+    <span class="c"># for every bigram</span>
+    <span class="k">for</span> ch1<span class="o">,</span> ch2 <span class="o">in</span> bigrams<span class="o">:</span>
+        <span class="c"># lookup probability of ch2 given ch1</span>
+        ix1 <span class="o">=</span> stoi<span class="o">[</span>ch1<span class="o">]</span>
+        ix2 <span class="o">=</span> stoi<span class="o">[</span>ch2<span class="o">]</span>
+        prob <span class="o">=</span> P<span class="o">[</span>ix1<span class="o">,</span> ix2<span class="o">]</span>
 
-        # add log likelihood to running sum
-        logprob = torch.log(prob)
-        log_likelihood += logprob
+        <span class="c"># add log likelihood to running sum</span>
+        logprob <span class="o">=</span> torch<span class="o">.</span>log<span class="o">(</span>prob<span class="o">)</span>
+        log_likelihood <span class="o">+</span><span class="o">=</span> logprob
 
-        # increment number of samples
-        n += 1
+        <span class="c"># increment number of samples</span>
+        n <span class="o">+</span><span class="o">=</span> <span class="m">1</span>
 
-# compute loss
-loss = -log_likelihood / n
-print(f'loss: {loss:.4f}')</code></pre>
+<span class="c"># compute loss</span>
+loss <span class="o">=</span> <span class="o">-</span>log_likelihood <span class="o">/</span> n
+<span class="b">print</span><span class="o">(</span><span class="s">f</span><span class="s">'</span><span class="s">loss: </span><span class="s">{</span>loss<span class="s">:</span><span class="s">.4f</span><span class="s">}</span><span class="s">'</span><span class="o">)</span></code></pre>
 
       <h2>PyTorch Version</h2>
       <p>Instead of building our bigram model with raw Python dictionaries and counting frequencies by hand, lets use PyTorch to <em>train</em> one (a mathematically identical model).</p>
       <p>At a high level, we will construct a weight matrix <code>W</code> that is sort of similar to the count matrix <code>N</code> above. But instead of counting bigrams, we will use gradient descent to <em>learn</em> the weights in <code>W</code>.  And instead of going through each sample in a for loop, we can vectorize our calculations for performance.</p>
-      <pre><code>import torch.nn.functional as F
+      <pre><code class="py"><span class="k">import</span> torch.nn.functional <span class="k">as</span> F
 
-# create the training set of the bigrams
-xs, ys = [], []
-for w in words:
-    chs = ['.'] + list(w) + ['.']
-    for ch1, ch2 in zip(chs, chs[1:]):
-        xs.append(stoi[ch1])
-        ys.append(stoi[ch2])
-xs = torch.tensor(xs) # every 1st character in bigrams
-ys = torch.tensor(ys) # every 2nd character in bigrams
+<span class="c"># create the training set of the bigrams</span>
+xs<span class="o">,</span> ys <span class="o">=</span> <span class="o">[</span><span class="o">]</span><span class="o">,</span> <span class="o">[</span><span class="o">]</span>
+<span class="k">for</span> w <span class="o">in</span> words<span class="o">:</span>
+    chs <span class="o">=</span> <span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span> <span class="o">+</span> <span class="b">list</span><span class="o">(</span>w<span class="o">)</span> <span class="o">+</span> <span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span>
+    <span class="k">for</span> ch1<span class="o">,</span> ch2 <span class="o">in</span> <span class="b">zip</span><span class="o">(</span>chs<span class="o">,</span> chs<span class="o">[</span><span class="m">1</span><span class="o">:</span><span class="o">]</span><span class="o">)</span><span class="o">:</span>
+        xs<span class="o">.</span>append<span class="o">(</span>stoi<span class="o">[</span>ch1<span class="o">]</span><span class="o">)</span>
+        ys<span class="o">.</span>append<span class="o">(</span>stoi<span class="o">[</span>ch2<span class="o">]</span><span class="o">)</span>
+xs <span class="o">=</span> torch<span class="o">.</span>tensor<span class="o">(</span>xs<span class="o">)</span> <span class="c"># every 1st character in bigrams</span>
+ys <span class="o">=</span> torch<span class="o">.</span>tensor<span class="o">(</span>ys<span class="o">)</span> <span class="c"># every 2nd character in bigrams</span>
 
-# Initialize random weights
-W = torch.randn((27, 27), generator=g, requires_grad=True)
+<span class="c"># Initialize random weights</span>
+W <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span><span class="m">27</span><span class="o">,</span> <span class="m">27</span><span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">,</span> requires_grad<span class="o">=</span><span class="k">True</span><span class="o">)</span>
 
-# Learn weights with gradient descent
-for k in range(100):
-    # &lt;--- forward pass ---&gt;
-		# "pluck out" rows of weights for each x as logits (same as log counts)
-    xenc = F.one_hot(xs, num_classes=27).float()
-		logits = xenc @ W
-		# exponentiate to get counts (equivalent to row in N matrix above)
-    counts = logits.exp()
-		# normalize to produce probabilities
-    probs = counts / counts.sum(dim=1, keepdim=True)
-		# compute NNL loss across
-    loss = -probs[torch.arange(len(ys)), ys].log().mean()
-		# add regularization
-		loss += 0.01*(W**2).mean()
+<span class="c"># Learn weights with gradient descent</span>
+<span class="k">for</span> k <span class="o">in</span> <span class="b">range</span><span class="o">(</span><span class="m">100</span><span class="o">)</span><span class="o">:</span>
+    <span class="c"># &lt;--- forward pass ---&gt;</span>
+        <span class="c"># "pluck out" rows of weights for each x as logits (same as log counts)</span>
+    xenc <span class="o">=</span> F<span class="o">.</span>one_hot<span class="o">(</span>xs<span class="o">,</span> num_classes<span class="o">=</span><span class="m">27</span><span class="o">)</span><span class="o">.</span>float<span class="o">(</span><span class="o">)</span>
+        logits <span class="o">=</span> xenc <span class="o">@</span> W
+        <span class="c"># exponentiate to get counts (equivalent to row in N matrix above)</span>
+    counts <span class="o">=</span> logits<span class="o">.</span>exp<span class="o">(</span><span class="o">)</span>
+        <span class="c"># normalize to produce probabilities</span>
+    probs <span class="o">=</span> counts <span class="o">/</span> counts<span class="o">.</span>sum<span class="o">(</span>dim<span class="o">=</span><span class="m">1</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+        <span class="c"># compute NNL loss across</span>
+    loss <span class="o">=</span> <span class="o">-</span>probs<span class="o">[</span>torch<span class="o">.</span>arange<span class="o">(</span><span class="b">len</span><span class="o">(</span>ys<span class="o">)</span><span class="o">)</span><span class="o">,</span> ys<span class="o">]</span><span class="o">.</span>log<span class="o">(</span><span class="o">)</span><span class="o">.</span>mean<span class="o">(</span><span class="o">)</span>
+        <span class="c"># add regularization</span>
+        loss <span class="o">+</span><span class="o">=</span> <span class="m">0.01</span><span class="o">*</span><span class="o">(</span>W<span class="o">*</span><span class="o">*</span><span class="m">2</span><span class="o">)</span><span class="o">.</span>mean<span class="o">(</span><span class="o">)</span>
 
-    # &lt;--- backward pass ---&gt;
-    W.grad = None # zero out the gradients
-    loss.backward() # compute the gradients
-    W.data -= 50 * W.grad # update the weights</code></pre>
+    <span class="c"># &lt;--- backward pass ---&gt;</span>
+    W<span class="o">.</span>grad <span class="o">=</span> <span class="k">None</span> <span class="c"># zero out the gradients</span>
+    loss<span class="o">.</span>backward<span class="o">(</span><span class="o">)</span> <span class="c"># compute the gradients</span>
+    W<span class="o">.</span>data <span class="o">-</span><span class="o">=</span> <span class="m">50</span> <span class="o">*</span> W<span class="o">.</span>grad <span class="c"># update the weights</span></code></pre>
 
       <h3>Plucking out weights with one hot encoding and matrix multiplication</h3>
-      <pre><code># "pluck out" rows of weights for each x as logits (same as log counts)
-xenc = F.one_hot(xs, num_classes=27).float()
-logits = xenc @ W</code></pre>
+      <pre><code class="py"><span class="c"># "pluck out" rows of weights for each x as logits (same as log counts)</span>
+xenc <span class="o">=</span> F<span class="o">.</span>one_hot<span class="o">(</span>xs<span class="o">,</span> num_classes<span class="o">=</span><span class="m">27</span><span class="o">)</span><span class="o">.</span>float<span class="o">(</span><span class="o">)</span>
+logits <span class="o">=</span> xenc <span class="o">@</span> W</code></pre>
       <p>In the code above, we are using one hot encoding and matrix multiplication to “pluck out” the desired row of weights from <code>W</code>. How does this work?</p>
       <p>Recall that <code>xs</code> is just the list of every 1st character (index) and <code>ys</code> is the list of every 2nd character (index) in our dataset. For example if our dataset only contains one name <code>anson</code>, then <code>xs</code> would be the indices corresponding to [<code>.</code>, <code>a</code>, <code>n</code>, <code>s</code>, <code>o</code>, <code>n</code>] and <code>ys</code> would be indices corresponding to [<code>a</code>, <code>n</code>, <code>s</code>, <code>o</code>, <code>n</code>, <code>.</code>], and <code>N=6</code>.</p>
       <p>One hot encoding is a technique used to transform categorical labels into binary vectors. In our case, we are encoding each character label into a binary vector in character space, where we have 27 characters. For example, the character <code>a</code> would have a <code>1</code> in the <code>a</code> column and <code>0</code> for all other columns. In this way, the list of characters <code>xs</code> with length <code>N</code> would be transformed into a list of binary vectors <code>xenc</code> with shape <code>Nx27</code>.</p>
@@ -175,26 +175,26 @@ logits = xenc @ W</code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-1-bigrams-08.png" alt="figure"></figure>
 
       <h3>Logits and Probabilities</h3>
-      <pre><code># exponentiate to get counts (equivalent to row in N matrix above)
-counts = logits.exp()
-# normalize to produce probabilities
-probs = counts / counts.sum(dim=1, keepdim=True)</code></pre>
+      <pre><code class="py"><span class="c"># exponentiate to get counts (equivalent to row in N matrix above)</span>
+counts <span class="o">=</span> logits<span class="o">.</span>exp<span class="o">(</span><span class="o">)</span>
+<span class="c"># normalize to produce probabilities</span>
+probs <span class="o">=</span> counts <span class="o">/</span> counts<span class="o">.</span>sum<span class="o">(</span>dim<span class="o">=</span><span class="m">1</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span></code></pre>
       <p>“Logits” refer to the raw, unnormalized values generated by a neural network before being transformed into probabilities.</p>
       <p>In our case, <code>logits</code> is a <code>Nx27</code> matrix, where each row is plucked from <code>W</code> for each <code>x</code> in <code>xs</code>. We interpret each of these numbers as “log counts”.  We exponentiate each value to get <code>counts</code>, then we normalize per row to get <code>probs</code>, a <code>Nx27</code> matrix where each row corresponds to the probability distribution of next characters for each character <code>x</code> in <code>xs</code>.</p>
 
       <h3>Vectorized Loss</h3>
-      <pre><code># compute NNL loss across
-loss = -probs[torch.arange(len(ys)), ys].log().mean()
-# add regularization
-loss += 0.01*(W**2).mean()</code></pre>
+      <pre><code class="py"><span class="c"># compute NNL loss across</span>
+loss <span class="o">=</span> <span class="o">-</span>probs<span class="o">[</span>torch<span class="o">.</span>arange<span class="o">(</span><span class="b">len</span><span class="o">(</span>ys<span class="o">)</span><span class="o">)</span><span class="o">,</span> ys<span class="o">]</span><span class="o">.</span>log<span class="o">(</span><span class="o">)</span><span class="o">.</span>mean<span class="o">(</span><span class="o">)</span>
+<span class="c"># add regularization</span>
+loss <span class="o">+</span><span class="o">=</span> <span class="m">0.01</span><span class="o">*</span><span class="o">(</span>W<span class="o">*</span><span class="o">*</span><span class="m">2</span><span class="o">)</span><span class="o">.</span>mean<span class="o">(</span><span class="o">)</span></code></pre>
       <p>We compute the NNL loss in the same way as we did before except again in vectorized form.</p>
       <p>If we wanted to get the <code>ith</code> row <code>jth</code> column out of <code>probs</code>, we could do <code>probs[i, j]</code>. If we wanted to get multiple such values, we can instead do <code>probs[is, js]</code> where <code>is</code> is the list of all row indexes <code>i</code> and <code>js</code> is the list of all column indexes <code>js</code>.</p>
       <p>Since <code>torch.arange(len(ys))</code> is just the enumeration of each sample index, and <code>ys</code> is the list of all next characters, <code>probs[torch.arange(len(ys)), ys]</code> will give us the probability of all next characters for each sample.</p>
       <p>We then take the <code>log</code> of each value, and then <code>mean</code> across all values, and finally negate to get the <code>NLL</code>.</p>
 
       <h3>Regularization</h3>
-      <pre><code># add regularization
-loss += 0.01*(W**2).mean()</code></pre>
+      <pre><code class="py"><span class="c"># add regularization</span>
+loss <span class="o">+</span><span class="o">=</span> <span class="m">0.01</span><span class="o">*</span><span class="o">(</span>W<span class="o">*</span><span class="o">*</span><span class="m">2</span><span class="o">)</span><span class="o">.</span>mean<span class="o">(</span><span class="o">)</span></code></pre>
       <p>Recall that we added a bit of smoothing to our probability matrix above in our non-PyTorch implementation. The more fake counts we add, the smoother or more uniform the probability distribution will become.</p>
       <p>In our PyTorch implementation, we achieve the same thing by adding a penalty term to our loss function. If all the values of <code>W</code> are 0, then all <code>logits</code> will be 0, and then counts (which is <code>logits.exp()</code>) will be all 1, and the probabilities will be exactly uniform. This means that bringing the values of W closer to 0 is the same as adding more fake counts above.</p>
       <p>In particular what we can do is add a regularization term <code>(W**2).mean()</code> to our loss function, which will be 0 only if <code>W</code> is all 0. This means that we will have loss not only if we have <code>NLL</code>, we will also see some loss if <code>W</code> is not 0.</p>
@@ -215,19 +215,19 @@ loss += 0.01*(W**2).mean()</code></pre>
         </li>
         <li>Repeat until you get the <code>.</code> character again</li>
       </ul>
-      <pre><code>for i in range(10):
-    out = []
-    ix = 0
-    while True:
-        xenc = F.one_hot(torch.tensor([ix]), num_classes=27).float()
-        logits = xenc @ W
-        counts = logits.exp()
-        p = counts / counts.sum(1, keepdims=True)
-        ix = torch.multinomial(p, num_samples=1, replacement=True, generator=g).item()
-        if ix == 0:
-            break
-        out.append(itos[ix])
-    print(''.join(out))</code></pre>
+      <pre><code class="py"><span class="k">for</span> i <span class="o">in</span> <span class="b">range</span><span class="o">(</span><span class="m">10</span><span class="o">)</span><span class="o">:</span>
+    out <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
+    ix <span class="o">=</span> <span class="m">0</span>
+    <span class="k">while</span> <span class="k">True</span><span class="o">:</span>
+        xenc <span class="o">=</span> F<span class="o">.</span>one_hot<span class="o">(</span>torch<span class="o">.</span>tensor<span class="o">(</span><span class="o">[</span>ix<span class="o">]</span><span class="o">)</span><span class="o">,</span> num_classes<span class="o">=</span><span class="m">27</span><span class="o">)</span><span class="o">.</span>float<span class="o">(</span><span class="o">)</span>
+        logits <span class="o">=</span> xenc <span class="o">@</span> W
+        counts <span class="o">=</span> logits<span class="o">.</span>exp<span class="o">(</span><span class="o">)</span>
+        p <span class="o">=</span> counts <span class="o">/</span> counts<span class="o">.</span>sum<span class="o">(</span><span class="m">1</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+        ix <span class="o">=</span> torch<span class="o">.</span>multinomial<span class="o">(</span>p<span class="o">,</span> num_samples<span class="o">=</span><span class="m">1</span><span class="o">,</span> replacement<span class="o">=</span><span class="k">True</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span>
+        <span class="k">if</span> ix <span class="o">==</span> <span class="m">0</span><span class="o">:</span>
+            <span class="k">break</span>
+        out<span class="o">.</span>append<span class="o">(</span>itos<span class="o">[</span>ix<span class="o">]</span><span class="o">)</span>
+    <span class="b">print</span><span class="o">(</span><span class="s">'</span><span class="s">'</span><span class="o">.</span>join<span class="o">(</span>out<span class="o">)</span><span class="o">)</span></code></pre>
     </article>
     <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
   </main>

@@ -19,174 +19,174 @@
       <p>So let’s replace the usage of <code>loss.backward</code> in our code and instead implement back propagation by hand!</p>
       <h2>Setup</h2>
       <p>To keep things simple, we will be revisiting our non-PyTorch implementation with just a single hidden layer. We will also just be focusing on a single pass on a single batch.</p>
-      <pre><code># input layer
-emb = C[Xb]
-embcat = emb.view(emb.shape[0], -1)
+      <pre><code class="py"><span class="c"># input layer</span>
+emb <span class="o">=</span> C<span class="o">[</span>Xb<span class="o">]</span>
+embcat <span class="o">=</span> emb<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
 
-# hidden layer with batch normalization and tanh nonlinearity
-hpreact = embcat @ W1 + b1
-bnmeani = hpreact.mean(0, keepdim=True)
-bnstdi = hpreact.std(0, keepdim=True)
-hpreact = bngain * (hpreact-bnmeani) / bnstdi + bnbias
-h = torch.tanh(hpreact)
+<span class="c"># hidden layer with batch normalization and tanh nonlinearity</span>
+hpreact <span class="o">=</span> embcat <span class="o">@</span> W1 <span class="o">+</span> b1
+bnmeani <span class="o">=</span> hpreact<span class="o">.</span>mean<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+bnstdi <span class="o">=</span> hpreact<span class="o">.</span>std<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+hpreact <span class="o">=</span> bngain <span class="o">*</span> <span class="o">(</span>hpreact<span class="o">-</span>bnmeani<span class="o">)</span> <span class="o">/</span> bnstdi <span class="o">+</span> bnbias
+h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>hpreact<span class="o">)</span>
 
-# output layer
-logits = h @ W2 + b2
+<span class="c"># output layer</span>
+logits <span class="o">=</span> h <span class="o">@</span> W2 <span class="o">+</span> b2
 
-# loss
-loss = F.cross_entropy(logits, Yb)</code></pre>
+<span class="c"># loss</span>
+loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> Yb<span class="o">)</span></code></pre>
       <p>First we need to rewrite our forward pass into smaller steps so that we can backward each step one at a time.</p>
-      <pre><code># input layer
-emb = C[Xb] # embed the characters into vectors
-embcat = emb.view(emb.shape[0], -1) # concatenate the vectors
+      <pre><code class="py"><span class="c"># input layer</span>
+emb <span class="o">=</span> C<span class="o">[</span>Xb<span class="o">]</span> <span class="c"># embed the characters into vectors</span>
+embcat <span class="o">=</span> emb<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span> <span class="c"># concatenate the vectors</span>
 
-# hidden layer with batch normalization and tanh nonlinearity
-hprebn = embcat @ W1 + b1
-bnmeani = 1/n*hprebn.sum(0, keepdim=True)
-bndiff = hprebn - bnmeani
-bndiff2 = bndiff**2
-bnvar = 1/(n-1)*(bndiff2).sum(0, keepdim=True)
-bnvar_inv = (bnvar + 1e-5)**-0.5
-bnraw = bndiff * bnvar_inv
-hpreact = bngain * bnraw + bnbias
-h = torch.tanh(hpreact)
+<span class="c"># hidden layer with batch normalization and tanh nonlinearity</span>
+hprebn <span class="o">=</span> embcat <span class="o">@</span> W1 <span class="o">+</span> b1
+bnmeani <span class="o">=</span> <span class="m">1</span><span class="o">/</span>n<span class="o">*</span>hprebn<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+bndiff <span class="o">=</span> hprebn <span class="o">-</span> bnmeani
+bndiff2 <span class="o">=</span> bndiff<span class="o">*</span><span class="o">*</span><span class="m">2</span>
+bnvar <span class="o">=</span> <span class="m">1</span><span class="o">/</span><span class="o">(</span>n<span class="o">-</span><span class="m">1</span><span class="o">)</span><span class="o">*</span><span class="o">(</span>bndiff2<span class="o">)</span><span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+bnvar_inv <span class="o">=</span> <span class="o">(</span>bnvar <span class="o">+</span> <span class="m">1e-5</span><span class="o">)</span><span class="o">*</span><span class="o">*</span><span class="o">-</span><span class="m">0.5</span>
+bnraw <span class="o">=</span> bndiff <span class="o">*</span> bnvar_inv
+hpreact <span class="o">=</span> bngain <span class="o">*</span> bnraw <span class="o">+</span> bnbias
+h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>hpreact<span class="o">)</span>
 
-# output layer
-logits = h @ W2 + b2
+<span class="c"># output layer</span>
+logits <span class="o">=</span> h <span class="o">@</span> W2 <span class="o">+</span> b2
 
-# loss
-logit_maxes = logits.max(1, keepdim=True).values
-norm_logits = logits - logit_maxes
-counts = norm_logits.exp()
-counts_sum = counts.sum(1, keepdims=True)
-counts_sum_inv = counts_sum**-1
-probs = counts * counts_sum_inv
-logprobs = probs.log()
-loss = -logprobs[range(n), Yb].mean()</code></pre>
+<span class="c"># loss</span>
+logit_maxes <span class="o">=</span> logits<span class="o">.</span>max<span class="o">(</span><span class="m">1</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span><span class="o">.</span>values
+norm_logits <span class="o">=</span> logits <span class="o">-</span> logit_maxes
+counts <span class="o">=</span> norm_logits<span class="o">.</span>exp<span class="o">(</span><span class="o">)</span>
+counts_sum <span class="o">=</span> counts<span class="o">.</span>sum<span class="o">(</span><span class="m">1</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+counts_sum_inv <span class="o">=</span> counts_sum<span class="o">*</span><span class="o">*</span><span class="o">-</span><span class="m">1</span>
+probs <span class="o">=</span> counts <span class="o">*</span> counts_sum_inv
+logprobs <span class="o">=</span> probs<span class="o">.</span>log<span class="o">(</span><span class="o">)</span>
+loss <span class="o">=</span> <span class="o">-</span>logprobs<span class="o">[</span><span class="b">range</span><span class="o">(</span>n<span class="o">)</span><span class="o">,</span> Yb<span class="o">]</span><span class="o">.</span>mean<span class="o">(</span><span class="o">)</span></code></pre>
       <h2>Exercise 1: Backprop by hand</h2>
-      <pre><code># utility function we will use later when comparing manual gradients to PyTorch gradients
-def cmp(s, dt, t):
-  ex = torch.all(dt == t.grad).item()
-  app = torch.allclose(dt, t.grad)
-  maxdiff = (dt - t.grad).abs().max().item()
-  print(f'{s:15s} | exact: {str(ex):5s} | approximate: {str(app):5s} | maxdiff: {maxdiff}')</code></pre>
-      <pre><code># Exercise 1: backprop through the whole thing manually,
-# backpropagating through exactly all of the variables
-# as they are defined in the forward pass above, one by one
+      <pre><code class="py"><span class="c"># utility function we will use later when comparing manual gradients to PyTorch gradients</span>
+<span class="k">def</span> <span class="f">cmp</span><span class="o">(</span>s<span class="o">,</span> dt<span class="o">,</span> t<span class="o">)</span><span class="o">:</span>
+  ex <span class="o">=</span> torch<span class="o">.</span>all<span class="o">(</span>dt <span class="o">==</span> t<span class="o">.</span>grad<span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span>
+  app <span class="o">=</span> torch<span class="o">.</span>allclose<span class="o">(</span>dt<span class="o">,</span> t<span class="o">.</span>grad<span class="o">)</span>
+  maxdiff <span class="o">=</span> <span class="o">(</span>dt <span class="o">-</span> t<span class="o">.</span>grad<span class="o">)</span><span class="o">.</span>abs<span class="o">(</span><span class="o">)</span><span class="o">.</span>max<span class="o">(</span><span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span>
+  <span class="b">print</span><span class="o">(</span><span class="s">f</span><span class="s">'</span><span class="s">{</span>s<span class="s">:</span><span class="s">15s</span><span class="s">}</span><span class="s"> | exact: </span><span class="s">{</span><span class="b">str</span><span class="o">(</span>ex<span class="o">)</span><span class="s">:</span><span class="s">5s</span><span class="s">}</span><span class="s"> | approximate: </span><span class="s">{</span><span class="b">str</span><span class="o">(</span>app<span class="o">)</span><span class="s">:</span><span class="s">5s</span><span class="s">}</span><span class="s"> | maxdiff: </span><span class="s">{</span>maxdiff<span class="s">}</span><span class="s">'</span><span class="o">)</span></code></pre>
+      <pre><code class="py"><span class="c"># Exercise 1: backprop through the whole thing manually,</span>
+<span class="c"># backpropagating through exactly all of the variables</span>
+<span class="c"># as they are defined in the forward pass above, one by one</span>
 
-# loss = -logprobs[range(n), Yb].mean()
-# what is the derivative of mean? --&gt; mean is just addition and division, derivative of divide is just 1/x, where x is the count
-# why do i need to multiply by the one hot to change shape though? --&gt; because of logprobs[range(n), Yb] is picking out row 1-2 at column Yb
-dlogprobs = -F.one_hot(Yb, num_classes=27).float() * torch.tensor(1.0 / len(logprobs))
-cmp('logprobs', dlogprobs, logprobs)
+<span class="c"># loss = -logprobs[range(n), Yb].mean()</span>
+<span class="c"># what is the derivative of mean? --&gt; mean is just addition and division, derivative of divide is just 1/x, where x is the count</span>
+<span class="c"># why do i need to multiply by the one hot to change shape though? --&gt; because of logprobs[range(n), Yb] is picking out row 1-2 at column Yb</span>
+dlogprobs <span class="o">=</span> <span class="o">-</span>F<span class="o">.</span>one_hot<span class="o">(</span>Yb<span class="o">,</span> num_classes<span class="o">=</span><span class="m">27</span><span class="o">)</span><span class="o">.</span>float<span class="o">(</span><span class="o">)</span> <span class="o">*</span> torch<span class="o">.</span>tensor<span class="o">(</span><span class="m">1.0</span> <span class="o">/</span> <span class="b">len</span><span class="o">(</span>logprobs<span class="o">)</span><span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">logprobs</span><span class="s">'</span><span class="o">,</span> dlogprobs<span class="o">,</span> logprobs<span class="o">)</span>
 
-# logprobs = probs.log()
-# derivative of log x is 1/x
-dprobs = 1/probs * dlogprobs
-cmp('probs', dprobs, probs)
+<span class="c"># logprobs = probs.log()</span>
+<span class="c"># derivative of log x is 1/x</span>
+dprobs <span class="o">=</span> <span class="m">1</span><span class="o">/</span>probs <span class="o">*</span> dlogprobs
+cmp<span class="o">(</span><span class="s">'</span><span class="s">probs</span><span class="s">'</span><span class="o">,</span> dprobs<span class="o">,</span> probs<span class="o">)</span>
 
-# probs = counts * counts_sum_inv
-# derivative of multiply is just the other thing
-# why do i need to sum to change the shape though? probably because of the broadcasting rules?
-dcounts_sum_inv = (dprobs * counts).sum(1, keepdims=True)
-cmp('counts_sum_inv', dcounts_sum_inv, counts_sum_inv)
+<span class="c"># probs = counts * counts_sum_inv</span>
+<span class="c"># derivative of multiply is just the other thing</span>
+<span class="c"># why do i need to sum to change the shape though? probably because of the broadcasting rules?</span>
+dcounts_sum_inv <span class="o">=</span> <span class="o">(</span>dprobs <span class="o">*</span> counts<span class="o">)</span><span class="o">.</span>sum<span class="o">(</span><span class="m">1</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">counts_sum_inv</span><span class="s">'</span><span class="o">,</span> dcounts_sum_inv<span class="o">,</span> counts_sum_inv<span class="o">)</span>
 
-# counts_sum_inv = counts_sum**-1
-# derivative of x^-1 is -1/x^2
-dcounts_sum = (-counts_sum**-2) * dcounts_sum_inv
-cmp('counts_sum', dcounts_sum, counts_sum)
+<span class="c"># counts_sum_inv = counts_sum**-1</span>
+<span class="c"># derivative of x^-1 is -1/x^2</span>
+dcounts_sum <span class="o">=</span> <span class="o">(</span><span class="o">-</span>counts_sum<span class="o">*</span><span class="o">*</span><span class="o">-</span><span class="m">2</span><span class="o">)</span> <span class="o">*</span> dcounts_sum_inv
+cmp<span class="o">(</span><span class="s">'</span><span class="s">counts_sum</span><span class="s">'</span><span class="o">,</span> dcounts_sum<span class="o">,</span> counts_sum<span class="o">)</span>
 
-# counts_sum = counts.sum(1, keepdims=True)
-# derivative of sum is just 1
-# probs = counts * counts_sum_inv
-# derivative of multiply is just the other thing
-# since counts is used twice, we need to add the gradients together
-dcounts = torch.ones_like(counts) * dcounts_sum
-dcounts += dprobs * counts_sum_inv
-cmp('counts', dcounts, counts)
+<span class="c"># counts_sum = counts.sum(1, keepdims=True)</span>
+<span class="c"># derivative of sum is just 1</span>
+<span class="c"># probs = counts * counts_sum_inv</span>
+<span class="c"># derivative of multiply is just the other thing</span>
+<span class="c"># since counts is used twice, we need to add the gradients together</span>
+dcounts <span class="o">=</span> torch<span class="o">.</span>ones_like<span class="o">(</span>counts<span class="o">)</span> <span class="o">*</span> dcounts_sum
+dcounts <span class="o">+</span><span class="o">=</span> dprobs <span class="o">*</span> counts_sum_inv
+cmp<span class="o">(</span><span class="s">'</span><span class="s">counts</span><span class="s">'</span><span class="o">,</span> dcounts<span class="o">,</span> counts<span class="o">)</span>
 
-# counts = norm_logits.exp()
-# derivative of exp is exp
-dnorm_logits = norm_logits.exp() * dcounts
-cmp('norm_logits', dnorm_logits, norm_logits)
+<span class="c"># counts = norm_logits.exp()</span>
+<span class="c"># derivative of exp is exp</span>
+dnorm_logits <span class="o">=</span> norm_logits<span class="o">.</span>exp<span class="o">(</span><span class="o">)</span> <span class="o">*</span> dcounts
+cmp<span class="o">(</span><span class="s">'</span><span class="s">norm_logits</span><span class="s">'</span><span class="o">,</span> dnorm_logits<span class="o">,</span> norm_logits<span class="o">)</span>
 
-# norm_logits = logits - logit_maxes
-# derivative of subtract is just -1
-dlogit_maxes = -dnorm_logits.sum(1, keepdims=True)
-cmp('logit_maxes', dlogit_maxes, logit_maxes)
+<span class="c"># norm_logits = logits - logit_maxes</span>
+<span class="c"># derivative of subtract is just -1</span>
+dlogit_maxes <span class="o">=</span> <span class="o">-</span>dnorm_logits<span class="o">.</span>sum<span class="o">(</span><span class="m">1</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">logit_maxes</span><span class="s">'</span><span class="o">,</span> dlogit_maxes<span class="o">,</span> logit_maxes<span class="o">)</span>
 
-# logit_maxes = logits.max(1, keepdim=True).values
-# norm_logits = logits - logit_maxes
-dlogits = F.one_hot(logits.max(1).indices, num_classes=27).float() * dlogit_maxes
-dlogits += dnorm_logits
-cmp('logits', dlogits, logits)
+<span class="c"># logit_maxes = logits.max(1, keepdim=True).values</span>
+<span class="c"># norm_logits = logits - logit_maxes</span>
+dlogits <span class="o">=</span> F<span class="o">.</span>one_hot<span class="o">(</span>logits<span class="o">.</span>max<span class="o">(</span><span class="m">1</span><span class="o">)</span><span class="o">.</span>indices<span class="o">,</span> num_classes<span class="o">=</span><span class="m">27</span><span class="o">)</span><span class="o">.</span>float<span class="o">(</span><span class="o">)</span> <span class="o">*</span> dlogit_maxes
+dlogits <span class="o">+</span><span class="o">=</span> dnorm_logits
+cmp<span class="o">(</span><span class="s">'</span><span class="s">logits</span><span class="s">'</span><span class="o">,</span> dlogits<span class="o">,</span> logits<span class="o">)</span>
 
-# logits = h @ W2 + b2
-dh = dlogits @ W2.T
-cmp('h', dh, h)
-dW2 = h.T @ dlogits
-cmp('W2', dW2, W2)
-db2 = dlogits.sum(0)
-cmp('b2', db2, b2)
+<span class="c"># logits = h @ W2 + b2</span>
+dh <span class="o">=</span> dlogits <span class="o">@</span> W2<span class="o">.</span>T
+cmp<span class="o">(</span><span class="s">'</span><span class="s">h</span><span class="s">'</span><span class="o">,</span> dh<span class="o">,</span> h<span class="o">)</span>
+dW2 <span class="o">=</span> h<span class="o">.</span>T <span class="o">@</span> dlogits
+cmp<span class="o">(</span><span class="s">'</span><span class="s">W2</span><span class="s">'</span><span class="o">,</span> dW2<span class="o">,</span> W2<span class="o">)</span>
+db2 <span class="o">=</span> dlogits<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">b2</span><span class="s">'</span><span class="o">,</span> db2<span class="o">,</span> b2<span class="o">)</span>
 
-# h = torch.tanh(hpreact)
-# derivative of tanh is 1 - tanh^2
-dhpreact = (1 - h**2) * dh
-cmp('hpreact', dhpreact, hpreact)
+<span class="c"># h = torch.tanh(hpreact)</span>
+<span class="c"># derivative of tanh is 1 - tanh^2</span>
+dhpreact <span class="o">=</span> <span class="o">(</span><span class="m">1</span> <span class="o">-</span> h<span class="o">*</span><span class="o">*</span><span class="m">2</span><span class="o">)</span> <span class="o">*</span> dh
+cmp<span class="o">(</span><span class="s">'</span><span class="s">hpreact</span><span class="s">'</span><span class="o">,</span> dhpreact<span class="o">,</span> hpreact<span class="o">)</span>
 
-# hpreact = bngain * bnraw + bnbias
-# this is element wise multiplication, not matrix multiplication!
-dbngain = (bnraw * dhpreact).sum(0, keepdims=True)
-dbnraw = bngain * dhpreact
-dbnbias = dhpreact.sum(0, keepdims=True)
-cmp('bngain', dbngain, bngain)
-cmp('bnbias', dbnbias, bnbias)
-cmp('bnraw', dbnraw, bnraw)
+<span class="c"># hpreact = bngain * bnraw + bnbias</span>
+<span class="c"># this is element wise multiplication, not matrix multiplication!</span>
+dbngain <span class="o">=</span> <span class="o">(</span>bnraw <span class="o">*</span> dhpreact<span class="o">)</span><span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+dbnraw <span class="o">=</span> bngain <span class="o">*</span> dhpreact
+dbnbias <span class="o">=</span> dhpreact<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">bngain</span><span class="s">'</span><span class="o">,</span> dbngain<span class="o">,</span> bngain<span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">bnbias</span><span class="s">'</span><span class="o">,</span> dbnbias<span class="o">,</span> bnbias<span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">bnraw</span><span class="s">'</span><span class="o">,</span> dbnraw<span class="o">,</span> bnraw<span class="o">)</span>
 
-dbnvar_inv = (bndiff * dbnraw).sum(0, keepdims=True)
-cmp('bnvar_inv', dbnvar_inv, bnvar_inv)
+dbnvar_inv <span class="o">=</span> <span class="o">(</span>bndiff <span class="o">*</span> dbnraw<span class="o">)</span><span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">bnvar_inv</span><span class="s">'</span><span class="o">,</span> dbnvar_inv<span class="o">,</span> bnvar_inv<span class="o">)</span>
 
-# bnvar_inv = (bnvar + 1e-5)**-0.5
-# derivative of x^-0.5 is -0.5*x^-1.5
-dbnvar = (-0.5*(bnvar + 1e-5)**-1.5) * dbnvar_inv
-cmp('bnvar', dbnvar, bnvar)
+<span class="c"># bnvar_inv = (bnvar + 1e-5)**-0.5</span>
+<span class="c"># derivative of x^-0.5 is -0.5*x^-1.5</span>
+dbnvar <span class="o">=</span> <span class="o">(</span><span class="o">-</span><span class="m">0.5</span><span class="o">*</span><span class="o">(</span>bnvar <span class="o">+</span> <span class="m">1e-5</span><span class="o">)</span><span class="o">*</span><span class="o">*</span><span class="o">-</span><span class="m">1.5</span><span class="o">)</span> <span class="o">*</span> dbnvar_inv
+cmp<span class="o">(</span><span class="s">'</span><span class="s">bnvar</span><span class="s">'</span><span class="o">,</span> dbnvar<span class="o">,</span> bnvar<span class="o">)</span>
 
-# bnvar = 1/(n-1)*(bndiff2).sum(0, keepdim=True)
-dbndiff2 = torch.ones_like(bndiff2) * (1/(n-1)) * dbnvar
-cmp('bndiff2', dbndiff2, bndiff2)
+<span class="c"># bnvar = 1/(n-1)*(bndiff2).sum(0, keepdim=True)</span>
+dbndiff2 <span class="o">=</span> torch<span class="o">.</span>ones_like<span class="o">(</span>bndiff2<span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="m">1</span><span class="o">/</span><span class="o">(</span>n<span class="o">-</span><span class="m">1</span><span class="o">)</span><span class="o">)</span> <span class="o">*</span> dbnvar
+cmp<span class="o">(</span><span class="s">'</span><span class="s">bndiff2</span><span class="s">'</span><span class="o">,</span> dbndiff2<span class="o">,</span> bndiff2<span class="o">)</span>
 
-# bnraw = bndiff * bnvar_inv
-# again, element wise multiplication
-dbndiff = bnvar_inv * dbnraw
-dbndiff += 2 * bndiff * dbndiff2
-cmp('bndiff', dbndiff, bndiff)
+<span class="c"># bnraw = bndiff * bnvar_inv</span>
+<span class="c"># again, element wise multiplication</span>
+dbndiff <span class="o">=</span> bnvar_inv <span class="o">*</span> dbnraw
+dbndiff <span class="o">+</span><span class="o">=</span> <span class="m">2</span> <span class="o">*</span> bndiff <span class="o">*</span> dbndiff2
+cmp<span class="o">(</span><span class="s">'</span><span class="s">bndiff</span><span class="s">'</span><span class="o">,</span> dbndiff<span class="o">,</span> bndiff<span class="o">)</span>
 
-# bndiff = hprebn - bnmeani
-# bnmeani = 1/n*hprebn.sum(0, keepdim=True)
-dbnmeani = -dbndiff.sum(0, keepdims=True)
-dhprebn = dbndiff.clone()
-dhprebn += 1/n * dbnmeani
-cmp('bnmeani', dbnmeani, bnmeani)
-cmp('hprebn', dhprebn, hprebn)
+<span class="c"># bndiff = hprebn - bnmeani</span>
+<span class="c"># bnmeani = 1/n*hprebn.sum(0, keepdim=True)</span>
+dbnmeani <span class="o">=</span> <span class="o">-</span>dbndiff<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+dhprebn <span class="o">=</span> dbndiff<span class="o">.</span>clone<span class="o">(</span><span class="o">)</span>
+dhprebn <span class="o">+</span><span class="o">=</span> <span class="m">1</span><span class="o">/</span>n <span class="o">*</span> dbnmeani
+cmp<span class="o">(</span><span class="s">'</span><span class="s">bnmeani</span><span class="s">'</span><span class="o">,</span> dbnmeani<span class="o">,</span> bnmeani<span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">hprebn</span><span class="s">'</span><span class="o">,</span> dhprebn<span class="o">,</span> hprebn<span class="o">)</span>
 
-# hprebn = embcat @ W1 + b1
-dembcat = dhprebn @ W1.T
-cmp('embcat', dembcat, embcat)
-dW1 = embcat.T @ dhprebn
-cmp('W1', dW1, W1)
-db1 = dhprebn.sum(0)
-cmp('b1', db1, b1)
+<span class="c"># hprebn = embcat @ W1 + b1</span>
+dembcat <span class="o">=</span> dhprebn <span class="o">@</span> W1<span class="o">.</span>T
+cmp<span class="o">(</span><span class="s">'</span><span class="s">embcat</span><span class="s">'</span><span class="o">,</span> dembcat<span class="o">,</span> embcat<span class="o">)</span>
+dW1 <span class="o">=</span> embcat<span class="o">.</span>T <span class="o">@</span> dhprebn
+cmp<span class="o">(</span><span class="s">'</span><span class="s">W1</span><span class="s">'</span><span class="o">,</span> dW1<span class="o">,</span> W1<span class="o">)</span>
+db1 <span class="o">=</span> dhprebn<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">b1</span><span class="s">'</span><span class="o">,</span> db1<span class="o">,</span> b1<span class="o">)</span>
 
-# embcat = emb.view(emb.shape[0], -1)
-demb = dembcat.view(emb.shape)
-cmp('emb', demb, emb)
+<span class="c"># embcat = emb.view(emb.shape[0], -1)</span>
+demb <span class="o">=</span> dembcat<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">)</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">emb</span><span class="s">'</span><span class="o">,</span> demb<span class="o">,</span> emb<span class="o">)</span>
 
-# emb = C[Xb]
-dC = torch.zeros_like(C)
-for k in range(Xb.shape[0]):
-    for j in range(Xb.shape[1]):
-        dC[Xb[k,j]] += demb[k,j]
-cmp('C', dC, C)</code></pre>
+<span class="c"># emb = C[Xb]</span>
+dC <span class="o">=</span> torch<span class="o">.</span>zeros_like<span class="o">(</span>C<span class="o">)</span>
+<span class="k">for</span> k <span class="o">in</span> <span class="b">range</span><span class="o">(</span>Xb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">)</span><span class="o">:</span>
+    <span class="k">for</span> j <span class="o">in</span> <span class="b">range</span><span class="o">(</span>Xb<span class="o">.</span>shape<span class="o">[</span><span class="m">1</span><span class="o">]</span><span class="o">)</span><span class="o">:</span>
+        dC<span class="o">[</span>Xb<span class="o">[</span>k<span class="o">,</span>j<span class="o">]</span><span class="o">]</span> <span class="o">+</span><span class="o">=</span> demb<span class="o">[</span>k<span class="o">,</span>j<span class="o">]</span>
+cmp<span class="o">(</span><span class="s">'</span><span class="s">C</span><span class="s">'</span><span class="o">,</span> dC<span class="o">,</span> C<span class="o">)</span></code></pre>
       <p>Everything above is pretty straightforward in terms of how the derivatives are derived. The only things worth mentioning is that we need to be very careful about broadcasting, and that we need to make sure we accumulate gradients when a term is used multiple times.</p>
       <p><strong>Derivative of matrix multiplication</strong></p>
       <p>The only thing that is a bit complicated is how we actually find the derivative of the matrix multiplication in the linear layer. We will go through a toy example to help us understand the general principle.</p>
@@ -195,17 +195,17 @@ cmp('C', dC, C)</code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-01.png" alt="final work for the matrix multiplication derivative"><figcaption>final work for the matrix multiplication derivative</figcaption></figure>
       <h2>Exercise 2: Back propagating cross entropy analytically</h2>
       <p>So instead of implementing the cross entropy loss manually, we would normally just call the PyTorch implementation.</p>
-      <pre><code># cross entropy loss manual
-logit_maxes = logits.max(1, keepdim=True).values
-norm_logits = logits - logit_maxes
-counts = norm_logits.exp()
-counts_sum = counts.sum(1, keepdims=True)
-counts_sum_inv = counts_sum**-1
-probs = counts * counts_sum_inv
-logprobs = probs.log()
-loss = -logprobs[range(n), Yb].mean()</code></pre>
-      <pre><code># cross entropy loss one-liner with PyTorch
-loss_fast = F.cross_entropy(logits, Yb)</code></pre>
+      <pre><code class="py"><span class="c"># cross entropy loss manual</span>
+logit_maxes <span class="o">=</span> logits<span class="o">.</span>max<span class="o">(</span><span class="m">1</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span><span class="o">.</span>values
+norm_logits <span class="o">=</span> logits <span class="o">-</span> logit_maxes
+counts <span class="o">=</span> norm_logits<span class="o">.</span>exp<span class="o">(</span><span class="o">)</span>
+counts_sum <span class="o">=</span> counts<span class="o">.</span>sum<span class="o">(</span><span class="m">1</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+counts_sum_inv <span class="o">=</span> counts_sum<span class="o">*</span><span class="o">*</span><span class="o">-</span><span class="m">1</span>
+probs <span class="o">=</span> counts <span class="o">*</span> counts_sum_inv
+logprobs <span class="o">=</span> probs<span class="o">.</span>log<span class="o">(</span><span class="o">)</span>
+loss <span class="o">=</span> <span class="o">-</span>logprobs<span class="o">[</span><span class="b">range</span><span class="o">(</span>n<span class="o">)</span><span class="o">,</span> Yb<span class="o">]</span><span class="o">.</span>mean<span class="o">(</span><span class="o">)</span></code></pre>
+      <pre><code class="py"><span class="c"># cross entropy loss one-liner with PyTorch</span>
+loss_fast <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> Yb<span class="o">)</span></code></pre>
       <p><strong>Math</strong></p>
       <p>Again I will only put my final work here, full notes can be found in this post.</p>
       <p><a href="/writing/zth-backprop-cross-entropy.html">Backpropagating through cross entropy</a></p>
@@ -214,21 +214,21 @@ loss_fast = F.cross_entropy(logits, Yb)</code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-04.png" alt="cross entropy backprop final work (3 of 3)"><figcaption>cross entropy backprop final work (3 of 3)</figcaption></figure>
       <p><strong>Code</strong></p>
       <p>All of that math allows us to simplify the backward pass of the cross entropy loss to just this!</p>
-      <pre><code>dlogits = F.softmax(logits, 1)
-dlogits[range(n), Yb] -= 1
-dlogits /= n</code></pre>
+      <pre><code class="py">dlogits <span class="o">=</span> F<span class="o">.</span>softmax<span class="o">(</span>logits<span class="o">,</span> <span class="m">1</span><span class="o">)</span>
+dlogits<span class="o">[</span><span class="b">range</span><span class="o">(</span>n<span class="o">)</span><span class="o">,</span> Yb<span class="o">]</span> <span class="o">-</span><span class="o">=</span> <span class="m">1</span>
+dlogits <span class="o">/</span><span class="o">=</span> n</code></pre>
       <h2>Exercise 3: Back propagating batch normalization analytically</h2>
       <p>So instead of implementing the batch normalization in many steps, we can implement it in this one line. Again, our goal is to then derive the derivative of this one-liner analytically.</p>
-      <pre><code># Batch normalization manual
-bnmeani = 1/n*hprebn.sum(0, keepdim=True)
-bndiff = hprebn - bnmeani
-bndiff2 = bndiff**2
-bnvar = 1/(n-1)*(bndiff2).sum(0, keepdim=True)
-bnvar_inv = (bnvar + 1e-5)**-0.5
-bnraw = bndiff * bnvar_inv
-hpreact = bngain * bnraw + bnbias</code></pre>
-      <pre><code># Batch normalization one-liner
-hpreact_fast = bngain * (hprebn - hprebn.mean(0, keepdim=True)) / torch.sqrt(hprebn.var(0, keepdim=True, unbiased=True) + 1e-5) + bnbias</code></pre>
+      <pre><code class="py"><span class="c"># Batch normalization manual</span>
+bnmeani <span class="o">=</span> <span class="m">1</span><span class="o">/</span>n<span class="o">*</span>hprebn<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+bndiff <span class="o">=</span> hprebn <span class="o">-</span> bnmeani
+bndiff2 <span class="o">=</span> bndiff<span class="o">*</span><span class="o">*</span><span class="m">2</span>
+bnvar <span class="o">=</span> <span class="m">1</span><span class="o">/</span><span class="o">(</span>n<span class="o">-</span><span class="m">1</span><span class="o">)</span><span class="o">*</span><span class="o">(</span>bndiff2<span class="o">)</span><span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+bnvar_inv <span class="o">=</span> <span class="o">(</span>bnvar <span class="o">+</span> <span class="m">1e-5</span><span class="o">)</span><span class="o">*</span><span class="o">*</span><span class="o">-</span><span class="m">0.5</span>
+bnraw <span class="o">=</span> bndiff <span class="o">*</span> bnvar_inv
+hpreact <span class="o">=</span> bngain <span class="o">*</span> bnraw <span class="o">+</span> bnbias</code></pre>
+      <pre><code class="py"><span class="c"># Batch normalization one-liner</span>
+hpreact_fast <span class="o">=</span> bngain <span class="o">*</span> <span class="o">(</span>hprebn <span class="o">-</span> hprebn<span class="o">.</span>mean<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span><span class="o">)</span> <span class="o">/</span> torch<span class="o">.</span>sqrt<span class="o">(</span>hprebn<span class="o">.</span>var<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">,</span> unbiased<span class="o">=</span><span class="k">True</span><span class="o">)</span> <span class="o">+</span> <span class="m">1e-5</span><span class="o">)</span> <span class="o">+</span> bnbias</code></pre>
       <p><strong>Math</strong></p>
       <p>I will only show my final result here, full notes can be found in this post.</p>
       <p><a href="/writing/zth-backprop-batchnorm.html">Backpropagating through batch norm</a></p>
@@ -239,115 +239,115 @@ hpreact_fast = bngain * (hprebn - hprebn.mean(0, keepdim=True)) / torch.sqrt(hpr
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-09.png" alt="batch norm backprop final work (5 of 5)"><figcaption>batch norm backprop final work (5 of 5)</figcaption></figure>
       <p><strong>Code</strong></p>
       <p>All of the math above allows us to simplify the backwards pass of batch normalization to this one line!</p>
-      <pre><code>dhprebn = bngain*bnvar_inv/n * (n*dhpreact - dhpreact.sum(0) - n/(n-1)*bnraw*(dhpreact*bnraw).sum(0))</code></pre>
+      <pre><code class="py">dhprebn <span class="o">=</span> bngain<span class="o">*</span>bnvar_inv<span class="o">/</span>n <span class="o">*</span> <span class="o">(</span>n<span class="o">*</span>dhpreact <span class="o">-</span> dhpreact<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">)</span> <span class="o">-</span> n<span class="o">/</span><span class="o">(</span>n<span class="o">-</span><span class="m">1</span><span class="o">)</span><span class="o">*</span>bnraw<span class="o">*</span><span class="o">(</span>dhpreact<span class="o">*</span>bnraw<span class="o">)</span><span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">)</span><span class="o">)</span></code></pre>
       <h2>Exercise 4: Putting it all together</h2>
       <p>Alright, after all of that fun, we are now able to finally remove the usage of <code>loss.backward</code> in our code!</p>
-      <pre><code># Exercise 4: putting it all together!
-# Train the MLP neural net with your own backward pass
+      <pre><code class="py"><span class="c"># Exercise 4: putting it all together!</span>
+<span class="c"># Train the MLP neural net with your own backward pass</span>
 
-# init
-n_embd = 10 # the dimensionality of the character embedding vectors
-n_hidden = 200 # the number of neurons in the hidden layer of the MLP
+<span class="c"># init</span>
+n_embd <span class="o">=</span> <span class="m">10</span> <span class="c"># the dimensionality of the character embedding vectors</span>
+n_hidden <span class="o">=</span> <span class="m">200</span> <span class="c"># the number of neurons in the hidden layer of the MLP</span>
 
-g = torch.Generator().manual_seed(2147483647) # for reproducibility
-C  = torch.randn((vocab_size, n_embd),            generator=g)
-# Layer 1
-W1 = torch.randn((n_embd * block_size, n_hidden), generator=g) * (5/3)/((n_embd * block_size)**0.5)
-b1 = torch.randn(n_hidden,                        generator=g) * 0.1
-# Layer 2
-W2 = torch.randn((n_hidden, vocab_size),          generator=g) * 0.1
-b2 = torch.randn(vocab_size,                      generator=g) * 0.1
-# BatchNorm parameters
-bngain = torch.randn((1, n_hidden))*0.1 + 1.0
-bnbias = torch.randn((1, n_hidden))*0.1
+g <span class="o">=</span> torch<span class="o">.</span>Generator<span class="o">(</span><span class="o">)</span><span class="o">.</span>manual_seed<span class="o">(</span><span class="m">2147483647</span><span class="o">)</span> <span class="c"># for reproducibility</span>
+C  <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>vocab_size<span class="o">,</span> n_embd<span class="o">)</span><span class="o">,</span>            generator<span class="o">=</span>g<span class="o">)</span>
+<span class="c"># Layer 1</span>
+W1 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>n_embd <span class="o">*</span> block_size<span class="o">,</span> n_hidden<span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="m">5</span><span class="o">/</span><span class="m">3</span><span class="o">)</span><span class="o">/</span><span class="o">(</span><span class="o">(</span>n_embd <span class="o">*</span> block_size<span class="o">)</span><span class="o">*</span><span class="o">*</span><span class="m">0.5</span><span class="o">)</span>
+b1 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span>n_hidden<span class="o">,</span>                        generator<span class="o">=</span>g<span class="o">)</span> <span class="o">*</span> <span class="m">0.1</span>
+<span class="c"># Layer 2</span>
+W2 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>          generator<span class="o">=</span>g<span class="o">)</span> <span class="o">*</span> <span class="m">0.1</span>
+b2 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span>vocab_size<span class="o">,</span>                      generator<span class="o">=</span>g<span class="o">)</span> <span class="o">*</span> <span class="m">0.1</span>
+<span class="c"># BatchNorm parameters</span>
+bngain <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span><span class="m">1</span><span class="o">,</span> n_hidden<span class="o">)</span><span class="o">)</span><span class="o">*</span><span class="m">0.1</span> <span class="o">+</span> <span class="m">1.0</span>
+bnbias <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span><span class="m">1</span><span class="o">,</span> n_hidden<span class="o">)</span><span class="o">)</span><span class="o">*</span><span class="m">0.1</span>
 
-parameters = [C, W1, b1, W2, b2, bngain, bnbias]
-print(sum(p.nelement() for p in parameters)) # number of parameters in total
-for p in parameters:
-  p.requires_grad = True
+parameters <span class="o">=</span> <span class="o">[</span>C<span class="o">,</span> W1<span class="o">,</span> b1<span class="o">,</span> W2<span class="o">,</span> b2<span class="o">,</span> bngain<span class="o">,</span> bnbias<span class="o">]</span>
+<span class="b">print</span><span class="o">(</span><span class="b">sum</span><span class="o">(</span>p<span class="o">.</span>nelement<span class="o">(</span><span class="o">)</span> <span class="k">for</span> p <span class="o">in</span> parameters<span class="o">)</span><span class="o">)</span> <span class="c"># number of parameters in total</span>
+<span class="k">for</span> p <span class="o">in</span> parameters<span class="o">:</span>
+  p<span class="o">.</span>requires_grad <span class="o">=</span> <span class="k">True</span>
 
-# same optimization as last time
-max_steps = 200000
-batch_size = 32
-n = batch_size # convenience
-lossi = []
+<span class="c"># same optimization as last time</span>
+max_steps <span class="o">=</span> <span class="m">200000</span>
+batch_size <span class="o">=</span> <span class="m">32</span>
+n <span class="o">=</span> batch_size <span class="c"># convenience</span>
+lossi <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
 
-# use this context manager for efficiency once your backward pass is written (TODO)
-with torch.no_grad():
+<span class="c"># use this context manager for efficiency once your backward pass is written (TODO)</span>
+<span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
 
-  # kick off optimization
-  for i in range(max_steps):
+  <span class="c"># kick off optimization</span>
+  <span class="k">for</span> i <span class="o">in</span> <span class="b">range</span><span class="o">(</span>max_steps<span class="o">)</span><span class="o">:</span>
 
-    # minibatch construct
-    ix = torch.randint(0, Xtr.shape[0], (batch_size,), generator=g)
-    Xb, Yb = Xtr[ix], Ytr[ix] # batch X,Y
+    <span class="c"># minibatch construct</span>
+    ix <span class="o">=</span> torch<span class="o">.</span>randint<span class="o">(</span><span class="m">0</span><span class="o">,</span> Xtr<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">(</span>batch_size<span class="o">,</span><span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span>
+    Xb<span class="o">,</span> Yb <span class="o">=</span> Xtr<span class="o">[</span>ix<span class="o">]</span><span class="o">,</span> Ytr<span class="o">[</span>ix<span class="o">]</span> <span class="c"># batch X,Y</span>
 
-    # forward pass
-    emb = C[Xb] # embed the characters into vectors
-    embcat = emb.view(emb.shape[0], -1) # concatenate the vectors
-    # Linear layer
-    hprebn = embcat @ W1 + b1 # hidden layer pre-activation
-    # BatchNorm layer
-    # -------------------------------------------------------------
-    bnmean = hprebn.mean(0, keepdim=True)
-    bnvar = hprebn.var(0, keepdim=True, unbiased=True)
-    bnvar_inv = (bnvar + 1e-5)**-0.5
-    bnraw = (hprebn - bnmean) * bnvar_inv
-    hpreact = bngain * bnraw + bnbias
-    # -------------------------------------------------------------
-    # Non-linearity
-    h = torch.tanh(hpreact) # hidden layer
-    logits = h @ W2 + b2 # output layer
-    loss = F.cross_entropy(logits, Yb) # loss function
+    <span class="c"># forward pass</span>
+    emb <span class="o">=</span> C<span class="o">[</span>Xb<span class="o">]</span> <span class="c"># embed the characters into vectors</span>
+    embcat <span class="o">=</span> emb<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span> <span class="c"># concatenate the vectors</span>
+    <span class="c"># Linear layer</span>
+    hprebn <span class="o">=</span> embcat <span class="o">@</span> W1 <span class="o">+</span> b1 <span class="c"># hidden layer pre-activation</span>
+    <span class="c"># BatchNorm layer</span>
+    <span class="c"># -------------------------------------------------------------</span>
+    bnmean <span class="o">=</span> hprebn<span class="o">.</span>mean<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+    bnvar <span class="o">=</span> hprebn<span class="o">.</span>var<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">,</span> unbiased<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+    bnvar_inv <span class="o">=</span> <span class="o">(</span>bnvar <span class="o">+</span> <span class="m">1e-5</span><span class="o">)</span><span class="o">*</span><span class="o">*</span><span class="o">-</span><span class="m">0.5</span>
+    bnraw <span class="o">=</span> <span class="o">(</span>hprebn <span class="o">-</span> bnmean<span class="o">)</span> <span class="o">*</span> bnvar_inv
+    hpreact <span class="o">=</span> bngain <span class="o">*</span> bnraw <span class="o">+</span> bnbias
+    <span class="c"># -------------------------------------------------------------</span>
+    <span class="c"># Non-linearity</span>
+    h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>hpreact<span class="o">)</span> <span class="c"># hidden layer</span>
+    logits <span class="o">=</span> h <span class="o">@</span> W2 <span class="o">+</span> b2 <span class="c"># output layer</span>
+    loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> Yb<span class="o">)</span> <span class="c"># loss function</span>
 
-    # backward pass
-    for p in parameters:
-      p.grad = None
-    # loss.backward() # use this for correctness comparisons, delete it later!
+    <span class="c"># backward pass</span>
+    <span class="k">for</span> p <span class="o">in</span> parameters<span class="o">:</span>
+      p<span class="o">.</span>grad <span class="o">=</span> <span class="k">None</span>
+    <span class="c"># loss.backward() # use this for correctness comparisons, delete it later!</span>
 
-    # manual backprop! #swole_doge_meme
-    # -----------------
-    dlogits = F.softmax(logits, 1)
-    dlogits[range(n), Yb] -= 1
-    dlogits /= n
-    # 2nd layer backprop
-    dh = dlogits @ W2.T
-    dW2 = h.T @ dlogits
-    db2 = dlogits.sum(0)
-    # tanh
-    dhpreact = (1 - h**2) * dh
-    # batch norm backprop
-    dbngain = (bnraw * dhpreact).sum(0, keepdims=True)
-    dbnraw = bngain * dhpreact
-    dbnbias = dhpreact.sum(0, keepdims=True)
-    dhprebn = bngain*bnvar_inv/n * (n*dhpreact - dhpreact.sum(0) - n/(n-1)*bnraw*(dhpreact*bnraw).sum(0))
-    # 1st layer
-    dembcat = dhprebn @ W1.T
-    dW1 = embcat.T @ dhprebn
-    db1 = dhprebn.sum(0)
-    # embedding
-    demb = dembcat.view(emb.shape)
-    dC = torch.zeros_like(C)
-    for k in range(Xb.shape[0]):
-        for j in range(Xb.shape[1]):
-            dC[Xb[k,j]] += demb[k,j]
+    <span class="c"># manual backprop! #swole_doge_meme</span>
+    <span class="c"># -----------------</span>
+    dlogits <span class="o">=</span> F<span class="o">.</span>softmax<span class="o">(</span>logits<span class="o">,</span> <span class="m">1</span><span class="o">)</span>
+    dlogits<span class="o">[</span><span class="b">range</span><span class="o">(</span>n<span class="o">)</span><span class="o">,</span> Yb<span class="o">]</span> <span class="o">-</span><span class="o">=</span> <span class="m">1</span>
+    dlogits <span class="o">/</span><span class="o">=</span> n
+    <span class="c"># 2nd layer backprop</span>
+    dh <span class="o">=</span> dlogits <span class="o">@</span> W2<span class="o">.</span>T
+    dW2 <span class="o">=</span> h<span class="o">.</span>T <span class="o">@</span> dlogits
+    db2 <span class="o">=</span> dlogits<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">)</span>
+    <span class="c"># tanh</span>
+    dhpreact <span class="o">=</span> <span class="o">(</span><span class="m">1</span> <span class="o">-</span> h<span class="o">*</span><span class="o">*</span><span class="m">2</span><span class="o">)</span> <span class="o">*</span> dh
+    <span class="c"># batch norm backprop</span>
+    dbngain <span class="o">=</span> <span class="o">(</span>bnraw <span class="o">*</span> dhpreact<span class="o">)</span><span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+    dbnraw <span class="o">=</span> bngain <span class="o">*</span> dhpreact
+    dbnbias <span class="o">=</span> dhpreact<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdims<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+    dhprebn <span class="o">=</span> bngain<span class="o">*</span>bnvar_inv<span class="o">/</span>n <span class="o">*</span> <span class="o">(</span>n<span class="o">*</span>dhpreact <span class="o">-</span> dhpreact<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">)</span> <span class="o">-</span> n<span class="o">/</span><span class="o">(</span>n<span class="o">-</span><span class="m">1</span><span class="o">)</span><span class="o">*</span>bnraw<span class="o">*</span><span class="o">(</span>dhpreact<span class="o">*</span>bnraw<span class="o">)</span><span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">)</span><span class="o">)</span>
+    <span class="c"># 1st layer</span>
+    dembcat <span class="o">=</span> dhprebn <span class="o">@</span> W1<span class="o">.</span>T
+    dW1 <span class="o">=</span> embcat<span class="o">.</span>T <span class="o">@</span> dhprebn
+    db1 <span class="o">=</span> dhprebn<span class="o">.</span>sum<span class="o">(</span><span class="m">0</span><span class="o">)</span>
+    <span class="c"># embedding</span>
+    demb <span class="o">=</span> dembcat<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">)</span>
+    dC <span class="o">=</span> torch<span class="o">.</span>zeros_like<span class="o">(</span>C<span class="o">)</span>
+    <span class="k">for</span> k <span class="o">in</span> <span class="b">range</span><span class="o">(</span>Xb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">)</span><span class="o">:</span>
+        <span class="k">for</span> j <span class="o">in</span> <span class="b">range</span><span class="o">(</span>Xb<span class="o">.</span>shape<span class="o">[</span><span class="m">1</span><span class="o">]</span><span class="o">)</span><span class="o">:</span>
+            dC<span class="o">[</span>Xb<span class="o">[</span>k<span class="o">,</span>j<span class="o">]</span><span class="o">]</span> <span class="o">+</span><span class="o">=</span> demb<span class="o">[</span>k<span class="o">,</span>j<span class="o">]</span>
 
-    grads = [dC, dW1, db1, dW2, db2, dbngain, dbnbias]
-    # -----------------
+    grads <span class="o">=</span> <span class="o">[</span>dC<span class="o">,</span> dW1<span class="o">,</span> db1<span class="o">,</span> dW2<span class="o">,</span> db2<span class="o">,</span> dbngain<span class="o">,</span> dbnbias<span class="o">]</span>
+    <span class="c"># -----------------</span>
 
-    # update
-    lr = 0.1 if i &lt; 100000 else 0.01 # step learning rate decay
-    for p, grad in zip(parameters, grads):
-      # p.data += -lr * p.grad # old way of cheems doge (using PyTorch grad from .backward())
-      p.data += -lr * grad # new way of swole doge TODO: enable
+    <span class="c"># update</span>
+    lr <span class="o">=</span> <span class="m">0.1</span> <span class="k">if</span> i <span class="o">&lt;</span> <span class="m">100000</span> <span class="k">else</span> <span class="m">0.01</span> <span class="c"># step learning rate decay</span>
+    <span class="k">for</span> p<span class="o">,</span> grad <span class="o">in</span> <span class="b">zip</span><span class="o">(</span>parameters<span class="o">,</span> grads<span class="o">)</span><span class="o">:</span>
+      <span class="c"># p.data += -lr * p.grad # old way of cheems doge (using PyTorch grad from .backward())</span>
+      p<span class="o">.</span>data <span class="o">+</span><span class="o">=</span> <span class="o">-</span>lr <span class="o">*</span> grad <span class="c"># new way of swole doge TODO: enable</span>
 
-    # track stats
-    if i % 10000 == 0: # print every once in a while
-      print(f'{i:7d}/{max_steps:7d}: {loss.item():.4f}')
-    lossi.append(loss.log10().item())
+    <span class="c"># track stats</span>
+    <span class="k">if</span> i <span class="o">%</span> <span class="m">10000</span> <span class="o">==</span> <span class="m">0</span><span class="o">:</span> <span class="c"># print every once in a while</span>
+      <span class="b">print</span><span class="o">(</span><span class="s">f</span><span class="s">'</span><span class="s">{</span>i<span class="s">:</span><span class="s">7d</span><span class="s">}</span><span class="s">/</span><span class="s">{</span>max_steps<span class="s">:</span><span class="s">7d</span><span class="s">}</span><span class="s">: </span><span class="s">{</span>loss<span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="s">:</span><span class="s">.4f</span><span class="s">}</span><span class="s">'</span><span class="o">)</span>
+    lossi<span class="o">.</span>append<span class="o">(</span>loss<span class="o">.</span>log10<span class="o">(</span><span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="o">)</span>
 
-    # if i &gt;= 100: # TODO: delete early breaking when you're ready to train the full net
-    #   break</code></pre>
+    <span class="c"># if i &gt;= 100: # TODO: delete early breaking when you're ready to train the full net</span>
+    <span class="c">#   break</span></code></pre>
     </article>
     <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
   </main>

@@ -47,105 +47,105 @@
 
       <h3>Data</h3>
       <p>We will split the list of words into train (80%), validation (10%) and test (10%). Each set of words will then be made into blocks of 5 characters, where the first 4 characters will be used as the context, and the 5th character will be used as the target.</p>
-      <pre><code>import torch
-import torch.nn.functional as F
+      <pre><code class="py"><span class="k">import</span> torch
+<span class="k">import</span> torch.nn.functional <span class="k">as</span> F
 
-# read in all the words
-words = open('names.txt', 'r').read().splitlines()
+<span class="c"># read in all the words</span>
+words <span class="o">=</span> <span class="b">open</span><span class="o">(</span><span class="s">'</span><span class="s">names.txt</span><span class="s">'</span><span class="o">,</span> <span class="s">'</span><span class="s">r</span><span class="s">'</span><span class="o">)</span><span class="o">.</span>read<span class="o">(</span><span class="o">)</span><span class="o">.</span>splitlines<span class="o">(</span><span class="o">)</span>
 
-# build the vocabulary of characters and mappings to/from integers
-chars = sorted(list(set(''.join(words))))
-stoi = {c:i+1 for i,c in enumerate(chars)}
-stoi['.'] = 0
-itos = {i:c for c,i in stoi.items()}
-print(itos)
+<span class="c"># build the vocabulary of characters and mappings to/from integers</span>
+chars <span class="o">=</span> <span class="b">sorted</span><span class="o">(</span><span class="b">list</span><span class="o">(</span><span class="b">set</span><span class="o">(</span><span class="s">'</span><span class="s">'</span><span class="o">.</span>join<span class="o">(</span>words<span class="o">)</span><span class="o">)</span><span class="o">)</span><span class="o">)</span>
+stoi <span class="o">=</span> <span class="o">{</span>c<span class="o">:</span>i<span class="o">+</span><span class="m">1</span> <span class="k">for</span> i<span class="o">,</span>c <span class="o">in</span> <span class="b">enumerate</span><span class="o">(</span>chars<span class="o">)</span><span class="o">}</span>
+stoi<span class="o">[</span><span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">]</span> <span class="o">=</span> <span class="m">0</span>
+itos <span class="o">=</span> <span class="o">{</span>i<span class="o">:</span>c <span class="k">for</span> c<span class="o">,</span>i <span class="o">in</span> stoi<span class="o">.</span>items<span class="o">(</span><span class="o">)</span><span class="o">}</span>
+<span class="b">print</span><span class="o">(</span>itos<span class="o">)</span>
 
-# build the train/test/split
-block_size = 5
-def build_dataset(words):
-    X, Y = [], []
-    for w in words:
-        context = [0] * block_size
-        for ch in w + '.':
-            ix = stoi[ch]
-            X.append(context)
-            Y.append(ix)
-            context = context[1:] + [ix]
-    return torch.tensor(X), torch.tensor(Y)
+<span class="c"># build the train/test/split</span>
+block_size <span class="o">=</span> <span class="m">5</span>
+<span class="k">def</span> <span class="f">build_dataset</span><span class="o">(</span>words<span class="o">)</span><span class="o">:</span>
+    X<span class="o">,</span> Y <span class="o">=</span> <span class="o">[</span><span class="o">]</span><span class="o">,</span> <span class="o">[</span><span class="o">]</span>
+    <span class="k">for</span> w <span class="o">in</span> words<span class="o">:</span>
+        context <span class="o">=</span> <span class="o">[</span><span class="m">0</span><span class="o">]</span> <span class="o">*</span> block_size
+        <span class="k">for</span> ch <span class="o">in</span> w <span class="o">+</span> <span class="s">'</span><span class="s">.</span><span class="s">'</span><span class="o">:</span>
+            ix <span class="o">=</span> stoi<span class="o">[</span>ch<span class="o">]</span>
+            X<span class="o">.</span>append<span class="o">(</span>context<span class="o">)</span>
+            Y<span class="o">.</span>append<span class="o">(</span>ix<span class="o">)</span>
+            context <span class="o">=</span> context<span class="o">[</span><span class="m">1</span><span class="o">:</span><span class="o">]</span> <span class="o">+</span> <span class="o">[</span>ix<span class="o">]</span>
+    <span class="k">return</span> torch<span class="o">.</span>tensor<span class="o">(</span>X<span class="o">)</span><span class="o">,</span> torch<span class="o">.</span>tensor<span class="o">(</span>Y<span class="o">)</span>
 
-import random
-random.seed(42)
-random.shuffle(words)
-n1 = int(len(words) * 0.8)
-n2 = int(len(words) * 0.9)
+<span class="k">import</span> random
+random<span class="o">.</span>seed<span class="o">(</span><span class="m">42</span><span class="o">)</span>
+random<span class="o">.</span>shuffle<span class="o">(</span>words<span class="o">)</span>
+n1 <span class="o">=</span> <span class="b">int</span><span class="o">(</span><span class="b">len</span><span class="o">(</span>words<span class="o">)</span> <span class="o">*</span> <span class="m">0.8</span><span class="o">)</span>
+n2 <span class="o">=</span> <span class="b">int</span><span class="o">(</span><span class="b">len</span><span class="o">(</span>words<span class="o">)</span> <span class="o">*</span> <span class="m">0.9</span><span class="o">)</span>
 
-Xtr, Ytr = build_dataset(words[:n1])
-Xdev, Ydev = build_dataset(words[n1:n2])
-Xte, Yte = build_dataset(words[n2:])</code></pre>
+Xtr<span class="o">,</span> Ytr <span class="o">=</span> build_dataset<span class="o">(</span>words<span class="o">[</span><span class="o">:</span>n1<span class="o">]</span><span class="o">)</span>
+Xdev<span class="o">,</span> Ydev <span class="o">=</span> build_dataset<span class="o">(</span>words<span class="o">[</span>n1<span class="o">:</span>n2<span class="o">]</span><span class="o">)</span>
+Xte<span class="o">,</span> Yte <span class="o">=</span> build_dataset<span class="o">(</span>words<span class="o">[</span>n2<span class="o">:</span><span class="o">]</span><span class="o">)</span></code></pre>
 
       <h3>Training</h3>
       <p>Below is the code for model initialization and training. Once we understand the background of the MLP model, the actual code to train it is pretty straightforward.</p>
-      <pre><code>g = torch.Generator().manual_seed(2147483647)
+      <pre><code class="py">g <span class="o">=</span> torch<span class="o">.</span>Generator<span class="o">(</span><span class="o">)</span><span class="o">.</span>manual_seed<span class="o">(</span><span class="m">2147483647</span><span class="o">)</span>
 
-chars = 27 # number of characters in vocabulary
-dimensions = 10 # number of dimensions in embedding
-neurons = 10 # number of neurons in hidden layer
+chars <span class="o">=</span> <span class="m">27</span> <span class="c"># number of characters in vocabulary</span>
+dimensions <span class="o">=</span> <span class="m">10</span> <span class="c"># number of dimensions in embedding</span>
+neurons <span class="o">=</span> <span class="m">10</span> <span class="c"># number of neurons in hidden layer</span>
 
-# initialize parameters with random values
-C = torch.randn((chars, dimensions), generator=g)
-W1 = torch.randn((dimensions*block_size, neurons), generator=g)
-b1 = torch.randn(neurons, generator=g)
-W2 = torch.randn((neurons, chars), generator=g)
-b2 = torch.randn(chars, generator=g)
-params = [C, W1, b1, W2, b2]
+<span class="c"># initialize parameters with random values</span>
+C <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>chars<span class="o">,</span> dimensions<span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span>
+W1 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>dimensions<span class="o">*</span>block_size<span class="o">,</span> neurons<span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span>
+b1 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span>neurons<span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span>
+W2 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>neurons<span class="o">,</span> chars<span class="o">)</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span>
+b2 <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span>chars<span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span>
+params <span class="o">=</span> <span class="o">[</span>C<span class="o">,</span> W1<span class="o">,</span> b1<span class="o">,</span> W2<span class="o">,</span> b2<span class="o">]</span>
 
-# tell PyTorch to track gradients for all parameters
-for p in params:
-    p.requires_grad_()
+<span class="c"># tell PyTorch to track gradients for all parameters</span>
+<span class="k">for</span> p <span class="o">in</span> params<span class="o">:</span>
+    p<span class="o">.</span>requires_grad_<span class="o">(</span><span class="o">)</span>
 
-stepi = []
-losstri = []
-training_steps = 200000
-for i in range(training_steps):
-    # minibatch
-    batch_size = 32
-    ix = torch.randint(0, Xtr.shape[0], (batch_size,))
+stepi <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
+losstri <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
+training_steps <span class="o">=</span> <span class="m">200000</span>
+<span class="k">for</span> i <span class="o">in</span> <span class="b">range</span><span class="o">(</span>training_steps<span class="o">)</span><span class="o">:</span>
+    <span class="c"># minibatch</span>
+    batch_size <span class="o">=</span> <span class="m">32</span>
+    ix <span class="o">=</span> torch<span class="o">.</span>randint<span class="o">(</span><span class="m">0</span><span class="o">,</span> Xtr<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">(</span>batch_size<span class="o">,</span><span class="o">)</span><span class="o">)</span>
 
-    # forward pass on just minibatch
-    emb = C[Xtr[ix]]
-    h = torch.tanh(emb.view(-1, block_size*dimensions) @ W1 + b1)
-    logits = h @ W2 + b2
-    loss = F.cross_entropy(logits, Ytr[ix])
+    <span class="c"># forward pass on just minibatch</span>
+    emb <span class="o">=</span> C<span class="o">[</span>Xtr<span class="o">[</span>ix<span class="o">]</span><span class="o">]</span>
+    h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>emb<span class="o">.</span>view<span class="o">(</span><span class="o">-</span><span class="m">1</span><span class="o">,</span> block_size<span class="o">*</span>dimensions<span class="o">)</span> <span class="o">@</span> W1 <span class="o">+</span> b1<span class="o">)</span>
+    logits <span class="o">=</span> h <span class="o">@</span> W2 <span class="o">+</span> b2
+    loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> Ytr<span class="o">[</span>ix<span class="o">]</span><span class="o">)</span>
 
-    # backward pass
-    for p in params:
-        p.grad = None
-    loss.backward()
+    <span class="c"># backward pass</span>
+    <span class="k">for</span> p <span class="o">in</span> params<span class="o">:</span>
+        p<span class="o">.</span>grad <span class="o">=</span> <span class="k">None</span>
+    loss<span class="o">.</span>backward<span class="o">(</span><span class="o">)</span>
 
-    # update parameters
-    lr = 0.1 if i &lt; 100000 else 0.01
-    for p in params:
-        p.data -= lr * p.grad
+    <span class="c"># update parameters</span>
+    lr <span class="o">=</span> <span class="m">0.1</span> <span class="k">if</span> i <span class="o">&lt;</span> <span class="m">100000</span> <span class="k">else</span> <span class="m">0.01</span>
+    <span class="k">for</span> p <span class="o">in</span> params<span class="o">:</span>
+        p<span class="o">.</span>data <span class="o">-</span><span class="o">=</span> lr <span class="o">*</span> p<span class="o">.</span>grad
 
-    # track stats
-    stepi.append(i)
-    losstri.append(loss.item())
+    <span class="c"># track stats</span>
+    stepi<span class="o">.</span>append<span class="o">(</span>i<span class="o">)</span>
+    losstri<span class="o">.</span>append<span class="o">(</span>loss<span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="o">)</span>
 
-    print(i, loss.item())</code></pre>
+    <span class="b">print</span><span class="o">(</span>i<span class="o">,</span> loss<span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="o">)</span></code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-2-mlp-05.png" alt="figure"></figure>
 
       <h3>Evaluation</h3>
       <p>Note that the loss we looked at above was only the loss of each mini batch during the training phase. Here is the actual loss on the train, val, and test splits.</p>
-      <pre><code>for X, Y in [(Xtr, Ytr), (Xdev, Ydev), (Xte, Yte)]:
-    emb = C[X] # embedding lookup (32, 3, 2)
-    h = torch.tanh(emb.view(-1, block_size*dimensions) @ W1 + b1) # (32, 100)
-    logits = h @ W2 + b2 # (32, 27)
-    loss = F.cross_entropy(logits, Y) # (32, 100)
-    print(loss.item())
+      <pre><code class="py"><span class="k">for</span> X<span class="o">,</span> Y <span class="o">in</span> <span class="o">[</span><span class="o">(</span>Xtr<span class="o">,</span> Ytr<span class="o">)</span><span class="o">,</span> <span class="o">(</span>Xdev<span class="o">,</span> Ydev<span class="o">)</span><span class="o">,</span> <span class="o">(</span>Xte<span class="o">,</span> Yte<span class="o">)</span><span class="o">]</span><span class="o">:</span>
+    emb <span class="o">=</span> C<span class="o">[</span>X<span class="o">]</span> <span class="c"># embedding lookup (32, 3, 2)</span>
+    h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>emb<span class="o">.</span>view<span class="o">(</span><span class="o">-</span><span class="m">1</span><span class="o">,</span> block_size<span class="o">*</span>dimensions<span class="o">)</span> <span class="o">@</span> W1 <span class="o">+</span> b1<span class="o">)</span> <span class="c"># (32, 100)</span>
+    logits <span class="o">=</span> h <span class="o">@</span> W2 <span class="o">+</span> b2 <span class="c"># (32, 27)</span>
+    loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> Y<span class="o">)</span> <span class="c"># (32, 100)</span>
+    <span class="b">print</span><span class="o">(</span>loss<span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="o">)</span>
 
-# 2.2879016399383545
-# 2.2845089435577393
-# 2.2882678508758545</code></pre>
+<span class="c"># 2.2879016399383545</span>
+<span class="c"># 2.2845089435577393</span>
+<span class="c"># 2.2882678508758545</span></code></pre>
 
       <h3>Cross Entropy Loss</h3>
       <p>We are actually using the same loss function (negative log likelihood) as before. But instead of writing it out we are using PyTorch <code>cross_entropy</code> which is the same thing.</p>
@@ -163,24 +163,24 @@ for i in range(training_steps):
 
       <h3>Sampling from the model</h3>
       <p>Here is the code to sample from the model. We initialize the context with all <code>.</code> characters so the model is free to generate any name.</p>
-      <pre><code># sample fom the model
-g = torch.Generator().manual_seed(2147483647)
-for _ in range(1000):
-    out = []
-		# initialize context with all `.` characters
-    context = [0] * (block_size)
-    while True:
-        emb = C[torch.tensor([context])]
-        h = torch.tanh(emb.view(1, -1) @ W1 + b1)
-        logits = h @ W2 + b2
-        probs = F.softmax(logits, dim=1)
-        ix = torch.multinomial(probs, 1, generator=g).item()
-        context = context[1:] + [ix]
-        out.append(ix)
-        if ix == 0:
-            break
+      <pre><code class="py"><span class="c"># sample fom the model</span>
+g <span class="o">=</span> torch<span class="o">.</span>Generator<span class="o">(</span><span class="o">)</span><span class="o">.</span>manual_seed<span class="o">(</span><span class="m">2147483647</span><span class="o">)</span>
+<span class="k">for</span> _ <span class="o">in</span> <span class="b">range</span><span class="o">(</span><span class="m">1000</span><span class="o">)</span><span class="o">:</span>
+    out <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
+        <span class="c"># initialize context with all `.` characters</span>
+    context <span class="o">=</span> <span class="o">[</span><span class="m">0</span><span class="o">]</span> <span class="o">*</span> <span class="o">(</span>block_size<span class="o">)</span>
+    <span class="k">while</span> <span class="k">True</span><span class="o">:</span>
+        emb <span class="o">=</span> C<span class="o">[</span>torch<span class="o">.</span>tensor<span class="o">(</span><span class="o">[</span>context<span class="o">]</span><span class="o">)</span><span class="o">]</span>
+        h <span class="o">=</span> torch<span class="o">.</span>tanh<span class="o">(</span>emb<span class="o">.</span>view<span class="o">(</span><span class="m">1</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span> <span class="o">@</span> W1 <span class="o">+</span> b1<span class="o">)</span>
+        logits <span class="o">=</span> h <span class="o">@</span> W2 <span class="o">+</span> b2
+        probs <span class="o">=</span> F<span class="o">.</span>softmax<span class="o">(</span>logits<span class="o">,</span> dim<span class="o">=</span><span class="m">1</span><span class="o">)</span>
+        ix <span class="o">=</span> torch<span class="o">.</span>multinomial<span class="o">(</span>probs<span class="o">,</span> <span class="m">1</span><span class="o">,</span> generator<span class="o">=</span>g<span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span>
+        context <span class="o">=</span> context<span class="o">[</span><span class="m">1</span><span class="o">:</span><span class="o">]</span> <span class="o">+</span> <span class="o">[</span>ix<span class="o">]</span>
+        out<span class="o">.</span>append<span class="o">(</span>ix<span class="o">)</span>
+        <span class="k">if</span> ix <span class="o">==</span> <span class="m">0</span><span class="o">:</span>
+            <span class="k">break</span>
 
-    print(''.join([itos[i] for i in out[:-1]]))</code></pre>
+    <span class="b">print</span><span class="o">(</span><span class="s">'</span><span class="s">'</span><span class="o">.</span>join<span class="o">(</span><span class="o">[</span>itos<span class="o">[</span>i<span class="o">]</span> <span class="k">for</span> i <span class="o">in</span> out<span class="o">[</span><span class="o">:</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">]</span><span class="o">)</span><span class="o">)</span></code></pre>
     </article>
     <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
   </main>

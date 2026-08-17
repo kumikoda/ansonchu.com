@@ -19,122 +19,122 @@
       <h2>Some code improvements</h2>
       <p><strong>Starter Code</strong></p>
       <p>Here is the Torchified 2-layer MLP from before. I won’t include the class definitions of our Linear, BatchNorm1d, Tanh building blocks here since they haven’t changed.</p>
-      <pre><code>block_size = 3 # context length: how many characters do we take to predict the next one?
-n_embd = 10 # the dimensionality of the character embedding vectors
-n_hidden = 200 # the number of neurons in the hidden layer of the MLP
-C = torch.randn((vocab_size, n_embd))
-layers = [
-  Linear(n_embd * block_size, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-  Linear(n_hidden, vocab_size),
-]
+      <pre><code class="py">block_size <span class="o">=</span> <span class="m">3</span> <span class="c"># context length: how many characters do we take to predict the next one?</span>
+n_embd <span class="o">=</span> <span class="m">10</span> <span class="c"># the dimensionality of the character embedding vectors</span>
+n_hidden <span class="o">=</span> <span class="m">200</span> <span class="c"># the number of neurons in the hidden layer of the MLP</span>
+C <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>vocab_size<span class="o">,</span> n_embd<span class="o">)</span><span class="o">)</span>
+layers <span class="o">=</span> <span class="o">[</span>
+  Linear<span class="o">(</span>n_embd <span class="o">*</span> block_size<span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span>
 
-# parameter init
-with torch.no_grad():
-  layers[-1].weight *= 0.1 # last layer make less confident
+<span class="c"># parameter init</span>
+<span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+  layers<span class="o">[</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">.</span>weight <span class="o">*</span><span class="o">=</span> <span class="m">0.1</span> <span class="c"># last layer make less confident</span>
 
-parameters = [C] + [p for layer in layers for p in layer.parameters()]
-print(sum(p.nelement() for p in parameters)) # number of parameters in total
-for p in parameters:
-  p.requires_grad = True</code></pre>
-      <pre><code># same optimization as last time
-max_steps = 200000
-batch_size = 32
-lossi = []
+parameters <span class="o">=</span> <span class="o">[</span>C<span class="o">]</span> <span class="o">+</span> <span class="o">[</span>p <span class="k">for</span> layer <span class="o">in</span> layers <span class="k">for</span> p <span class="o">in</span> layer<span class="o">.</span>parameters<span class="o">(</span><span class="o">)</span><span class="o">]</span>
+<span class="b">print</span><span class="o">(</span><span class="b">sum</span><span class="o">(</span>p<span class="o">.</span>nelement<span class="o">(</span><span class="o">)</span> <span class="k">for</span> p <span class="o">in</span> parameters<span class="o">)</span><span class="o">)</span> <span class="c"># number of parameters in total</span>
+<span class="k">for</span> p <span class="o">in</span> parameters<span class="o">:</span>
+  p<span class="o">.</span>requires_grad <span class="o">=</span> <span class="k">True</span></code></pre>
+      <pre><code class="py"><span class="c"># same optimization as last time</span>
+max_steps <span class="o">=</span> <span class="m">200000</span>
+batch_size <span class="o">=</span> <span class="m">32</span>
+lossi <span class="o">=</span> <span class="o">[</span><span class="o">]</span>
 
-for i in range(max_steps):
+<span class="k">for</span> i <span class="o">in</span> <span class="b">range</span><span class="o">(</span>max_steps<span class="o">)</span><span class="o">:</span>
 
-  # minibatch construct
-  ix = torch.randint(0, Xtr.shape[0], (batch_size,))
-  Xb, Yb = Xtr[ix], Ytr[ix] # batch X,Y
+  <span class="c"># minibatch construct</span>
+  ix <span class="o">=</span> torch<span class="o">.</span>randint<span class="o">(</span><span class="m">0</span><span class="o">,</span> Xtr<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">(</span>batch_size<span class="o">,</span><span class="o">)</span><span class="o">)</span>
+  Xb<span class="o">,</span> Yb <span class="o">=</span> Xtr<span class="o">[</span>ix<span class="o">]</span><span class="o">,</span> Ytr<span class="o">[</span>ix<span class="o">]</span> <span class="c"># batch X,Y</span>
 
-  # forward pass
-  emb = C[Xb]
-  x = emb.view(emb.shape[0], -1)
-  for layer in layers:
-    x = layer(x)
-  loss = F.cross_entropy(x, Yb)
+  <span class="c"># forward pass</span>
+  emb <span class="o">=</span> C<span class="o">[</span>Xb<span class="o">]</span>
+  x <span class="o">=</span> emb<span class="o">.</span>view<span class="o">(</span>emb<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
+  <span class="k">for</span> layer <span class="o">in</span> layers<span class="o">:</span>
+    x <span class="o">=</span> layer<span class="o">(</span>x<span class="o">)</span>
+  loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>x<span class="o">,</span> Yb<span class="o">)</span>
 
-  # backward pass
-  for p in parameters:
-    p.grad = None
-  loss.backward()
+  <span class="c"># backward pass</span>
+  <span class="k">for</span> p <span class="o">in</span> parameters<span class="o">:</span>
+    p<span class="o">.</span>grad <span class="o">=</span> <span class="k">None</span>
+  loss<span class="o">.</span>backward<span class="o">(</span><span class="o">)</span>
 
-  # update: simple SGD
-  lr = 0.1 if i < 150000 else 0.01 # step learning rate decay
-  for p in parameters:
-    p.data += -lr * p.grad
+  <span class="c"># update: simple SGD</span>
+  lr <span class="o">=</span> <span class="m">0.1</span> <span class="k">if</span> i <span class="o">&lt;</span> <span class="m">150000</span> <span class="k">else</span> <span class="m">0.01</span> <span class="c"># step learning rate decay</span>
+  <span class="k">for</span> p <span class="o">in</span> parameters<span class="o">:</span>
+    p<span class="o">.</span>data <span class="o">+</span><span class="o">=</span> <span class="o">-</span>lr <span class="o">*</span> p<span class="o">.</span>grad
 
-  # track stats
-  if i % 10000 == 0: # print every once in a while
-    print(f'{i:7d}/{max_steps:7d}: {loss.item():.4f}')
-  lossi.append(loss.log10().item())</code></pre>
+  <span class="c"># track stats</span>
+  <span class="k">if</span> i <span class="o">%</span> <span class="m">10000</span> <span class="o">==</span> <span class="m">0</span><span class="o">:</span> <span class="c"># print every once in a while</span>
+    <span class="b">print</span><span class="o">(</span><span class="s">f</span><span class="s">'</span><span class="s">{</span>i<span class="s">:</span><span class="s">7d</span><span class="s">}</span><span class="s">/</span><span class="s">{</span>max_steps<span class="s">:</span><span class="s">7d</span><span class="s">}</span><span class="s">: </span><span class="s">{</span>loss<span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="s">:</span><span class="s">.4f</span><span class="s">}</span><span class="s">'</span><span class="o">)</span>
+  lossi<span class="o">.</span>append<span class="o">(</span>loss<span class="o">.</span>log10<span class="o">(</span><span class="o">)</span><span class="o">.</span>item<span class="o">(</span><span class="o">)</span><span class="o">)</span></code></pre>
       <p><strong>Fixing the learning rate plot</strong></p>
       <p>This is what our original plot of our looks like. But it is kind of difficult to read given how wide the band of values are. The wide distribution of values come from the fact that we are training in batches.</p>
-      <pre><code>plt.plot(lossi)</code></pre>
+      <pre><code class="py">plt<span class="o">.</span>plot<span class="o">(</span>lossi<span class="o">)</span></code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-01.png" alt="raw loss plot (no caption in Notion)"><figcaption>raw loss plot (no caption in Notion)</figcaption></figure>
       <p>Instead of plotting each datapoint, we can plot the mean of each 1000 points to get a smoother line. This plot is much more informative. We can even start to see the effect of our learning rate decay, which was previously completely obfuscated by the wide band of values.</p>
-      <pre><code>plt.plot(torch.tensor(lossi).view(-1, 1000).mean(1))</code></pre>
+      <pre><code class="py">plt<span class="o">.</span>plot<span class="o">(</span>torch<span class="o">.</span>tensor<span class="o">(</span>lossi<span class="o">)</span><span class="o">.</span>view<span class="o">(</span><span class="o">-</span><span class="m">1</span><span class="o">,</span> <span class="m">1000</span><span class="o">)</span><span class="o">.</span>mean<span class="o">(</span><span class="m">1</span><span class="o">)</span><span class="o">)</span></code></pre>
       <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-02.png" alt="smoothed loss plot (no caption in Notion)"><figcaption>smoothed loss plot (no caption in Notion)</figcaption></figure>
       <p><strong>Pytorchifying the embedding</strong></p>
       <p>In order to clean up our code a bit, we can introduce these two classes to replace the special case code we have for our embedding.</p>
-      <pre><code>class Embedding:
-  def __init__(self, num_embeddings, embedding_dim):
-    self.weight = torch.randn((num_embeddings, embedding_dim))
+      <pre><code class="py"><span class="k">class</span> <span class="f">Embedding</span><span class="o">:</span>
+  <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> num_embeddings<span class="o">,</span> embedding_dim<span class="o">)</span><span class="o">:</span>
+    <span class="b">self</span><span class="o">.</span>weight <span class="o">=</span> torch<span class="o">.</span>randn<span class="o">(</span><span class="o">(</span>num_embeddings<span class="o">,</span> embedding_dim<span class="o">)</span><span class="o">)</span>
 
-  def __call__(self, IX):
-    self.out = self.weight[IX]
-    return self.out
+  <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> IX<span class="o">)</span><span class="o">:</span>
+    <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> <span class="b">self</span><span class="o">.</span>weight<span class="o">[</span>IX<span class="o">]</span>
+    <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out
 
-  def parameters(self):
-    return [self.weight]
+  <span class="k">def</span> <span class="f">parameters</span><span class="o">(</span><span class="b">self</span><span class="o">)</span><span class="o">:</span>
+    <span class="k">return</span> <span class="o">[</span><span class="b">self</span><span class="o">.</span>weight<span class="o">]</span>
 
-class Flatten:
-  def __call__(self, x):
-    self.out = x.view(x.shape[0], -1)
-    return self.out
+<span class="k">class</span> <span class="f">Flatten</span><span class="o">:</span>
+  <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+    <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> x<span class="o">.</span>view<span class="o">(</span>x<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
+    <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out
 
-  def parameters(self):
-    return []</code></pre>
+  <span class="k">def</span> <span class="f">parameters</span><span class="o">(</span><span class="b">self</span><span class="o">)</span><span class="o">:</span>
+    <span class="k">return</span> <span class="o">[</span><span class="o">]</span></code></pre>
       <p>Instead of having to declare <code>C</code> outside of layers, and then having to add <code>C</code> into our parameters and then having to manually do the flattening inside the forward pass, the embedding and flattening operation can just become a layer</p>
-      <pre><code>layers = [
-  Embedding(vocab_size, n_embd), Flatten(),
-  Linear(n_embd * block_size, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-  Linear(n_hidden, vocab_size),
-]
+      <pre><code class="py">layers <span class="o">=</span> <span class="o">[</span>
+  Embedding<span class="o">(</span>vocab_size<span class="o">,</span> n_embd<span class="o">)</span><span class="o">,</span> Flatten<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  Linear<span class="o">(</span>n_embd <span class="o">*</span> block_size<span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span>
 
-parameters = [p for layer in layers for p in layer.parameters()]</code></pre>
+parameters <span class="o">=</span> <span class="o">[</span>p <span class="k">for</span> layer <span class="o">in</span> layers <span class="k">for</span> p <span class="o">in</span> layer<span class="o">.</span>parameters<span class="o">(</span><span class="o">)</span><span class="o">]</span></code></pre>
       <p>And the forward pass becomes nice and uniform</p>
-      <pre><code># foward pass
-for layer in layers:
-    x = layer(x)</code></pre>
+      <pre><code class="py"><span class="c"># foward pass</span>
+<span class="k">for</span> layer <span class="o">in</span> layers<span class="o">:</span>
+    x <span class="o">=</span> layer<span class="o">(</span>x<span class="o">)</span></code></pre>
       <p><strong>Pytorchifying the model</strong></p>
       <p>Instead of having to maintain a list of layers, and having to for-loop over them in various places, we can wrap our layers inside of a “container” called Sequential.</p>
-      <pre><code>class Sequential:
-  def __init__(self, layers):
-    self.layers = layers
+      <pre><code class="py"><span class="k">class</span> <span class="f">Sequential</span><span class="o">:</span>
+  <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> layers<span class="o">)</span><span class="o">:</span>
+    <span class="b">self</span><span class="o">.</span>layers <span class="o">=</span> layers
 
-  def __call__(self, x):
-    for layer in self.layers:
-      x = layer(x)
-    self.out = x
-    return self.out
+  <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+    <span class="k">for</span> layer <span class="o">in</span> <span class="b">self</span><span class="o">.</span>layers<span class="o">:</span>
+      x <span class="o">=</span> layer<span class="o">(</span>x<span class="o">)</span>
+    <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> x
+    <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out
 
-  def parameters(self):
-    # get parameters of all layers and stretch them out into one list
-    return [p for layer in self.layers for p in layer.parameters()]</code></pre>
+  <span class="k">def</span> <span class="f">parameters</span><span class="o">(</span><span class="b">self</span><span class="o">)</span><span class="o">:</span>
+    <span class="c"># get parameters of all layers and stretch them out into one list</span>
+    <span class="k">return</span> <span class="o">[</span>p <span class="k">for</span> layer <span class="o">in</span> <span class="b">self</span><span class="o">.</span>layers <span class="k">for</span> p <span class="o">in</span> layer<span class="o">.</span>parameters<span class="o">(</span><span class="o">)</span><span class="o">]</span></code></pre>
       <p>Instead of a raw <code>layers</code> array, we now have a <code>models</code> object</p>
-      <pre><code>model = Sequential([
-   Embedding(vocab_size, n_embd), Flatten(),
-   Linear(n_embd * 8, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-   Linear(n_hidden, vocab_size),
-])
+      <pre><code class="py">model <span class="o">=</span> Sequential<span class="o">(</span><span class="o">[</span>
+   Embedding<span class="o">(</span>vocab_size<span class="o">,</span> n_embd<span class="o">)</span><span class="o">,</span> Flatten<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+   Linear<span class="o">(</span>n_embd <span class="o">*</span> <span class="m">8</span><span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+   Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span><span class="o">)</span>
 
-with torch.no_grad():
-   model.layers[-1].weight *= 0.1 # last layer make less confident</code></pre>
+<span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+   model<span class="o">.</span>layers<span class="o">[</span><span class="o">-</span><span class="m">1</span><span class="o">]</span><span class="o">.</span>weight <span class="o">*</span><span class="o">=</span> <span class="m">0.1</span> <span class="c"># last layer make less confident</span></code></pre>
       <p>Which simplifies our forward pass to just 2 lines</p>
-      <pre><code># forward pass
-logits = model(Xb)
-loss = F.cross_entropy(logits, Yb) # loss function</code></pre>
+      <pre><code class="py"><span class="c"># forward pass</span>
+logits <span class="o">=</span> model<span class="o">(</span>Xb<span class="o">)</span>
+loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> Yb<span class="o">)</span> <span class="c"># loss function</span></code></pre>
       <h2>Wavenet</h2>
       <p>Recall the architecture of our initial MLP.</p>
       <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-03.png" alt="initial MLP architecture diagram (no caption in Notion)"><figcaption>initial MLP architecture diagram (no caption in Notion)</figcaption></figure>
@@ -148,15 +148,15 @@ loss = F.cross_entropy(logits, Yb) # loss function</code></pre>
       <p>For us, we will be increasing our block_size from 3 to 8, which makes our graph look like this.</p>
       <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-06.png" alt="hierarchical fusion graph with block_size 8 (no caption in Notion)"><figcaption>hierarchical fusion graph with block_size 8 (no caption in Notion)</figcaption></figure>
       <p>Say we have a batch of 4 examples, let’s try to visualize the shapes of the tensors through the forward pass.</p>
-      <pre><code>block_size = 8
-n_embd = 10
-n_hidden = 200
+      <pre><code class="py">block_size <span class="o">=</span> <span class="m">8</span>
+n_embd <span class="o">=</span> <span class="m">10</span>
+n_hidden <span class="o">=</span> <span class="m">200</span>
 
-model = Sequential([
-   Embedding(vocab_size, n_embd), Flatten(),
-   Linear(n_embd * 8, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-   Linear(n_hidden, vocab_size),
-])</code></pre>
+model <span class="o">=</span> Sequential<span class="o">(</span><span class="o">[</span>
+   Embedding<span class="o">(</span>vocab_size<span class="o">,</span> n_embd<span class="o">)</span><span class="o">,</span> Flatten<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+   Linear<span class="o">(</span>n_embd <span class="o">*</span> <span class="m">8</span><span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+   Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span><span class="o">)</span></code></pre>
       <p>Let’s say we have a hypothetical batch of 4 examples.</p>
       <ul>
         <li>Xb is <code>4 examples x 8 characters</code></li>
@@ -175,49 +175,49 @@ model = Sequential([
       <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-11.png" alt="4x80 reshaped to 4x4x20 diagram (no caption in Notion)"><figcaption>4x80 reshaped to 4x4x20 diagram (no caption in Notion)</figcaption></figure>
       <p><strong>Flatten Consecutive</strong></p>
       <p>Recall that we have this Flatten layer. Basically all it does is keep the first (or zeroth) dimension and flatten the rest of the dimensions. So a <code>4x8x10</code> would become <code>4x80</code>.</p>
-      <pre><code>class Flatten:
-  def __call__(self, x):
-    self.out = x.view(x.shape[0], -1)
-    return self.out
+      <pre><code class="py"><span class="k">class</span> <span class="f">Flatten</span><span class="o">:</span>
+  <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+    <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> x<span class="o">.</span>view<span class="o">(</span>x<span class="o">.</span>shape<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">)</span>
+    <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out
 
-  def parameters(self):
-    return []</code></pre>
+  <span class="k">def</span> <span class="f">parameters</span><span class="o">(</span><span class="b">self</span><span class="o">)</span><span class="o">:</span>
+    <span class="k">return</span> <span class="o">[</span><span class="o">]</span></code></pre>
       <p>What we want is a Flatten that can turn <code>4x8x10</code> into <code>4x4x20</code> More specifically, we want this Flatten to keep the <code>4</code> batch dimension, but group the <code>8x10</code> dimensions into groups of 2, which would become <code>4x20</code>. If the 2nd dimension becomes 1, then we “squeeze” it to remove the dimension completely. We call this FlattenConsecutive.</p>
-      <pre><code>class FlattenConsecutive:
-  def __init__(self, n):
-    self.n = n
+      <pre><code class="py"><span class="k">class</span> <span class="f">FlattenConsecutive</span><span class="o">:</span>
+  <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> n<span class="o">)</span><span class="o">:</span>
+    <span class="b">self</span><span class="o">.</span>n <span class="o">=</span> n
 
-  def __call__(self, x):
-    B, T, C = x.shape
-    x = x.view(B, T//self.n, C*self.n)
-    if x.shape[1] == 1:
-      x = x.squeeze(1)
-    self.out = x
-    return self.out
+  <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+    B<span class="o">,</span> T<span class="o">,</span> C <span class="o">=</span> x<span class="o">.</span>shape
+    x <span class="o">=</span> x<span class="o">.</span>view<span class="o">(</span>B<span class="o">,</span> T<span class="o">/</span><span class="o">/</span><span class="b">self</span><span class="o">.</span>n<span class="o">,</span> C<span class="o">*</span><span class="b">self</span><span class="o">.</span>n<span class="o">)</span>
+    <span class="k">if</span> x<span class="o">.</span>shape<span class="o">[</span><span class="m">1</span><span class="o">]</span> <span class="o">==</span> <span class="m">1</span><span class="o">:</span>
+      x <span class="o">=</span> x<span class="o">.</span>squeeze<span class="o">(</span><span class="m">1</span><span class="o">)</span>
+    <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> x
+    <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out
 
-  def parameters(self):
-    return []</code></pre>
+  <span class="k">def</span> <span class="f">parameters</span><span class="o">(</span><span class="b">self</span><span class="o">)</span><span class="o">:</span>
+    <span class="k">return</span> <span class="o">[</span><span class="o">]</span></code></pre>
       <p>Calling FlattenConsecutive(8) would yield the same result as our original flatten. Since we are grouping a <code>4x8x10</code> into groups of 8, we get <code>4x1x80</code>, and we squeeze the 2nd dimension away to get <code>4x80</code>.</p>
-      <pre><code>block_size = 8
-n_embd = 10
-n_hidden = 200
-model = Sequential([
-  Embedding(vocab_size, n_embd),
-  FlattenConsecutive(block_size), Linear(n_embd * block_size, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-  Linear(n_hidden, vocab_size),
-])</code></pre>
+      <pre><code class="py">block_size <span class="o">=</span> <span class="m">8</span>
+n_embd <span class="o">=</span> <span class="m">10</span>
+n_hidden <span class="o">=</span> <span class="m">200</span>
+model <span class="o">=</span> Sequential<span class="o">(</span><span class="o">[</span>
+  Embedding<span class="o">(</span>vocab_size<span class="o">,</span> n_embd<span class="o">)</span><span class="o">,</span>
+  FlattenConsecutive<span class="o">(</span>block_size<span class="o">)</span><span class="o">,</span> Linear<span class="o">(</span>n_embd <span class="o">*</span> block_size<span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span><span class="o">)</span></code></pre>
       <p>If we want to progressively fuse by 2 over 4 hidden layers, we can just copy and paste the linear layer sandwich. Note that the hidden layers now have a fan-in of <code>n_hidden*2</code> instead of just <code>n_hidden</code> since we stuck a FlattenConsecutive in front of it.</p>
-      <pre><code>block_size = 8
-n_embd = 10
-n_hidden = 200
-group_size = 2
-model = Sequential([
-  Embedding(vocab_size, n_embd),
-  FlattenConsecutive(group_size), Linear(n_embd * group_size, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-  FlattenConsecutive(group_size), Linear(n_hidden*group_size, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-  FlattenConsecutive(group_size), Linear(n_hidden*group_size, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-  Linear(n_hidden, vocab_size),
-])</code></pre>
+      <pre><code class="py">block_size <span class="o">=</span> <span class="m">8</span>
+n_embd <span class="o">=</span> <span class="m">10</span>
+n_hidden <span class="o">=</span> <span class="m">200</span>
+group_size <span class="o">=</span> <span class="m">2</span>
+model <span class="o">=</span> Sequential<span class="o">(</span><span class="o">[</span>
+  Embedding<span class="o">(</span>vocab_size<span class="o">,</span> n_embd<span class="o">)</span><span class="o">,</span>
+  FlattenConsecutive<span class="o">(</span>group_size<span class="o">)</span><span class="o">,</span> Linear<span class="o">(</span>n_embd <span class="o">*</span> group_size<span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  FlattenConsecutive<span class="o">(</span>group_size<span class="o">)</span><span class="o">,</span> Linear<span class="o">(</span>n_hidden<span class="o">*</span>group_size<span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  FlattenConsecutive<span class="o">(</span>group_size<span class="o">)</span><span class="o">,</span> Linear<span class="o">(</span>n_hidden<span class="o">*</span>group_size<span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span><span class="o">)</span></code></pre>
       <p>If we inspect the shapes of the output of each layer…</p>
       <ul>
         <li>Embedding: <code>4x8x10</code> (batch of 4, 8 characters each, 10 embedding dimensions)</li>
@@ -254,58 +254,58 @@ model = Sequential([
       <p>The performance ends up being about the same as before.</p>
       <p><strong>Fixing BatchNorm1d</strong></p>
       <p>So recall our implementation of batch norm. The key thing that is happening here is that we are calculating the mean and variance over the entire batch. However, now that we have introduced more batch dimensions, we are instead calculating the mean and variance for each group independently. This is not what we want.</p>
-      <pre><code>class BatchNorm1d:
-  def __call__(self, x):
-    # calculate the forward pass
-    if self.training:
-      xmean = x.mean(dim, keepdim=True) # batch mean
-      xvar = x.var(dim, keepdim=True) # batch variance
-    else:
-      xmean = self.running_mean
-      xvar = self.running_var
-    xhat = (x - xmean) / torch.sqrt(xvar + self.eps) # normalize to unit variance
-    self.out = self.gamma * xhat + self.beta
-    # update the buffers
-    if self.training:
-      with torch.no_grad():
-        self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * xmean
-        self.running_var = (1 - self.momentum) * self.running_var + self.momentum * xvar
-    return self.out</code></pre>
+      <pre><code class="py"><span class="k">class</span> <span class="f">BatchNorm1d</span><span class="o">:</span>
+  <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+    <span class="c"># calculate the forward pass</span>
+    <span class="k">if</span> <span class="b">self</span><span class="o">.</span>training<span class="o">:</span>
+      xmean <span class="o">=</span> x<span class="o">.</span>mean<span class="o">(</span>dim<span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span> <span class="c"># batch mean</span>
+      xvar <span class="o">=</span> x<span class="o">.</span>var<span class="o">(</span>dim<span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span> <span class="c"># batch variance</span>
+    <span class="k">else</span><span class="o">:</span>
+      xmean <span class="o">=</span> <span class="b">self</span><span class="o">.</span>running_mean
+      xvar <span class="o">=</span> <span class="b">self</span><span class="o">.</span>running_var
+    xhat <span class="o">=</span> <span class="o">(</span>x <span class="o">-</span> xmean<span class="o">)</span> <span class="o">/</span> torch<span class="o">.</span>sqrt<span class="o">(</span>xvar <span class="o">+</span> <span class="b">self</span><span class="o">.</span>eps<span class="o">)</span> <span class="c"># normalize to unit variance</span>
+    <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> <span class="b">self</span><span class="o">.</span>gamma <span class="o">*</span> xhat <span class="o">+</span> <span class="b">self</span><span class="o">.</span>beta
+    <span class="c"># update the buffers</span>
+    <span class="k">if</span> <span class="b">self</span><span class="o">.</span>training<span class="o">:</span>
+      <span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+        <span class="b">self</span><span class="o">.</span>running_mean <span class="o">=</span> <span class="o">(</span><span class="m">1</span> <span class="o">-</span> <span class="b">self</span><span class="o">.</span>momentum<span class="o">)</span> <span class="o">*</span> <span class="b">self</span><span class="o">.</span>running_mean <span class="o">+</span> <span class="b">self</span><span class="o">.</span>momentum <span class="o">*</span> xmean
+        <span class="b">self</span><span class="o">.</span>running_var <span class="o">=</span> <span class="o">(</span><span class="m">1</span> <span class="o">-</span> <span class="b">self</span><span class="o">.</span>momentum<span class="o">)</span> <span class="o">*</span> <span class="b">self</span><span class="o">.</span>running_var <span class="o">+</span> <span class="b">self</span><span class="o">.</span>momentum <span class="o">*</span> xvar
+    <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out</code></pre>
       <p>To fix this, we need to make sure we mean over this extra dimension if it exists. Just note that our implementation here deviates from PyTorch’s implementation of BatchNorm1d. We always expect the channel dimension to be the last dimension, whereas in PyTorch they always expect channel dimension to be the 1st dimension.</p>
-      <pre><code>class BatchNorm1d:
-  def __call__(self, x):
-    # calculate the forward pass
-    if self.training:
-      if x.ndim == 2:
-        dim = 0
-      elif x.ndim == 3:
-        dim = (0,1)
-      xmean = x.mean(dim, keepdim=True) # batch mean
-      xvar = x.var(dim, keepdim=True) # batch variance
-    else:
-      xmean = self.running_mean
-      xvar = self.running_var
-    xhat = (x - xmean) / torch.sqrt(xvar + self.eps) # normalize to unit variance
-    self.out = self.gamma * xhat + self.beta
-    # update the buffers
-    if self.training:
-      with torch.no_grad():
-        self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * xmean
-        self.running_var = (1 - self.momentum) * self.running_var + self.momentum * xvar
-    return self.out</code></pre>
+      <pre><code class="py"><span class="k">class</span> <span class="f">BatchNorm1d</span><span class="o">:</span>
+  <span class="k">def</span> <span class="f">__call__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+    <span class="c"># calculate the forward pass</span>
+    <span class="k">if</span> <span class="b">self</span><span class="o">.</span>training<span class="o">:</span>
+      <span class="k">if</span> x<span class="o">.</span>ndim <span class="o">==</span> <span class="m">2</span><span class="o">:</span>
+        dim <span class="o">=</span> <span class="m">0</span>
+      <span class="k">elif</span> x<span class="o">.</span>ndim <span class="o">==</span> <span class="m">3</span><span class="o">:</span>
+        dim <span class="o">=</span> <span class="o">(</span><span class="m">0</span><span class="o">,</span><span class="m">1</span><span class="o">)</span>
+      xmean <span class="o">=</span> x<span class="o">.</span>mean<span class="o">(</span>dim<span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span> <span class="c"># batch mean</span>
+      xvar <span class="o">=</span> x<span class="o">.</span>var<span class="o">(</span>dim<span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span> <span class="c"># batch variance</span>
+    <span class="k">else</span><span class="o">:</span>
+      xmean <span class="o">=</span> <span class="b">self</span><span class="o">.</span>running_mean
+      xvar <span class="o">=</span> <span class="b">self</span><span class="o">.</span>running_var
+    xhat <span class="o">=</span> <span class="o">(</span>x <span class="o">-</span> xmean<span class="o">)</span> <span class="o">/</span> torch<span class="o">.</span>sqrt<span class="o">(</span>xvar <span class="o">+</span> <span class="b">self</span><span class="o">.</span>eps<span class="o">)</span> <span class="c"># normalize to unit variance</span>
+    <span class="b">self</span><span class="o">.</span>out <span class="o">=</span> <span class="b">self</span><span class="o">.</span>gamma <span class="o">*</span> xhat <span class="o">+</span> <span class="b">self</span><span class="o">.</span>beta
+    <span class="c"># update the buffers</span>
+    <span class="k">if</span> <span class="b">self</span><span class="o">.</span>training<span class="o">:</span>
+      <span class="k">with</span> torch<span class="o">.</span>no_grad<span class="o">(</span><span class="o">)</span><span class="o">:</span>
+        <span class="b">self</span><span class="o">.</span>running_mean <span class="o">=</span> <span class="o">(</span><span class="m">1</span> <span class="o">-</span> <span class="b">self</span><span class="o">.</span>momentum<span class="o">)</span> <span class="o">*</span> <span class="b">self</span><span class="o">.</span>running_mean <span class="o">+</span> <span class="b">self</span><span class="o">.</span>momentum <span class="o">*</span> xmean
+        <span class="b">self</span><span class="o">.</span>running_var <span class="o">=</span> <span class="o">(</span><span class="m">1</span> <span class="o">-</span> <span class="b">self</span><span class="o">.</span>momentum<span class="o">)</span> <span class="o">*</span> <span class="b">self</span><span class="o">.</span>running_var <span class="o">+</span> <span class="b">self</span><span class="o">.</span>momentum <span class="o">*</span> xvar
+    <span class="k">return</span> <span class="b">self</span><span class="o">.</span>out</code></pre>
       <p>With this fix, we performance improves just a bit.</p>
       <p><strong>Scaling up</strong></p>
       <p>With this new architecture, we can easily scale up our model. Let’s increase n_embd from 10 to 24 and n_hidden from 68 to 128.</p>
-      <pre><code># final hierarchical network
-n_embd = 24 # the dimensionality of the character embedding vectors
-n_hidden = 128 # the number of neurons in the hidden layer of the MLP
-model = Sequential([
-  Embedding(vocab_size, n_embd),
-  FlattenConsecutive(2), Linear(n_embd * 2, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-  FlattenConsecutive(2), Linear(n_hidden*2, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-  FlattenConsecutive(2), Linear(n_hidden*2, n_hidden, bias=False), BatchNorm1d(n_hidden), Tanh(),
-  Linear(n_hidden, vocab_size),
-])</code></pre>
+      <pre><code class="py"><span class="c"># final hierarchical network</span>
+n_embd <span class="o">=</span> <span class="m">24</span> <span class="c"># the dimensionality of the character embedding vectors</span>
+n_hidden <span class="o">=</span> <span class="m">128</span> <span class="c"># the number of neurons in the hidden layer of the MLP</span>
+model <span class="o">=</span> Sequential<span class="o">(</span><span class="o">[</span>
+  Embedding<span class="o">(</span>vocab_size<span class="o">,</span> n_embd<span class="o">)</span><span class="o">,</span>
+  FlattenConsecutive<span class="o">(</span><span class="m">2</span><span class="o">)</span><span class="o">,</span> Linear<span class="o">(</span>n_embd <span class="o">*</span> <span class="m">2</span><span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  FlattenConsecutive<span class="o">(</span><span class="m">2</span><span class="o">)</span><span class="o">,</span> Linear<span class="o">(</span>n_hidden<span class="o">*</span><span class="m">2</span><span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  FlattenConsecutive<span class="o">(</span><span class="m">2</span><span class="o">)</span><span class="o">,</span> Linear<span class="o">(</span>n_hidden<span class="o">*</span><span class="m">2</span><span class="o">,</span> n_hidden<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span><span class="o">,</span> BatchNorm1d<span class="o">(</span>n_hidden<span class="o">)</span><span class="o">,</span> Tanh<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+  Linear<span class="o">(</span>n_hidden<span class="o">,</span> vocab_size<span class="o">)</span><span class="o">,</span>
+<span class="o">]</span><span class="o">)</span></code></pre>
       <p>Performance gets a bit better but since we don’t have an experimental harness its going to be hard for us to tune these numbers any further.</p>
       <p><strong>Convolution is like a for-loop</strong></p>
       <p>Let’s say we are only considering this one name, which gives us 8 independent examples.</p>

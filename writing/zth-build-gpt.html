@@ -96,152 +96,152 @@ Attention = softmax(QK^T / sqrt(d_k))V</code></p>
       <figure><img src="/writing/img/zth/zth-build-gpt-11.png" alt="decoder-only architecture diagram (no caption in Notion)"><figcaption>decoder-only architecture diagram (no caption in Notion)</figcaption></figure>
       <p><strong>Code</strong></p>
       <p>Here is the code for the attention mechanism.</p>
-      <pre><code>class Head(nn.Module):
-    """one head of self-attention"""
+      <pre><code class="py"><span class="k">class</span> <span class="f">Head</span><span class="o">(</span>nn<span class="o">.</span>Module<span class="o">)</span><span class="o">:</span>
+    <span class="s">"""one head of self-attention"""</span>
 
-    def __init__(self, head_size):
-        super().__init__()
-        self.key = nn.Linear(n_embd, head_size, bias=False)
-        self.query = nn.Linear(n_embd, head_size, bias=False)
-        self.value = nn.Linear(n_embd, head_size, bias=False)
-        self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
-        self.dropout = nn.Dropout(dropout)
+    <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> head_size<span class="o">)</span><span class="o">:</span>
+        <span class="b">super</span><span class="o">(</span><span class="o">)</span><span class="o">.</span><span class="f">__init__</span><span class="o">(</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>key <span class="o">=</span> nn<span class="o">.</span>Linear<span class="o">(</span>n_embd<span class="o">,</span> head_size<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>query <span class="o">=</span> nn<span class="o">.</span>Linear<span class="o">(</span>n_embd<span class="o">,</span> head_size<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>value <span class="o">=</span> nn<span class="o">.</span>Linear<span class="o">(</span>n_embd<span class="o">,</span> head_size<span class="o">,</span> bias<span class="o">=</span><span class="k">False</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>register_buffer<span class="o">(</span><span class="s">'</span><span class="s">tril</span><span class="s">'</span><span class="o">,</span> torch<span class="o">.</span>tril<span class="o">(</span>torch<span class="o">.</span>ones<span class="o">(</span>block_size<span class="o">,</span> block_size<span class="o">)</span><span class="o">)</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>dropout <span class="o">=</span> nn<span class="o">.</span>Dropout<span class="o">(</span>dropout<span class="o">)</span>
 
-    def forward(self, x):
-        B,T,C = x.shape
-        k = self.key(x) # (B,T,C)
-        q = self.query(x) # (B,T,C)
+    <span class="k">def</span> <span class="f">forward</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+        B<span class="o">,</span>T<span class="o">,</span>C <span class="o">=</span> x<span class="o">.</span>shape
+        k <span class="o">=</span> <span class="b">self</span><span class="o">.</span>key<span class="o">(</span>x<span class="o">)</span> <span class="c"># (B,T,C)</span>
+        q <span class="o">=</span> <span class="b">self</span><span class="o">.</span>query<span class="o">(</span>x<span class="o">)</span> <span class="c"># (B,T,C)</span>
 
-        # compute attention scores ("affinities")
-        wei = q @ k.transpose(-2,-1) * C**-0.5 # (B,T,C) @ (B,C,T) = (B,T,T)
-        wei = wei.masked_fill(self.tril[:T, :T] ==0, float('-inf')) # (B, T, T)
-        wei = F.softmax(wei, dim=-1) # (B, T, T)
-        wei = self.dropout(wei)
+        <span class="c"># compute attention scores ("affinities")</span>
+        wei <span class="o">=</span> q <span class="o">@</span> k<span class="o">.</span>transpose<span class="o">(</span><span class="o">-</span><span class="m">2</span><span class="o">,</span><span class="o">-</span><span class="m">1</span><span class="o">)</span> <span class="o">*</span> C<span class="o">*</span><span class="o">*</span><span class="o">-</span><span class="m">0.5</span> <span class="c"># (B,T,C) @ (B,C,T) = (B,T,T)</span>
+        wei <span class="o">=</span> wei<span class="o">.</span>masked_fill<span class="o">(</span><span class="b">self</span><span class="o">.</span>tril<span class="o">[</span><span class="o">:</span>T<span class="o">,</span> <span class="o">:</span>T<span class="o">]</span> <span class="o">==</span><span class="m">0</span><span class="o">,</span> <span class="b">float</span><span class="o">(</span><span class="s">'</span><span class="s">-inf</span><span class="s">'</span><span class="o">)</span><span class="o">)</span> <span class="c"># (B, T, T)</span>
+        wei <span class="o">=</span> F<span class="o">.</span>softmax<span class="o">(</span>wei<span class="o">,</span> dim<span class="o">=</span><span class="o">-</span><span class="m">1</span><span class="o">)</span> <span class="c"># (B, T, T)</span>
+        wei <span class="o">=</span> <span class="b">self</span><span class="o">.</span>dropout<span class="o">(</span>wei<span class="o">)</span>
 
-        # perform the weighted aggregation of the values
-        v = self.value(x) # (B, T, C)
-        out = wei @ v # (B, T, T) @ (B, T, C) -> (B, T, C)
-        return out
+        <span class="c"># perform the weighted aggregation of the values</span>
+        v <span class="o">=</span> <span class="b">self</span><span class="o">.</span>value<span class="o">(</span>x<span class="o">)</span> <span class="c"># (B, T, C)</span>
+        out <span class="o">=</span> wei <span class="o">@</span> v <span class="c"># (B, T, T) @ (B, T, C) -&gt; (B, T, C)</span>
+        <span class="k">return</span> out
 
-class MultiHeadAttention(nn.Module):
-    """multiple heads of self-attention in paralell"""
-    def __init__(self, num_heads, head_size):
-        super().__init__()
-        self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
-        self.proj = nn.Linear(n_embd, n_embd)
-        self.dropout = nn.Dropout(dropout)
+<span class="k">class</span> <span class="f">MultiHeadAttention</span><span class="o">(</span>nn<span class="o">.</span>Module<span class="o">)</span><span class="o">:</span>
+    <span class="s">"""multiple heads of self-attention in paralell"""</span>
+    <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> num_heads<span class="o">,</span> head_size<span class="o">)</span><span class="o">:</span>
+        <span class="b">super</span><span class="o">(</span><span class="o">)</span><span class="o">.</span><span class="f">__init__</span><span class="o">(</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>heads <span class="o">=</span> nn<span class="o">.</span>ModuleList<span class="o">(</span><span class="o">[</span>Head<span class="o">(</span>head_size<span class="o">)</span> <span class="k">for</span> _ <span class="o">in</span> <span class="b">range</span><span class="o">(</span>num_heads<span class="o">)</span><span class="o">]</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>proj <span class="o">=</span> nn<span class="o">.</span>Linear<span class="o">(</span>n_embd<span class="o">,</span> n_embd<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>dropout <span class="o">=</span> nn<span class="o">.</span>Dropout<span class="o">(</span>dropout<span class="o">)</span>
 
-    def forward(self, x):
-        out = torch.cat([head(x) for head in self.heads], dim=-1)
-        out = self.dropout(self.proj(out))
-        return out</code></pre>
+    <span class="k">def</span> <span class="f">forward</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+        out <span class="o">=</span> torch<span class="o">.</span>cat<span class="o">(</span><span class="o">[</span>head<span class="o">(</span>x<span class="o">)</span> <span class="k">for</span> head <span class="o">in</span> <span class="b">self</span><span class="o">.</span>heads<span class="o">]</span><span class="o">,</span> dim<span class="o">=</span><span class="o">-</span><span class="m">1</span><span class="o">)</span>
+        out <span class="o">=</span> <span class="b">self</span><span class="o">.</span>dropout<span class="o">(</span><span class="b">self</span><span class="o">.</span>proj<span class="o">(</span>out<span class="o">)</span><span class="o">)</span>
+        <span class="k">return</span> out</code></pre>
       <p>Here is the code for the repeating block.</p>
-      <pre><code>class FeedForward(nn.Module):
-    """a simple layer followed by a non-linearity"""
-    def __init__(self, n_embd):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(n_embd, 4*n_embd),
-            nn.ReLU(),
-            nn.Linear(4*n_embd, n_embd),
-            nn.Dropout(dropout)
-        )
+      <pre><code class="py"><span class="k">class</span> <span class="f">FeedForward</span><span class="o">(</span>nn<span class="o">.</span>Module<span class="o">)</span><span class="o">:</span>
+    <span class="s">"""a simple layer followed by a non-linearity"""</span>
+    <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> n_embd<span class="o">)</span><span class="o">:</span>
+        <span class="b">super</span><span class="o">(</span><span class="o">)</span><span class="o">.</span><span class="f">__init__</span><span class="o">(</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>net <span class="o">=</span> nn<span class="o">.</span>Sequential<span class="o">(</span>
+            nn<span class="o">.</span>Linear<span class="o">(</span>n_embd<span class="o">,</span> <span class="m">4</span><span class="o">*</span>n_embd<span class="o">)</span><span class="o">,</span>
+            nn<span class="o">.</span>ReLU<span class="o">(</span><span class="o">)</span><span class="o">,</span>
+            nn<span class="o">.</span>Linear<span class="o">(</span><span class="m">4</span><span class="o">*</span>n_embd<span class="o">,</span> n_embd<span class="o">)</span><span class="o">,</span>
+            nn<span class="o">.</span>Dropout<span class="o">(</span>dropout<span class="o">)</span>
+        <span class="o">)</span>
 
-    def forward(self, x):
-        return self.net(x)
+    <span class="k">def</span> <span class="f">forward</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+        <span class="k">return</span> <span class="b">self</span><span class="o">.</span>net<span class="o">(</span>x<span class="o">)</span>
 
-class Block(nn.Module):
-    """Transformer block: communication followed by computation"""
-    def __init__(self, n_embd, n_head):
-        super().__init__()
-        head_size = n_embd // n_head
-        self.sa_heads = MultiHeadAttention(n_head, head_size)
-        self.ffwd = FeedForward(n_embd)
-        self.ln1 = nn.LayerNorm(n_embd)
-        self.ln2 = nn.LayerNorm(n_embd)
+<span class="k">class</span> <span class="f">Block</span><span class="o">(</span>nn<span class="o">.</span>Module<span class="o">)</span><span class="o">:</span>
+    <span class="s">"""Transformer block: communication followed by computation"""</span>
+    <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> n_embd<span class="o">,</span> n_head<span class="o">)</span><span class="o">:</span>
+        <span class="b">super</span><span class="o">(</span><span class="o">)</span><span class="o">.</span><span class="f">__init__</span><span class="o">(</span><span class="o">)</span>
+        head_size <span class="o">=</span> n_embd <span class="o">/</span><span class="o">/</span> n_head
+        <span class="b">self</span><span class="o">.</span>sa_heads <span class="o">=</span> MultiHeadAttention<span class="o">(</span>n_head<span class="o">,</span> head_size<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>ffwd <span class="o">=</span> FeedForward<span class="o">(</span>n_embd<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>ln1 <span class="o">=</span> nn<span class="o">.</span>LayerNorm<span class="o">(</span>n_embd<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>ln2 <span class="o">=</span> nn<span class="o">.</span>LayerNorm<span class="o">(</span>n_embd<span class="o">)</span>
 
-    def forward(self, x):
-        x = x + self.sa_heads(self.ln1(x))
-        x = x + self.ffwd(self.ln2(x))
-        return x</code></pre>
+    <span class="k">def</span> <span class="f">forward</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> x<span class="o">)</span><span class="o">:</span>
+        x <span class="o">=</span> x <span class="o">+</span> <span class="b">self</span><span class="o">.</span>sa_heads<span class="o">(</span><span class="b">self</span><span class="o">.</span>ln1<span class="o">(</span>x<span class="o">)</span><span class="o">)</span>
+        x <span class="o">=</span> x <span class="o">+</span> <span class="b">self</span><span class="o">.</span>ffwd<span class="o">(</span><span class="b">self</span><span class="o">.</span>ln2<span class="o">(</span>x<span class="o">)</span><span class="o">)</span>
+        <span class="k">return</span> x</code></pre>
       <p>Here is the code for the transformer decoder.</p>
-      <pre><code>class Model(nn.Module):
-    def __init__(self, ):
-        super().__init__()
-        self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
-        self.position_embedding_table = nn.Embedding(block_size, n_embd)
-        self.blocks = nn.Sequential(*[Block(n_embd, n_head) for _ in range(n_layer)])
-        self.ln = nn.LayerNorm(n_embd)
-        self.lm_head = nn.Linear(n_embd, vocab_size)
+      <pre><code class="py"><span class="k">class</span> <span class="f">Model</span><span class="o">(</span>nn<span class="o">.</span>Module<span class="o">)</span><span class="o">:</span>
+    <span class="k">def</span> <span class="f">__init__</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> <span class="o">)</span><span class="o">:</span>
+        <span class="b">super</span><span class="o">(</span><span class="o">)</span><span class="o">.</span><span class="f">__init__</span><span class="o">(</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>token_embedding_table <span class="o">=</span> nn<span class="o">.</span>Embedding<span class="o">(</span>vocab_size<span class="o">,</span> n_embd<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>position_embedding_table <span class="o">=</span> nn<span class="o">.</span>Embedding<span class="o">(</span>block_size<span class="o">,</span> n_embd<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>blocks <span class="o">=</span> nn<span class="o">.</span>Sequential<span class="o">(</span><span class="o">*</span><span class="o">[</span>Block<span class="o">(</span>n_embd<span class="o">,</span> n_head<span class="o">)</span> <span class="k">for</span> _ <span class="o">in</span> <span class="b">range</span><span class="o">(</span>n_layer<span class="o">)</span><span class="o">]</span><span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>ln <span class="o">=</span> nn<span class="o">.</span>LayerNorm<span class="o">(</span>n_embd<span class="o">)</span>
+        <span class="b">self</span><span class="o">.</span>lm_head <span class="o">=</span> nn<span class="o">.</span>Linear<span class="o">(</span>n_embd<span class="o">,</span> vocab_size<span class="o">)</span>
 
 
-    def forward(self, idx, targets=None):
-        B, T = idx.shape
+    <span class="k">def</span> <span class="f">forward</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> idx<span class="o">,</span> targets<span class="o">=</span><span class="k">None</span><span class="o">)</span><span class="o">:</span>
+        B<span class="o">,</span> T <span class="o">=</span> idx<span class="o">.</span>shape
 
-        # idx and targets are both (B,T) tensor of integers
-        tok_emb = self.token_embedding_table(idx) # (B, T, C)
-        pos_emb = self.position_embedding_table(torch.arange(T, device=device)) # (T, C)
-        x = tok_emb + pos_emb # (B, T, C)
-        x = self.blocks(x) # (B, T, C)
-        x = self.ln(x) # (B, T, C)
-        logits = self.lm_head(x) # (B, T, vocab_size)
+        <span class="c"># idx and targets are both (B,T) tensor of integers</span>
+        tok_emb <span class="o">=</span> <span class="b">self</span><span class="o">.</span>token_embedding_table<span class="o">(</span>idx<span class="o">)</span> <span class="c"># (B, T, C)</span>
+        pos_emb <span class="o">=</span> <span class="b">self</span><span class="o">.</span>position_embedding_table<span class="o">(</span>torch<span class="o">.</span>arange<span class="o">(</span>T<span class="o">,</span> device<span class="o">=</span>device<span class="o">)</span><span class="o">)</span> <span class="c"># (T, C)</span>
+        x <span class="o">=</span> tok_emb <span class="o">+</span> pos_emb <span class="c"># (B, T, C)</span>
+        x <span class="o">=</span> <span class="b">self</span><span class="o">.</span>blocks<span class="o">(</span>x<span class="o">)</span> <span class="c"># (B, T, C)</span>
+        x <span class="o">=</span> <span class="b">self</span><span class="o">.</span>ln<span class="o">(</span>x<span class="o">)</span> <span class="c"># (B, T, C)</span>
+        logits <span class="o">=</span> <span class="b">self</span><span class="o">.</span>lm_head<span class="o">(</span>x<span class="o">)</span> <span class="c"># (B, T, vocab_size)</span>
 
-        if targets is None:
-            loss = None
-        else:
-            B, T, C = logits.shape
-            logits = logits.view(B*T, C)
-            targets = targets.view(B*T)
-            loss = F.cross_entropy(logits, targets)
-        return logits, loss
+        <span class="k">if</span> targets <span class="o">is</span> <span class="k">None</span><span class="o">:</span>
+            loss <span class="o">=</span> <span class="k">None</span>
+        <span class="k">else</span><span class="o">:</span>
+            B<span class="o">,</span> T<span class="o">,</span> C <span class="o">=</span> logits<span class="o">.</span>shape
+            logits <span class="o">=</span> logits<span class="o">.</span>view<span class="o">(</span>B<span class="o">*</span>T<span class="o">,</span> C<span class="o">)</span>
+            targets <span class="o">=</span> targets<span class="o">.</span>view<span class="o">(</span>B<span class="o">*</span>T<span class="o">)</span>
+            loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> targets<span class="o">)</span>
+        <span class="k">return</span> logits<span class="o">,</span> loss
 
-    def generate(self, idx=None, max_new_tokens=1):
-        # idx is (B, T) array of indices in the current context
-        for _ in range(max_new_tokens):
-            B, T = idx.shape
-            # crop idx to last block_size tokens
-            idx_cond = idx[:, -block_size:] # (B, T)
-            # get the predictions
-            logits, _loss = self(idx_cond)
-            # focus only on the last time step
-            logits = logits[:, -1, :] # becomes (B, C)
-            # apply softmax to get probabilities
-            probs = F.softmax(logits, dim=-1) # (B, C)
-            # sample from the distribution
-            idx_next = torch.multinomial(probs, num_samples=1) # (B, 1)
-            # append sampled index to the running sequence
-            idx = torch.cat((idx, idx_next), dim=1) # (B, T+1)
-        return idx</code></pre>
+    <span class="k">def</span> <span class="f">generate</span><span class="o">(</span><span class="b">self</span><span class="o">,</span> idx<span class="o">=</span><span class="k">None</span><span class="o">,</span> max_new_tokens<span class="o">=</span><span class="m">1</span><span class="o">)</span><span class="o">:</span>
+        <span class="c"># idx is (B, T) array of indices in the current context</span>
+        <span class="k">for</span> _ <span class="o">in</span> <span class="b">range</span><span class="o">(</span>max_new_tokens<span class="o">)</span><span class="o">:</span>
+            B<span class="o">,</span> T <span class="o">=</span> idx<span class="o">.</span>shape
+            <span class="c"># crop idx to last block_size tokens</span>
+            idx_cond <span class="o">=</span> idx<span class="o">[</span><span class="o">:</span><span class="o">,</span> <span class="o">-</span>block_size<span class="o">:</span><span class="o">]</span> <span class="c"># (B, T)</span>
+            <span class="c"># get the predictions</span>
+            logits<span class="o">,</span> _loss <span class="o">=</span> <span class="b">self</span><span class="o">(</span>idx_cond<span class="o">)</span>
+            <span class="c"># focus only on the last time step</span>
+            logits <span class="o">=</span> logits<span class="o">[</span><span class="o">:</span><span class="o">,</span> <span class="o">-</span><span class="m">1</span><span class="o">,</span> <span class="o">:</span><span class="o">]</span> <span class="c"># becomes (B, C)</span>
+            <span class="c"># apply softmax to get probabilities</span>
+            probs <span class="o">=</span> F<span class="o">.</span>softmax<span class="o">(</span>logits<span class="o">,</span> dim<span class="o">=</span><span class="o">-</span><span class="m">1</span><span class="o">)</span> <span class="c"># (B, C)</span>
+            <span class="c"># sample from the distribution</span>
+            idx_next <span class="o">=</span> torch<span class="o">.</span>multinomial<span class="o">(</span>probs<span class="o">,</span> num_samples<span class="o">=</span><span class="m">1</span><span class="o">)</span> <span class="c"># (B, 1)</span>
+            <span class="c"># append sampled index to the running sequence</span>
+            idx <span class="o">=</span> torch<span class="o">.</span>cat<span class="o">(</span><span class="o">(</span>idx<span class="o">,</span> idx_next<span class="o">)</span><span class="o">,</span> dim<span class="o">=</span><span class="m">1</span><span class="o">)</span> <span class="c"># (B, T+1)</span>
+        <span class="k">return</span> idx</code></pre>
       <p>Here is the training loop</p>
-      <pre><code>model = Model()
-m = model.to(device)
+      <pre><code class="py">model <span class="o">=</span> Model<span class="o">(</span><span class="o">)</span>
+m <span class="o">=</span> model<span class="o">.</span>to<span class="o">(</span>device<span class="o">)</span>
 
-# create a pytorch optimizer
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+<span class="c"># create a pytorch optimizer</span>
+optimizer <span class="o">=</span> torch<span class="o">.</span>optim<span class="o">.</span>AdamW<span class="o">(</span>model<span class="o">.</span>parameters<span class="o">(</span><span class="o">)</span><span class="o">,</span> lr<span class="o">=</span>learning_rate<span class="o">)</span>
 
-start = time.time()
-for iter in range(max_iters):
-    # sample a batch of data
-    xb, yb = get_batch('train')
+start <span class="o">=</span> time<span class="o">.</span>time<span class="o">(</span><span class="o">)</span>
+<span class="k">for</span> <span class="b">iter</span> <span class="o">in</span> <span class="b">range</span><span class="o">(</span>max_iters<span class="o">)</span><span class="o">:</span>
+    <span class="c"># sample a batch of data</span>
+    xb<span class="o">,</span> yb <span class="o">=</span> get_batch<span class="o">(</span><span class="s">'</span><span class="s">train</span><span class="s">'</span><span class="o">)</span>
 
-    # evaluate the loss
-    logits, loss = model(xb, yb)
-    optimizer.zero_grad(set_to_none=True)
-    loss.backward()
-    optimizer.step()
+    <span class="c"># evaluate the loss</span>
+    logits<span class="o">,</span> loss <span class="o">=</span> model<span class="o">(</span>xb<span class="o">,</span> yb<span class="o">)</span>
+    optimizer<span class="o">.</span>zero_grad<span class="o">(</span>set_to_none<span class="o">=</span><span class="k">True</span><span class="o">)</span>
+    loss<span class="o">.</span>backward<span class="o">(</span><span class="o">)</span>
+    optimizer<span class="o">.</span>step<span class="o">(</span><span class="o">)</span>
 
-    # every once in a while evaluate the loss on trai/val
-    if iter % eval_interval == 0:
-        losses = estimate_loss()
-        print(f"step {iter}/{max_iters}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
+    <span class="c"># every once in a while evaluate the loss on trai/val</span>
+    <span class="k">if</span> <span class="b">iter</span> <span class="o">%</span> eval_interval <span class="o">==</span> <span class="m">0</span><span class="o">:</span>
+        losses <span class="o">=</span> estimate_loss<span class="o">(</span><span class="o">)</span>
+        <span class="b">print</span><span class="o">(</span><span class="s">f</span><span class="s">"</span><span class="s">step </span><span class="s">{</span><span class="b">iter</span><span class="s">}</span><span class="s">/</span><span class="s">{</span>max_iters<span class="s">}</span><span class="s">: train loss </span><span class="s">{</span>losses<span class="o">[</span><span class="s">'</span><span class="s">train</span><span class="s">'</span><span class="o">]</span><span class="s">:</span><span class="s">.4f</span><span class="s">}</span><span class="s">, val loss </span><span class="s">{</span>losses<span class="o">[</span><span class="s">'</span><span class="s">val</span><span class="s">'</span><span class="o">]</span><span class="s">:</span><span class="s">.4f</span><span class="s">}</span><span class="s">"</span><span class="o">)</span>
 
-# print time elapsed
-end = time.time()
-print(f"total training time {humanize.naturaldelta(end - start)}")</code></pre>
+<span class="c"># print time elapsed</span>
+end <span class="o">=</span> time<span class="o">.</span>time<span class="o">(</span><span class="o">)</span>
+<span class="b">print</span><span class="o">(</span><span class="s">f</span><span class="s">"</span><span class="s">total training time </span><span class="s">{</span>humanize<span class="o">.</span>naturaldelta<span class="o">(</span>end <span class="o">-</span> start<span class="o">)</span><span class="s">}</span><span class="s">"</span><span class="o">)</span></code></pre>
       <p>And finally here is how to sample from it</p>
-      <pre><code>idx = torch.zeros((1, 1), dtype=torch.long)
-res = m.generate(idx, max_new_tokens=300)
-print(decode(res[0].tolist()))</code></pre>
+      <pre><code class="py">idx <span class="o">=</span> torch<span class="o">.</span>zeros<span class="o">(</span><span class="o">(</span><span class="m">1</span><span class="o">,</span> <span class="m">1</span><span class="o">)</span><span class="o">,</span> dtype<span class="o">=</span>torch<span class="o">.</span>long<span class="o">)</span>
+res <span class="o">=</span> m<span class="o">.</span>generate<span class="o">(</span>idx<span class="o">,</span> max_new_tokens<span class="o">=</span><span class="m">300</span><span class="o">)</span>
+<span class="b">print</span><span class="o">(</span>decode<span class="o">(</span>res<span class="o">[</span><span class="m">0</span><span class="o">]</span><span class="o">.</span>tolist<span class="o">(</span><span class="o">)</span><span class="o">)</span><span class="o">)</span></code></pre>
     </article>
     <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
   </main>
