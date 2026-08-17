@@ -33,15 +33,42 @@
       <p><strong>Build your first model (Hello Numerai)</strong></p>
       <p>This is the hello world for Numerai. I walk through the absolute basics of the Numerai dataset and how to train your first model using our example code based on LightGBM. Along the way, I demonstrate how to interact with our API to download the data, upload submissions, and explain how scoring works.</p>
       <p>One of the main challenges creating this notebook was deciding what to put in and what to leave out. How much information does a new user actually need to get started? I ended up glossing over a lot of things for the sake of streamlining the overall experience. But I think it strikes the right balance of getting new users a little taste of everything vs getting them to the “<a href="https://www.youtube.com/watch?v=URiIsrdplbo">magic moment</a>” ASAP.</p>
-      <p><a href="https://colab.research.google.com/github/numerai/example-scripts/blob/master/hello_numerai.ipynb">Google Colaboratory</a></p>
+      <a class="embed" href="https://colab.research.google.com/github/numerai/example-scripts/blob/47b2e938c5ee6845b2b11de07be581b272e5d67a/hello_numerai.ipynb">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8.5 9.5 6 12l2.5 2.5"/><path d="M13 15.5 15.5 9"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">Google Colab · notebook</span>
+          <span class="embed-title is-file">hello_numerai.ipynb</span>
+          <span class="embed-note">The hello world for Numerai — download the data, train a LightGBM model, submit, and see how scoring works.</span>
+          <span class="embed-meta"><span class="embed-pin">pinned 47b2e93</span>numerai/example-scripts · Sept 2023</span>
+        </span>
+      </a>
+      <p class="embed-alt">Still maintained upstream — <a href="https://colab.research.google.com/github/numerai/example-scripts/blob/master/numerai/hello_numerai.ipynb">current version</a></p>
       <p><strong>Learn about risk</strong> (<strong>Feature Neutralization)</strong></p>
       <p>One key thing not mentioned in Hello Numerai is how to actually improve the performance of your model beyond the example model provided. Now there is actually a ton of information in our <a href="https://forum.numer.ai/">forums</a> on this topic, but it is incredibly difficult to sift through all of it. My approach here was to pick one topic to go deep on, and use it as an example for how to run experiments in general.</p>
       <p>I ended up focusing this chapter on Feature Neutralization, a concept that is very much idiosyncratic to Numerai. The key idea is that because the stock market is non-stationary, exposure to features poses a risk which can hurt performance, and feature neutralization is a way to control this risk.</p>
-      <p><a href="https://colab.research.google.com/github/numerai/example-scripts/blob/master/feature_neutralization.ipynb">Google Colaboratory</a></p>
+      <a class="embed" href="https://colab.research.google.com/github/numerai/example-scripts/blob/47b2e938c5ee6845b2b11de07be581b272e5d67a/feature_neutralization.ipynb">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8.5 9.5 6 12l2.5 2.5"/><path d="M13 15.5 15.5 9"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">Google Colab · notebook</span>
+          <span class="embed-title is-file">feature_neutralization.ipynb</span>
+          <span class="embed-note">Going deeper on risk: why feature exposure hurts in a non-stationary market, and how to control it.</span>
+          <span class="embed-meta"><span class="embed-pin">pinned 47b2e93</span>numerai/example-scripts · Sept 2023</span>
+        </span>
+      </a>
+      <p class="embed-alt">Still maintained upstream — <a href="https://colab.research.google.com/github/numerai/example-scripts/blob/master/numerai/feature_neutralization.ipynb">current version</a></p>
       <p><strong>Create an ensemble</strong> (<strong>Target Ensemble)</strong></p>
       <p>For this final notebook, I wanted to pick a subject to explore that gave me an excuse to dive deeper into the dataset and build a more complex model. One key thing that</p>
       <p>I ended up picking the idea of building a ensemble model using multiple targets, since this was a concept that only a few advanced users knew about. The key thing that I explain here is that apart from the main “target” that models are scored against, we actually have many “auxiliary” targets in the dataset that can be used to build ensembles.</p>
-      <p><a href="https://colab.research.google.com/github/numerai/example-scripts/blob/master/target_ensemble.ipynb">Google Colaboratory</a></p>
+      <a class="embed" href="https://colab.research.google.com/github/numerai/example-scripts/blob/47b2e938c5ee6845b2b11de07be581b272e5d67a/target_ensemble.ipynb">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8.5 9.5 6 12l2.5 2.5"/><path d="M13 15.5 15.5 9"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">Google Colab · notebook</span>
+          <span class="embed-title is-file">target_ensemble.ipynb</span>
+          <span class="embed-note">Building an ensemble across the dataset's auxiliary targets, not just the one models are scored against.</span>
+          <span class="embed-meta"><span class="embed-pin">pinned 47b2e93</span>numerai/example-scripts · Sept 2023</span>
+        </span>
+      </a>
+      <p class="embed-alt">Still maintained upstream — <a href="https://colab.research.google.com/github/numerai/example-scripts/blob/master/numerai/target_ensemble.ipynb">current version</a></p>
       <h2>Bonus: Model Uploads</h2>
       <p>One related project worth mentioning here is Model Uploads, which is a new feature that my team developed in conjunction with these new notebooks.</p>
       <p>In order for users to compete in the tournament, they must setup and deploy their models into a production environment to generate predictions on live data every day. This is because the tournament needs to integrate with our daily trading pipieline.</p>
@@ -53,7 +80,15 @@
       <p>With Model Uploads, users can now deploy their model straight from a Jupyter notebook and manage their models with this simple management console UI on our website.</p>
       <figure><img src="/writing/img/numerai-tutorial-notebooks-05.png" alt="figure"></figure>
       <p>You can read more about Model Uploads in this medium post I wrote:</p>
-      <p><a href="https://medium.com/numerai/numerai-model-uploads-d27c6571f12e">Numerai Model Uploads</a></p>
+      <a class="embed embed-solo" href="https://medium.com/numerai/numerai-model-uploads-d27c6571f12e">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5.5"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">Medium · article</span>
+          <span class="embed-title">Numerai Model Uploads</span>
+          <span class="embed-note">Free model hosting that removes the production-deployment step from entering the tournament.</span>
+          <span class="embed-meta">medium.com/numerai · written by me</span>
+        </span>
+      </a>
       <p>It was only by getting all of this infrastructure complexity out of the way that we could make the new user onboarding experience streamlined and focused on the core data science problem, which is the more interesting and engaging part of Numerai.</p>
     </article>
 

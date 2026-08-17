@@ -189,7 +189,7 @@ h1.name {
 
 /* ---- generic links ---- */
 a { color: var(--accent); text-decoration: none; }
-a:not(.entry):not(.backlink) {
+a:not(.entry):not(.backlink):not(.embed) {
   border-bottom: 1px solid var(--accent-soft);
 }
 a:hover { border-bottom-color: var(--accent); }
@@ -270,6 +270,100 @@ pre code { background: none; padding: 0; font-size: inherit; }
 .py .b { color: var(--tok-builtin); }
 .py .d { color: var(--tok-func); font-style: italic; }
 .py .o { color: var(--tok-op); }
+
+/* ---- link cards (notebooks, external writing) ---- */
+.embed {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  border: 1px solid var(--faint);
+  border-radius: 8px;
+  padding: 0.9rem 1.05rem;
+  margin: 0 0 0.5rem;
+  color: inherit;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.embed:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+/* a card with no "current version" line beneath it carries its own spacing */
+.embed-solo { margin-bottom: 1.5rem; }
+
+.embed-icon {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-top: 0.18rem;
+  color: var(--accent);
+}
+
+.embed-body { min-width: 0; }
+
+.embed-kicker {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 0.28rem;
+}
+
+.embed-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+/* filenames read better in mono than in the body serif */
+.embed-title.is-file {
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+}
+.embed:hover .embed-title { color: var(--accent); }
+.embed-title::after {
+  content: " →";
+  opacity: 0;
+  display: inline-block;
+  transform: translateX(-3px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.embed:hover .embed-title::after { opacity: 1; transform: translateX(0); }
+
+.embed-note {
+  display: block;
+  font-size: 0.84rem;
+  color: var(--muted);
+  margin-top: 0.22rem;
+}
+
+.embed-meta {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+  overflow-wrap: anywhere;
+}
+.embed-pin {
+  color: var(--tok-builtin);
+  border: 1px solid var(--faint);
+  border-radius: 3px;
+  padding: 0.05em 0.4em;
+  margin-right: 0.45rem;
+  white-space: nowrap;
+}
+
+/* small "current version" line under a pinned card */
+.embed-alt {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin: 0 0 1.6rem;
+  padding-left: 0.15rem;
+}
 
 hr {
   border: none;
