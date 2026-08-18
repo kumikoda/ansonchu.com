@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hardware · The Accelerator Zoo</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+  :root{--bg:#0E1116;--panel:#151B23;--card:#1A212B;--raised:#202935;--ink:#E7EBF1;--muted:#8C97A6;--faint:#5C6675;--value:#E8A04C;--value-dim:#5a4326;--signal:#5BA8FF;--signal-dim:#22364f;--optima:#B492FF;--optima-dim:#33285a;--good:#5BD6A6;--good-dim:#1f4538;--rose:#F2789B;--rose-dim:#54283a;--rule:#28313D;--rule-soft:#1E2630}
+  *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.62;font-optical-sizing:auto;background-image:radial-gradient(circle at 10% -5%,rgba(232,160,76,.08),transparent 40%),radial-gradient(circle at 95% 6%,rgba(91,168,255,.05),transparent 44%);background-attachment:fixed}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px 90px}
+  header{padding:38px 0 8px}
+  .eyebrow{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--value);display:flex;align-items:center;gap:10px}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--value);box-shadow:0 0 10px var(--value)}
+  .lesson-badge{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);border:1px solid var(--rule);border-radius:6px;padding:3px 8px;margin-left:auto;letter-spacing:.05em}
+  h1{font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:-.02em;font-size:clamp(27px,6vw,42px);line-height:1.05;margin:.4em 0 .25em}
+  .standfirst{color:var(--muted);font-size:18px;max-width:64ch;margin:0 0 6px}.standfirst em{color:var(--ink);font-style:italic}
+  section{padding:30px 0;border-top:1px solid var(--rule-soft)}
+  .sec-label{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .sec-label .n{color:var(--value);font-family:"JetBrains Mono",monospace}
+  h2{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:clamp(22px,5vw,28px);letter-spacing:-.01em;margin:.1em 0 .5em}
+  h3{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:17px;margin:1.4em 0 .3em}
+  p{margin:.7em 0}strong{color:#fff;font-weight:600}
+  code{font-family:"JetBrains Mono",monospace;font-size:.84em;background:var(--raised);padding:1px 6px;border-radius:5px;color:#cdd6e2}
+  .note{border-left:3px solid var(--value);background:linear-gradient(90deg,rgba(232,160,76,.08),transparent 80%);padding:12px 16px;margin:18px 0;border-radius:0 10px 10px 0;font-size:16px}
+  .note.sig{border-color:var(--signal);background:linear-gradient(90deg,rgba(91,168,255,.08),transparent 80%)}
+  .note.opt{border-color:var(--optima);background:linear-gradient(90deg,rgba(180,146,255,.08),transparent 80%)}
+  .note.good{border-color:var(--good);background:linear-gradient(90deg,rgba(91,214,166,.08),transparent 80%)}
+  .note.rose{border-color:var(--rose);background:linear-gradient(90deg,rgba(242,120,155,.08),transparent 80%)}
+  .note .k{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--value);display:block;margin-bottom:2px}
+  .note.sig .k{color:var(--signal)}.note.opt .k{color:var(--optima)}.note.good .k{color:var(--good)}.note.rose .k{color:var(--rose)}
+  figure{margin:24px 0;background:var(--panel);border:1px solid var(--rule);border-radius:16px;padding:20px 16px 12px;text-align:center}
+  figure svg{max-width:100%;height:auto;display:block;margin:0 auto}
+  figcaption{font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--muted);margin-top:12px;letter-spacing:.01em}figcaption b{color:var(--ink)}
+  .tbl{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px;border-radius:12px;overflow:hidden;border:1px solid var(--rule)}
+  .tbl th,.tbl td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+  .tbl thead th{font-family:"Space Grotesk",sans-serif;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);background:var(--card)}
+  .tbl tbody tr:last-child td{border-bottom:none}.tbl td:first-child{font-family:"Space Grotesk",sans-serif;font-weight:600;color:var(--ink)}
+  .quizwrap{background:linear-gradient(180deg,rgba(232,160,76,.05),transparent);border:1px solid var(--rule);border-radius:18px;padding:6px 18px 20px;margin:18px 0}
+  .scorebar{position:sticky;top:8px;background:var(--card);padding:11px 15px;display:flex;align-items:center;gap:13px;z-index:5;border:1px solid var(--rule);border-radius:13px;margin:4px 0 16px;box-shadow:0 6px 18px -10px rgba(0,0,0,.6)}
+  .scorebar .lbl{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+  .scorebar .score{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;color:var(--value);margin-left:auto}
+  .track{flex:1;height:8px;background:rgba(255,255,255,.055);border-radius:5px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}.track .fill{height:100%;width:0;background:var(--good);border-radius:5px;box-shadow:0 0 8px rgba(91,214,166,.5);transition:width .45s cubic-bezier(.4,0,.2,1)}
+  .quiz{padding:16px 0;border-bottom:1px solid var(--rule-soft)}.quiz:last-child{border-bottom:none}
+  .quiz .qtext{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:16.5px;color:var(--ink);margin:0 0 12px;display:flex;gap:9px}
+  .quiz .qtext .qn{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--value);flex:0 0 auto}
+  .opt{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--rule);border-radius:11px;padding:12px 14px;margin:8px 0;color:var(--ink);font-family:"Newsreader",serif;font-size:15.5px;cursor:pointer;transition:border-color .15s,background .15s;position:relative}
+  .opt:hover:not(.done){border-color:var(--value);background:var(--raised)}
+  .opt .mk{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;opacity:0}
+  .opt.done{cursor:default}.opt.correct{border-color:var(--good);background:rgba(91,214,166,.10)}.opt.correct .mk{opacity:1;color:var(--good)}.opt.correct .mk::after{content:"✓"}
+  .opt.wrong{border-color:var(--rose);background:rgba(242,120,155,.10)}.opt.wrong .mk{opacity:1;color:var(--rose)}.opt.wrong .mk::after{content:"✕"}
+  .opt.done:not(.correct):not(.wrong){opacity:.5}
+  .explain{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s ease,opacity .35s ease,margin .35s ease;font-size:15px;color:var(--muted)}
+  .explain.show{max-height:440px;opacity:1;padding:11px 14px;margin-top:10px;background:rgba(91,214,166,.05);border-left:3px solid var(--good);border-radius:0 10px 10px 0}
+  .explain.show.miss{border-color:var(--rose);background:rgba(242,120,155,.05)}.explain b{color:var(--ink)}
+  .takeaway{margin:30px 0 0;padding:22px;border:1px solid var(--value-dim);border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(232,160,76,.10),transparent 60%)}
+  .takeaway .k{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--value)}.takeaway p{font-size:19px;margin:.3em 0 0;font-style:italic}
+  footer{margin-top:46px;padding-top:24px;border-top:1px solid var(--rule);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .next{font-family:"Space Grotesk",sans-serif;font-weight:600}.next small{display:block;color:var(--faint);font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase}.next a{color:var(--ink);text-decoration:none;border-bottom:2px solid var(--value)}
+  .stamp{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--faint)}
+  .blink{animation:blink 2.6s ease-in-out infinite}@keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.blink{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><span class="dot"></span> Hardware · the landscape <span class="lesson-badge">ACCELERATOR ZOO</span></div>
+    <h1>Beyond the GPU</h1>
+    <p class="standfirst">A GPU is a <em>general</em> parallel processor that happens to be great at ML — graphics heritage and all. Once you accept the memory wall from the last lesson, you can design silicon that attacks it head-on. Each alternative — TPU, LPU, wafer-scale — is a different answer to <em>“where is the bottleneck, and how do we delete it?”</em></p>
+  </header>
+
+  <!-- HERO: four architectural bets -->
+  <figure>
+    <svg viewBox="0 0 500 200" role="img" aria-label="Four architectural approaches to AI acceleration">
+      <g font-family="Space Grotesk" font-size="11" text-anchor="middle">
+        <rect x="16" y="30" width="110" height="140" rx="12" fill="#1A212B" stroke="#5BD6A6" stroke-width="1.4"/>
+        <text x="71" y="52" fill="#9fe6c8" font-weight="600">GPU</text>
+        <text x="71" y="72" font-size="20">▦▦</text>
+        <text x="71" y="100" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">general,</text>
+        <text x="71" y="114" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">flexible,</text>
+        <text x="71" y="128" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">HBM-fed</text>
+        <text x="71" y="158" font-family="JetBrains Mono" font-size="8" fill="#5BD6A6">the default</text>
+        <rect x="134" y="30" width="110" height="140" rx="12" fill="#1A212B" stroke="#5BA8FF" stroke-width="1.4"/>
+        <text x="189" y="52" fill="#9cc6ff" font-weight="600">TPU</text>
+        <text x="189" y="74" font-size="16">⊞</text>
+        <text x="189" y="100" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">systolic array:</text>
+        <text x="189" y="114" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">data flows through</text>
+        <text x="189" y="128" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">a grid of MACs</text>
+        <text x="189" y="158" font-family="JetBrains Mono" font-size="8" fill="#5BA8FF">matmul-native</text>
+        <rect x="252" y="30" width="110" height="140" rx="12" fill="#1A212B" stroke="#E8A04C" stroke-width="1.4"/>
+        <text x="307" y="52" fill="#E8A04C" font-weight="600">LPU (Groq)</text>
+        <text x="307" y="74" font-size="16">▬▬</text>
+        <text x="307" y="100" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">SRAM-only,</text>
+        <text x="307" y="114" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">deterministic</text>
+        <text x="307" y="128" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">pipeline</text>
+        <text x="307" y="158" font-family="JetBrains Mono" font-size="8" fill="#E8A04C">low-latency infer</text>
+        <rect x="370" y="30" width="114" height="140" rx="12" fill="#1A212B" stroke="#B492FF" stroke-width="1.4"/>
+        <text x="427" y="52" fill="#c9b3ff" font-weight="600">Cerebras</text>
+        <text x="427" y="74" font-size="18">⬛</text>
+        <text x="427" y="100" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">one whole</text>
+        <text x="427" y="114" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">wafer = one</text>
+        <text x="427" y="128" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">giant chip</text>
+        <text x="427" y="158" font-family="JetBrains Mono" font-size="8" fill="#B492FF">no inter-chip net</text>
+      </g>
+    </svg>
+    <figcaption><b>Four bets on the same problem.</b> The GPU stays general. The TPU bakes the matmul into a systolic array. The LPU rips out HBM and dynamic scheduling for deterministic SRAM speed. Cerebras refuses to cut the wafer into chips at all, deleting the inter-chip network. Each gives up generality to beat a specific bottleneck.</figcaption>
+  </figure>
+
+  <!-- WHY ALTERNATIVES -->
+  <section>
+    <div class="sec-label"><span class="n">01</span> The premise</div>
+    <h2>Specialize to beat the memory wall</h2>
+    <p>NVIDIA still holds roughly <strong>80% of the market</strong>, and the reason challengers exist anyway is the last lesson: if the bottleneck is data movement, a chip that fixes <em>your specific</em> movement problem can crush a general GPU on that workload. The catch is always the same — you give up flexibility and the CUDA ecosystem. So alternatives win in <strong>niches</strong>, and most fiercely in <strong>inference</strong>, where the CUDA moat is thinnest and latency or cost-per-token is everything.</p>
+  </section>
+
+  <!-- THE PLAYERS -->
+  <section>
+    <div class="sec-label"><span class="n">02</span> The architectures</div>
+    <h2>Three real departures</h2>
+    <h3>TPU — the systolic array (Google)</h3>
+    <p>Google’s tensor processing unit hard-wires matrix multiply into a <strong>systolic array</strong>: a grid of multiply-accumulate cells through which data rhythmically flows, so each value loaded gets reused across the whole row/column before leaving — maximizing arithmetic intensity by design. It’s the most <em>mature</em> non-GPU silicon (Google’s been at it since 2015), the latest generation (Ironwood) is described as roughly Blackwell-class, and it runs in 10,000+ chip clusters. The cost: it’s Google-Cloud-only, and it speaks XLA, not CUDA.</p>
+    <h3>LPU — determinism over flexibility (Groq)</h3>
+    <p>Groq’s Language Processing Unit makes a radical choice: <strong>no HBM at all</strong>, just a large pool of on-chip SRAM, and a fully <strong>deterministic</strong>, compiler-scheduled pipeline with no dynamic caches or schedulers. Because every operation’s timing is known at compile time, latency is ultra-predictable and very low — the headline is hundreds-to-800+ tokens/sec on a single stream. The price is brutal capacity limits (SRAM is small), so a model is spread across many chips, and it’s inference-only.</p>
+    <h3>Cerebras — wafer-scale (delete the network)</h3>
+    <p>Cerebras builds the chip at <strong>wafer scale</strong> — one dinner-plate of silicon with ~4 trillion transistors and ~900,000 cores, instead of dicing the wafer into hundreds of GPUs. The point is to <strong>eliminate inter-chip communication</strong>, the bottleneck from the last lesson: if the whole model fits on one wafer, there’s no slow network to cross, and on-wafer SRAM bandwidth is enormous. The constraint is equally radical — power, cooling, and the requirement that the workload fit the wafer’s shape.</p>
+    <table class="tbl">
+      <thead><tr><th>chip</th><th>the bet</th><th>sweet spot</th></tr></thead>
+      <tbody>
+        <tr><td>GPU (NVIDIA/AMD)</td><td>stay general, scale with HBM + NVLink</td><td>everything, esp. training</td></tr>
+        <tr><td>TPU</td><td>systolic array, matmul-native</td><td>large-scale training + inference (GCP)</td></tr>
+        <tr><td>LPU (Groq)</td><td>SRAM-only, deterministic</td><td>ultra-low-latency inference</td></tr>
+        <tr><td>Cerebras WSE</td><td>wafer-scale, no inter-chip net</td><td>single-wafer models, fast inference</td></tr>
+        <tr><td>Trainium / Maia / MTIA</td><td>hyperscaler in-house ASICs</td><td>cost control inside one cloud</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- THE REAL DYNAMIC -->
+  <section>
+    <div class="sec-label"><span class="n">03</span> The shape of the market</div>
+    <h2>Train on GPUs, infer on anything</h2>
+    <p>The pattern across all of it: <strong>NVIDIA dominates training</strong> (complex, custom-kernel-heavy, where CUDA is deepest), while the <strong>inference</strong> market is fragmenting fast — that’s where alternatives offer best-in-class cost or latency on specific transformer workloads. Even the hyperscalers play both sides: they buy NVIDIA <em>and</em> build their own ASICs (Google TPU, AWS Trainium, Microsoft Maia, Meta MTIA) to cut cost and reduce dependence. A common strategy is literally “train on NVIDIA, serve on whatever’s cheapest per token.”</p>
+    <div class="note good"><span class="k">Tie-back to your rack-scale work</span>
+      This is the decision underneath your hardware evaluations. The MI300X/MI325X vs B200 question, the serving-stack choice — they’re instances of <em>match the chip to where your workload sits on the roofline</em>. Memory-bound decode at scale rewards huge bandwidth and cheap tokens; training rewards FLOPs, interconnect, and the CUDA stack. There’s no “best chip,” only best-for-this-workload-at-this-scale-under-this-power-budget.</p>
+    </div>
+    <div class="note opt"><span class="k">Why this matters beyond procurement</span>
+      Hardware shapes models, not just budgets. FP8/FP4 support pushed low-precision training; HBM capacity sets how big a model fits per chip; the matmul-native bias of all this silicon is part of why the transformer won — it maps perfectly onto these arrays. The co-evolution runs both ways: we design models for the hardware we have, and design hardware for the models that won.</p>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section>
+    <div class="sec-label"><span class="n">04</span> Quiz · tap to answer</div>
+    <h2>Check yourself — live</h2>
+    <div class="quizwrap">
+      <div class="scorebar"><span class="lbl">Score</span><div class="track"><div class="fill" id="fill"></div></div><span class="score" id="score">0 / 0</span></div>
+      <div class="quiz" data-answer="1">
+        <p class="qtext"><span class="qn">Q1</span> What does a TPU's systolic array fundamentally optimize?</p>
+        <button class="opt">Graphics rendering<span class="mk"></span></button>
+        <button class="opt">Matmul reuse — data flows through a grid of MAC cells, reused across the array before leaving<span class="mk"></span></button>
+        <button class="opt">Random memory access<span class="mk"></span></button>
+        <button class="opt">CPU branch prediction<span class="mk"></span></button>
+        <div class="explain"><b>Matmul-native dataflow.</b> A systolic array is a grid of multiply-accumulate cells through which operands rhythmically flow, so each loaded value is reused across many cells before leaving — maximizing arithmetic intensity by construction. That's why TPUs are so efficient on the matmul-heavy transformer. Trade-off: Google-Cloud-only and XLA, not CUDA.</div>
+      </div>
+      <div class="quiz" data-answer="3">
+        <p class="qtext"><span class="qn">Q2</span> Groq's LPU drops HBM entirely for on-chip SRAM and a deterministic pipeline. What does that buy and cost?</p>
+        <button class="opt">More memory capacity, slower speed<span class="mk"></span></button>
+        <button class="opt">Better training, worse inference<span class="mk"></span></button>
+        <button class="opt">Nothing — it's the same as a GPU<span class="mk"></span></button>
+        <button class="opt">Ultra-low, predictable latency; but tiny capacity, so models spread across many chips, inference-only<span class="mk"></span></button>
+        <div class="explain"><b>Speed for capacity.</b> SRAM is far faster than HBM but far smaller, and a fully compiler-scheduled deterministic pipeline (no dynamic caches) makes latency predictable and very low — great for fast token streaming. The cost: a model won't fit on one chip, so it's sharded across many, and the design targets inference, not training.</div>
+      </div>
+      <div class="quiz" data-answer="0">
+        <p class="qtext"><span class="qn">Q3</span> What bottleneck is Cerebras's wafer-scale engine specifically deleting?</p>
+        <button class="opt">Inter-chip communication — keep the whole model on one wafer, so there's no slow network to cross<span class="mk"></span></button>
+        <button class="opt">The need for any memory<span class="mk"></span></button>
+        <button class="opt">The softmax operation<span class="mk"></span></button>
+        <button class="opt">Floating-point arithmetic<span class="mk"></span></button>
+        <div class="explain"><b>The network between chips.</b> From the last lesson, crossing between chips is an order of magnitude slower than on-chip. Cerebras refuses to dice the wafer into separate chips — one wafer, ~4T transistors, ~900K cores — so a model that fits has no inter-chip network to traverse, with enormous on-wafer SRAM bandwidth. The constraint: power, cooling, and fitting the wafer's shape.</div>
+      </div>
+      <div class="quiz" data-answer="2">
+        <p class="qtext"><span class="qn">Q4</span> Why does the alternative-accelerator market concentrate on inference, not training?</p>
+        <button class="opt">Training is illegal on non-NVIDIA chips<span class="mk"></span></button>
+        <button class="opt">Inference needs no chips<span class="mk"></span></button>
+        <button class="opt">The CUDA moat is thinnest for inference (simpler, standardized), and latency/cost-per-token is where specialized chips shine<span class="mk"></span></button>
+        <button class="opt">Training doesn't use GPUs<span class="mk"></span></button>
+        <div class="explain"><b>Where the moat is thinnest.</b> Training is custom-kernel-heavy and CUDA-deep — hard to leave. Inference is simpler and more standardized, so a chip optimized for latency or cost-per-token can win without reimplementing the whole CUDA stack. Hence "train on NVIDIA, serve on whatever's cheapest" — and why Groq, Cerebras, TPUs, and hyperscaler ASICs all attack inference first.</div>
+      </div>
+      <div class="quiz" data-answer="1">
+        <p class="qtext"><span class="qn">Q5</span> "There's no best chip." What's the actual decision rule?</p>
+        <button class="opt">Always buy the one with the most FLOPs<span class="mk"></span></button>
+        <button class="opt">Match the chip to where your workload sits on the roofline, at your scale and power budget<span class="mk"></span></button>
+        <button class="opt">Always buy NVIDIA<span class="mk"></span></button>
+        <button class="opt">Pick the cheapest sticker price<span class="mk"></span></button>
+        <div class="explain"><b>Workload-roofline fit.</b> Memory-bound decode at scale rewards bandwidth and cheap tokens; training rewards FLOPs, interconnect, and the CUDA stack; ultra-low-latency serving rewards deterministic SRAM chips. The right answer is best-for-this-workload-at-this-scale-under-this-power-and-software-constraint — exactly the lens behind your MI300X-vs-B200-vs-TPU evaluations.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="takeaway">
+    <span class="k">Takeaway</span>
+    <p>GPUs are general; every alternative trades flexibility to kill one bottleneck — TPUs bake in the matmul, Groq's LPU goes deterministic SRAM for latency, Cerebras deletes the inter-chip network with a whole wafer. NVIDIA owns training via CUDA; inference is the contested frontier. There's no best chip, only best-for-this-workload — and hardware and models co-evolve.</p>
+  </div>
+
+  <footer>
+    <a href="index.html" style='display:inline-flex;align-items:center;gap:7px;font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.03em;color:#E7EBF1;text-decoration:none;padding:8px 13px;border:1px solid #2E3947;border-radius:10px;background:#1A212B'>&#8617;&nbsp;Exploration map</a>
+    <div class="next"><small>Branch I launched</small><a href="#">Transformer ✓ · GPUs/CUDA ✓ · Accelerators ✓ — the hardware floor is in</a></div>
+    <span class="stamp blink">● 3 of 3</span>
+  </footer>
+</div>
+<script>
+(function(){var total=0,correct=0;var s=document.getElementById('score'),f=document.getElementById('fill');var qs=document.querySelectorAll('.quiz');qs.forEach(function(q){var a=parseInt(q.getAttribute('data-answer'),10);var o=q.querySelectorAll('.opt');var e=q.querySelector('.explain');var done=false;o.forEach(function(b,i){b.addEventListener('click',function(){if(done)return;done=true;total++;var g=(i===a);if(g)correct++;o.forEach(function(x,j){x.classList.add('done');if(j===a)x.classList.add('correct');});if(!g)b.classList.add('wrong');e.classList.add('show');if(!g)e.classList.add('miss');s.textContent=correct+' / '+total;f.style.width=(correct/qs.length*100)+'%';});});});})();
+</script>
+</body>
+</html>

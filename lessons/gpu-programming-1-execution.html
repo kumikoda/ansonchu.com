@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPU Programming I · The Execution Model</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+  :root{--bg:#0E1116;--panel:#151B23;--card:#1A212B;--raised:#202935;--ink:#E7EBF1;--muted:#8C97A6;--faint:#5C6675;--value:#E8A04C;--value-dim:#5a4326;--signal:#5BA8FF;--signal-dim:#22364f;--optima:#B492FF;--optima-dim:#33285a;--good:#5BD6A6;--good-dim:#1f4538;--rose:#F2789B;--rose-dim:#54283a;--rule:#28313D;--rule-soft:#1E2630}
+  *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.62;font-optical-sizing:auto;background-image:radial-gradient(circle at 10% -5%,rgba(91,168,255,.08),transparent 40%),radial-gradient(circle at 95% 6%,rgba(180,146,255,.05),transparent 44%);background-attachment:fixed}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px 90px}
+  header{padding:38px 0 8px}
+  .eyebrow{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--signal);display:flex;align-items:center;gap:10px}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--signal);box-shadow:0 0 10px var(--signal)}
+  .lesson-badge{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);border:1px solid var(--rule);border-radius:6px;padding:3px 8px;margin-left:auto;letter-spacing:.05em}
+  h1{font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:-.02em;font-size:clamp(26px,5.6vw,40px);line-height:1.05;margin:.4em 0 .25em}
+  .standfirst{color:var(--muted);font-size:18px;max-width:64ch;margin:0 0 6px}.standfirst em{color:var(--ink);font-style:italic}
+  section{padding:30px 0;border-top:1px solid var(--rule-soft)}
+  .sec-label{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .sec-label .n{color:var(--signal);font-family:"JetBrains Mono",monospace}
+  h2{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:clamp(22px,5vw,28px);letter-spacing:-.01em;margin:.1em 0 .5em}
+  h3{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:17.5px;margin:1.5em 0 .35em;color:#fff}
+  p{margin:.7em 0}strong{color:#fff;font-weight:600}
+  code{font-family:"JetBrains Mono",monospace;font-size:.84em;background:var(--raised);padding:1px 6px;border-radius:5px;color:#cdd6e2}
+  pre{background:#0B0F14;border:1px solid var(--rule);border-radius:12px;padding:14px 16px;overflow-x:auto;margin:14px 0;line-height:1.5}
+  pre code{background:none;padding:0;font-size:12.5px;color:#D7DEE8;display:block}
+  pre .c{color:#5C6675}pre .k{color:#5BA8FF}pre .f{color:#B492FF}pre .n{color:#E8A04C}pre .s{color:#5BD6A6}
+  .note{border-left:3px solid var(--value);background:linear-gradient(90deg,rgba(232,160,76,.08),transparent 80%);padding:12px 16px;margin:18px 0;border-radius:0 10px 10px 0;font-size:16px}
+  .note.sig{border-color:var(--signal);background:linear-gradient(90deg,rgba(91,168,255,.08),transparent 80%)}
+  .note.opt{border-color:var(--optima);background:linear-gradient(90deg,rgba(180,146,255,.08),transparent 80%)}
+  .note.good{border-color:var(--good);background:linear-gradient(90deg,rgba(91,214,166,.08),transparent 80%)}
+  .note.rose{border-color:var(--rose);background:linear-gradient(90deg,rgba(242,120,155,.08),transparent 80%)}
+  .note .k{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--value);display:block;margin-bottom:2px}
+  .note.sig .k{color:var(--signal)}.note.opt .k{color:var(--optima)}.note.good .k{color:var(--good)}.note.rose .k{color:var(--rose)}
+  figure{margin:24px 0;background:var(--panel);border:1px solid var(--rule);border-radius:16px;padding:20px 16px 12px;text-align:center}
+  figure svg{max-width:100%;height:auto;display:block;margin:0 auto}
+  figcaption{font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--muted);margin-top:12px;letter-spacing:.01em;text-align:left}figcaption b{color:var(--ink)}
+  .tbl{width:100%;border-collapse:collapse;margin:18px 0;font-size:13px;border-radius:12px;overflow:hidden;border:1px solid var(--rule)}
+  .tbl th,.tbl td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+  .tbl thead th{font-family:"Space Grotesk",sans-serif;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);background:var(--card)}
+  .tbl tbody tr:last-child td{border-bottom:none}.tbl td:first-child{font-family:"JetBrains Mono",monospace;font-weight:600;color:var(--ink)}
+  .quizwrap{background:linear-gradient(180deg,rgba(91,168,255,.05),transparent);border:1px solid var(--rule);border-radius:18px;padding:6px 18px 20px;margin:18px 0}
+  .scorebar{position:sticky;top:8px;background:var(--card);padding:11px 15px;display:flex;align-items:center;gap:13px;z-index:5;border:1px solid var(--rule);border-radius:13px;margin:4px 0 16px;box-shadow:0 6px 18px -10px rgba(0,0,0,.6)}
+  .scorebar .lbl{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+  .scorebar .score{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;color:var(--signal);margin-left:auto}
+  .track{flex:1;height:8px;background:rgba(255,255,255,.055);border-radius:5px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+  .track .fill{height:100%;width:0;background:var(--good);border-radius:5px;box-shadow:0 0 8px rgba(91,214,166,.5);transition:width .45s cubic-bezier(.4,0,.2,1)}
+  .quiz{padding:16px 0;border-bottom:1px solid var(--rule-soft)}.quiz:last-child{border-bottom:none}
+  .quiz .qtext{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:16.5px;color:var(--ink);margin:0 0 12px;display:flex;gap:9px}
+  .quiz .qtext .qn{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--signal);flex:0 0 auto}
+  .opt{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--rule);border-radius:11px;padding:12px 14px;margin:8px 0;color:var(--ink);font-family:"Newsreader",serif;font-size:15.5px;cursor:pointer;transition:border-color .15s,background .15s;position:relative}
+  .opt:hover:not(.done){border-color:var(--signal);background:var(--raised)}
+  .opt .mk{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;opacity:0}
+  .opt.done{cursor:default}.opt.correct{border-color:var(--good);background:rgba(91,214,166,.10)}.opt.correct .mk{opacity:1;color:var(--good)}.opt.correct .mk::after{content:"✓"}
+  .opt.wrong{border-color:var(--rose);background:rgba(242,120,155,.10)}.opt.wrong .mk{opacity:1;color:var(--rose)}.opt.wrong .mk::after{content:"✕"}
+  .opt.done:not(.correct):not(.wrong){opacity:.5}
+  .explain{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s ease,opacity .35s ease,margin .35s ease;font-size:15px;color:var(--muted)}
+  .explain.show{max-height:560px;opacity:1;padding:11px 14px;margin-top:10px;background:rgba(91,214,166,.05);border-left:3px solid var(--good);border-radius:0 10px 10px 0}
+  .explain.show.miss{border-color:var(--rose);background:rgba(242,120,155,.05)}.explain b{color:var(--ink)}
+  .takeaway{margin:30px 0 0;padding:22px;border:1px solid var(--signal-dim);border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(91,168,255,.10),transparent 60%)}
+  .takeaway .k{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal)}.takeaway p{font-size:19px;margin:.3em 0 0;font-style:italic}
+  footer{margin-top:46px;padding-top:24px;border-top:1px solid var(--rule);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .next{font-family:"Space Grotesk",sans-serif;font-weight:600}.next small{display:block;color:var(--faint);font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase}.next a{color:var(--ink);text-decoration:none;border-bottom:2px solid var(--signal)}
+  .stamp{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--faint)}
+  .blink{animation:blink 2.6s ease-in-out infinite}@keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.blink{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><span class="dot"></span> GPU Programming · chapter I of the deep series <span class="lesson-badge">EXECUTION MODEL</span></div>
+    <h1>The Execution Model, From First Principles</h1>
+    <p class="standfirst">This is the technical series. No hand-waving: by the end of this chapter you'll know exactly what happens when a kernel launches — what a thread, warp, block, and grid physically <em>are</em>, why the GPU hides latency instead of avoiding it, what code the machine really executes, and you'll have read every line of two real kernels. Chapter II does the same for memory.</p>
+  </header>
+
+  <!-- 01 THE MACHINE -->
+  <section>
+    <div class="sec-label"><span class="n">01</span> First principles</div>
+    <h2>A latency machine vs a throughput machine</h2>
+    <p>Start from the design question, because everything downstream follows from it. A <strong>CPU</strong> is built to finish <em>one</em> instruction stream as fast as possible. It spends the overwhelming majority of its die on machinery that serves that goal: big caches so loads rarely miss, branch predictors so pipelines rarely stall, out-of-order engines to find parallelism inside a single thread. The actual arithmetic units are a small fraction of the silicon.</p>
+    <p>A <strong>GPU</strong> inverts the bet. It accepts that any individual thread will run <em>slowly</em> — a global memory load takes hundreds of cycles and the GPU does almost nothing to hide that from the thread — and instead spends the die on thousands of arithmetic lanes plus enormous register files. The strategy: <strong>when one group of threads stalls on memory, instantly switch to another group that's ready.</strong> Latency isn't avoided; it's <em>hidden under other threads' work</em>. This only works if you give the machine vastly more parallel work than it has lanes — oversubscription is the fuel.</p>
+    <figure>
+      <svg viewBox="0 0 500 170" role="img" aria-label="CPU die dominated by cache and control versus GPU die dominated by ALUs">
+        <text x="125" y="18" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="11" fill="#E8A04C">CPU: minimize latency</text>
+        <rect x="30" y="28" width="190" height="120" rx="10" fill="#101820" stroke="#3a4452"/>
+        <rect x="40" y="38" width="110" height="60" rx="5" fill="#5a4326" stroke="#E8A04C"/><text x="95" y="72" text-anchor="middle" font-family="JetBrains Mono" font-size="8.5" fill="#E8A04C">cache</text>
+        <rect x="156" y="38" width="54" height="60" rx="5" fill="#33285a" stroke="#B492FF"/><text x="183" y="66" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#c9b3ff">control</text><text x="183" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#c9b3ff">OoO/BP</text>
+        <g fill="#1f4538" stroke="#5BD6A6" stroke-width="0.7">
+          <rect x="40" y="106" width="38" height="32" rx="4"/><rect x="84" y="106" width="38" height="32" rx="4"/><rect x="128" y="106" width="38" height="32" rx="4"/><rect x="172" y="106" width="38" height="32" rx="4"/>
+        </g>
+        <text x="125" y="126" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#9fe6c8">a few fat cores</text>
+        <text x="375" y="18" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="11" fill="#5BD6A6">GPU: maximize throughput</text>
+        <rect x="280" y="28" width="190" height="120" rx="10" fill="#101820" stroke="#3a4452"/>
+        <g fill="#1f4538" stroke="#5BD6A6" stroke-width="0.5">
+          <rect x="290" y="38" width="20" height="14" rx="2"/><rect x="313" y="38" width="20" height="14" rx="2"/><rect x="336" y="38" width="20" height="14" rx="2"/><rect x="359" y="38" width="20" height="14" rx="2"/><rect x="382" y="38" width="20" height="14" rx="2"/><rect x="405" y="38" width="20" height="14" rx="2"/><rect x="428" y="38" width="20" height="14" rx="2"/>
+          <rect x="290" y="55" width="20" height="14" rx="2"/><rect x="313" y="55" width="20" height="14" rx="2"/><rect x="336" y="55" width="20" height="14" rx="2"/><rect x="359" y="55" width="20" height="14" rx="2"/><rect x="382" y="55" width="20" height="14" rx="2"/><rect x="405" y="55" width="20" height="14" rx="2"/><rect x="428" y="55" width="20" height="14" rx="2"/>
+          <rect x="290" y="72" width="20" height="14" rx="2"/><rect x="313" y="72" width="20" height="14" rx="2"/><rect x="336" y="72" width="20" height="14" rx="2"/><rect x="359" y="72" width="20" height="14" rx="2"/><rect x="382" y="72" width="20" height="14" rx="2"/><rect x="405" y="72" width="20" height="14" rx="2"/><rect x="428" y="72" width="20" height="14" rx="2"/>
+          <rect x="290" y="89" width="20" height="14" rx="2"/><rect x="313" y="89" width="20" height="14" rx="2"/><rect x="336" y="89" width="20" height="14" rx="2"/><rect x="359" y="89" width="20" height="14" rx="2"/><rect x="382" y="89" width="20" height="14" rx="2"/><rect x="405" y="89" width="20" height="14" rx="2"/><rect x="428" y="89" width="20" height="14" rx="2"/>
+        </g>
+        <rect x="290" y="110" width="158" height="12" rx="3" fill="#33285a" stroke="#B492FF" stroke-width="0.7"/><text x="369" y="119" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" fill="#c9b3ff">huge register file</text>
+        <rect x="290" y="126" width="158" height="12" rx="3" fill="#5a4326" stroke="#E8A04C" stroke-width="0.7"/><text x="369" y="135" text-anchor="middle" font-family="JetBrains Mono" font-size="6.5" fill="#E8A04C">small cache + scheduler</text>
+        <text x="369" y="160" text-anchor="middle" font-family="JetBrains Mono" font-size="7.5" fill="#9fe6c8">thousands of thin lanes</text>
+      </svg>
+      <figcaption><b>Same transistor budget, opposite allocation.</b> The CPU buys low latency for a few threads; the GPU buys throughput for tens of thousands, and copes with latency by always having someone else ready to run. Every rule in this chapter — warps, occupancy, divergence — is a consequence of this one trade.</figcaption>
+    </figure>
+
+    <h3>The physical machine: an array of SMs</h3>
+    <p>Concretely, an H100 is <strong>132 Streaming Multiprocessors (SMs)</strong> sharing a ~50 MB L2 and HBM. Each SM contains four <strong>warp schedulers</strong> (each issuing one instruction per cycle for one warp), <strong>128 FP32 lanes</strong> ("CUDA cores"), <strong>4 tensor cores</strong>, a <strong>256 KB register file</strong>, and <strong>228 KB</strong> of combined shared memory/L1. Two numbers to internalize: each SM can host up to <strong>64 resident warps (2,048 threads)</strong> simultaneously, and the register file is so large because <em>every resident thread's registers stay allocated the whole time</em> — that's what makes switching between warps free. The GPU-wide picture: 132 SMs × 2,048 threads ≈ <strong>270K threads resident at once</strong>, with millions more queued.</p>
+  </section>
+
+  <!-- 02 SIMT -->
+  <section>
+    <div class="sec-label"><span class="n">02</span> The execution unit</div>
+    <h2>SIMT: the warp is the real machine</h2>
+    <p>Here's the part the marketing hides: the GPU does <em>not</em> execute 2,048 independent threads per SM. The hardware unit of execution is the <strong>warp — 32 threads that share one instruction stream</strong>. A warp scheduler picks a warp, issues <em>one</em> instruction, and all 32 lanes execute it on their own data. This model is called <strong>SIMT</strong> (Single Instruction, Multiple Threads): you <em>write</em> code as if each thread were an independent scalar program, but the machine <em>runs</em> it 32-wide, like SIMD with the vectorization done by the hardware instead of the compiler.</p>
+    <p>The abstraction leaks in exactly one place, and it's the most important performance rule in this chapter: <strong>branch divergence</strong>. If threads within one warp take different sides of a branch, the warp cannot execute both sides at once — it runs the <em>if</em> path with the <em>else</em> threads masked off (their lanes idle), then the <em>else</em> path with the <em>if</em> threads masked. Worst case, a 32-way divergent branch runs at 1/32 of throughput.</p>
+    <pre><code><span class="c">// Divergence is about *which threads* differ, not the branch itself.</span>
+<span class="k">if</span> (threadIdx.x % 2 == 0) { ... }   <span class="c">// TERRIBLE: every warp splits 16/16 — both paths serialized</span>
+<span class="k">if</span> (threadIdx.x &lt; 64)      { ... }   <span class="c">// FINE: warps 0-1 all-true, warps 2+ all-false — no split</span>
+<span class="k">if</span> (blockIdx.x == 0)       { ... }   <span class="c">// FREE: whole blocks agree; a warp never disagrees internally</span></code></pre>
+    <div class="note sig"><span class="k">Two refinements worth knowing</span>
+      For short branches the compiler often uses <strong>predication</strong> — both paths execute with results masked, no actual branch — which is why tiny <code>if</code>s are cheap. And since Volta, each thread has its own program counter (<em>independent thread scheduling</em>), which fixes old deadlock patterns and enables per-thread progress, but does <strong>not</strong> change the economics: divergent lanes still idle. Correctness got per-thread; performance is still per-warp.</p>
+    </div>
+  </section>
+
+  <!-- 03 PROGRAMMING MODEL -->
+  <section>
+    <div class="sec-label"><span class="n">03</span> The software model</div>
+    <h2>Kernels, grids, blocks — and why the hierarchy exists</h2>
+    <p>A <strong>kernel</strong> is a C++ function marked <code>__global__</code> that you launch as <em>N copies running in parallel</em> — one per thread. You organize those N threads in a two-level hierarchy: threads are grouped into <strong>blocks</strong> (up to 1,024 threads each), and blocks form the <strong>grid</strong>. The launch syntax <code>kernel&lt;&lt;&lt;gridDim, blockDim&gt;&gt;&gt;(args)</code> names exactly those two levels.</p>
+    <p>The hierarchy is not bureaucracy — it encodes the hardware contract:</p>
+    <table class="tbl">
+      <thead><tr><th>level</th><th>maps to</th><th>can do</th><th>cannot do</th></tr></thead>
+      <tbody>
+        <tr><td>thread</td><td>one lane, own registers</td><td>private computation</td><td>see another thread's registers</td></tr>
+        <tr><td>warp (32)</td><td>the issue unit</td><td>shuffle registers (<code>__shfl_*_sync</code>), vote</td><td>diverge for free</td></tr>
+        <tr><td>block (≤1024)</td><td><strong>one SM</strong>, never split</td><td>share SMEM, barrier with <code>__syncthreads()</code></td><td>talk to other blocks*</td></tr>
+        <tr><td>grid</td><td>the whole GPU</td><td>scale to any size</td><td>synchronize mid-kernel*</td></tr>
+      </tbody>
+    </table>
+    <p>The starred rule is the deep one: <strong>blocks must be independent.</strong> The scheduler assigns blocks to SMs in any order, as capacity frees — that's precisely what lets the same binary saturate a laptop GPU with 20 SMs and an H100 with 132. The price of that portable scalability is that blocks can't wait on each other within a kernel; if you need a global barrier, you end the kernel and launch another (kernel boundaries are grid-wide barriers). (*Cooperative groups and Hopper's thread-block clusters carve out narrow exceptions — clusters let a few blocks on adjacent SMs share distributed SMEM — but the default model is strict independence.)</p>
+
+    <h3>Your first real kernel, every line explained</h3>
+    <pre><code><span class="c">// ---------- device code ----------</span>
+<span class="k">__global__ void</span> <span class="f">vecAdd</span>(<span class="k">const float</span>* A, <span class="k">const float</span>* B, <span class="k">float</span>* C, <span class="k">int</span> n) {
+    <span class="c">// Recover THIS thread's global index from its coordinates:</span>
+    <span class="k">int</span> i = blockIdx.x * blockDim.x + threadIdx.x;
+    <span class="k">if</span> (i &lt; n)              <span class="c">// guard: the last block may overhang n</span>
+        C[i] = A[i] + B[i]; <span class="c">// each thread does ONE element</span>
+}
+
+<span class="c">// ---------- host code ----------</span>
+<span class="k">int</span> n = 1&lt;&lt;20;                                   <span class="c">// 1M floats</span>
+<span class="k">float</span> *dA, *dB, *dC;
+<span class="f">cudaMalloc</span>(&amp;dA, n*<span class="k">sizeof</span>(<span class="k">float</span>));               <span class="c">// allocate on GPU (HBM)</span>
+<span class="f">cudaMemcpy</span>(dA, hA, n*<span class="k">sizeof</span>(<span class="k">float</span>), cudaMemcpyHostToDevice);  <span class="c">// over PCIe/NVLink</span>
+<span class="c">// ... same for B, C ...</span>
+
+<span class="k">int</span> block = <span class="n">256</span>;                                 <span class="c">// threads per block (8 warps)</span>
+<span class="k">int</span> grid  = (n + block - 1) / block;             <span class="c">// ceil-div: 4096 blocks</span>
+<span class="f">vecAdd</span>&lt;&lt;&lt;grid, block&gt;&gt;&gt;(dA, dB, dC, n);          <span class="c">// launch is ASYNCHRONOUS</span>
+<span class="f">cudaDeviceSynchronize</span>();                          <span class="c">// host blocks until GPU done</span></code></pre>
+    <p>Read the index line until it's reflexive: <code>blockIdx.x</code> (which block am I in) times <code>blockDim.x</code> (how big is a block) plus <code>threadIdx.x</code> (where am I inside my block). That one expression is how a million logical threads each find their one element of work. Note also what the host code reveals: the GPU has <em>its own memory</em> — nothing computes until you've explicitly shipped data into HBM — and launches are <strong>asynchronous</strong>, queued onto a stream while the CPU runs ahead.</p>
+    <p>One idiom upgrade makes it production-grade — the <strong>grid-stride loop</strong>, which decouples grid size from problem size (launch enough blocks to fill the machine; each thread handles multiple elements):</p>
+    <pre><code><span class="k">__global__ void</span> <span class="f">vecAddGS</span>(<span class="k">const float</span>* A, <span class="k">const float</span>* B, <span class="k">float</span>* C, <span class="k">int</span> n) {
+    <span class="k">int</span> stride = gridDim.x * blockDim.x;             <span class="c">// total threads in flight</span>
+    <span class="k">for</span> (<span class="k">int</span> i = blockIdx.x*blockDim.x + threadIdx.x; i &lt; n; i += stride)
+        C[i] = A[i] + B[i];
+}</code></pre>
+
+    <h3>Second kernel: naive matmul — and its built-in doom</h3>
+    <p>Now 2D indexing, and a kernel whose <em>arithmetic</em> we can audit. One thread computes one element of C = A·B (all N×N, row-major):</p>
+    <pre><code><span class="k">__global__ void</span> <span class="f">matmulNaive</span>(<span class="k">const float</span>* A, <span class="k">const float</span>* B, <span class="k">float</span>* C, <span class="k">int</span> N) {
+    <span class="k">int</span> row = blockIdx.y * blockDim.y + threadIdx.y;
+    <span class="k">int</span> col = blockIdx.x * blockDim.x + threadIdx.x;
+    <span class="k">if</span> (row &lt; N &amp;&amp; col &lt; N) {
+        <span class="k">float</span> acc = <span class="n">0.f</span>;
+        <span class="k">for</span> (<span class="k">int</span> k = 0; k &lt; N; ++k)
+            acc += A[row*N + k] * B[k*N + col];   <span class="c">// 2 loads per FMA ← the crime</span>
+        C[row*N + col] = acc;
+    }
+}
+<span class="c">// launch: dim3 block(16,16);  dim3 grid((N+15)/16, (N+15)/16);</span></code></pre>
+    <p>Audit the inner loop: every iteration does <strong>one FMA (2 FLOPs)</strong> and <strong>two 4-byte global loads (8 bytes)</strong>. Arithmetic intensity = 2/8 = <strong>0.25 FLOP/byte</strong>. Your roofline lesson says an H100 needs ~<strong>295 FLOP/byte</strong> (BF16) to leave the memory-bound region — this kernel is three orders of magnitude short. It will crawl at a few percent of peak <em>no matter what else you do</em>, because each thread re-fetches from HBM values that its neighbors just fetched too: every element of A and B is loaded <strong>N times</strong> across the grid. The entire point of Chapter II is fixing exactly this, by staging tiles in shared memory so each element is fetched from HBM once and <em>reused</em>.</p>
+  </section>
+
+  <!-- 04 LATENCY HIDING -->
+  <section>
+    <div class="sec-label"><span class="n">04</span> The engine room</div>
+    <h2>Latency hiding and occupancy: how the trick actually works</h2>
+    <p>Return to the founding bet with mechanism in hand. A global load costs ~<strong>400–800 cycles</strong>. When warp 7 issues that load, the scheduler doesn't wait — next cycle it issues an instruction from warp 12, then warp 3, round-robin among every resident warp whose next instruction is <em>ready</em>. The switch costs <strong>zero cycles</strong> because nothing is saved or restored: all 64 warps' registers live simultaneously in that huge 256 KB register file. (Contrast a CPU context switch: microseconds of state shuffling.)</p>
+    <figure>
+      <svg viewBox="0 0 500 150" role="img" aria-label="Warp scheduler interleaving warps so memory stalls are covered by other warps' compute">
+        <text x="60" y="26" font-family="JetBrains Mono" font-size="8.5" fill="#8C97A6">warp 0</text>
+        <text x="60" y="56" font-family="JetBrains Mono" font-size="8.5" fill="#8C97A6">warp 1</text>
+        <text x="60" y="86" font-family="JetBrains Mono" font-size="8.5" fill="#8C97A6">warp 2</text>
+        <text x="60" y="116" font-family="JetBrains Mono" font-size="8.5" fill="#8C97A6">issue slot</text>
+        <!-- warp0: compute, long stall, compute -->
+        <rect x="110" y="14" width="46" height="16" rx="3" fill="#1f4538" stroke="#5BD6A6"/><rect x="156" y="14" width="150" height="16" rx="3" fill="#54283a" stroke="#F2789B" stroke-dasharray="3 2"/><rect x="306" y="14" width="46" height="16" rx="3" fill="#1f4538" stroke="#5BD6A6"/>
+        <text x="231" y="26" text-anchor="middle" font-family="JetBrains Mono" font-size="7" fill="#F2789B">waiting on HBM (~500 cyc)</text>
+        <!-- warp1 offset -->
+        <rect x="156" y="44" width="46" height="16" rx="3" fill="#1f4538" stroke="#5BD6A6"/><rect x="202" y="44" width="150" height="16" rx="3" fill="#54283a" stroke="#F2789B" stroke-dasharray="3 2"/><rect x="352" y="44" width="46" height="16" rx="3" fill="#1f4538" stroke="#5BD6A6"/>
+        <!-- warp2 offset -->
+        <rect x="202" y="74" width="46" height="16" rx="3" fill="#1f4538" stroke="#5BD6A6"/><rect x="248" y="74" width="150" height="16" rx="3" fill="#54283a" stroke="#F2789B" stroke-dasharray="3 2"/><rect x="398" y="74" width="46" height="16" rx="3" fill="#1f4538" stroke="#5BD6A6"/>
+        <!-- issue slot always busy -->
+        <g fill="#22364f" stroke="#5BA8FF" stroke-width="0.8">
+          <rect x="110" y="104" width="46" height="16" rx="3"/><rect x="156" y="104" width="46" height="16" rx="3"/><rect x="202" y="104" width="46" height="16" rx="3"/><rect x="248" y="104" width="50" height="16" rx="3"/><rect x="306" y="104" width="46" height="16" rx="3"/><rect x="352" y="104" width="46" height="16" rx="3"/><rect x="398" y="104" width="46" height="16" rx="3"/>
+        </g>
+        <text x="277" y="140" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#5C6675">individual warps stall constantly; the issue slot never does — if enough warps are resident</text>
+      </svg>
+      <figcaption><b>The stall doesn't vanish — it's paid by somebody who had other work.</b> This is why "more parallelism than lanes" is the fuel: with only a few resident warps, a stall leaves the issue slot empty and throughput collapses.</figcaption>
+    </figure>
+    <p><strong>Occupancy</strong> quantifies the fuel: resident warps per SM ÷ the max (64). What limits it is a resource-partitioning problem — each SM's fixed pools get divided among blocks:</p>
+    <ul style="margin:.5em 0 .8em 1.2em;padding:0">
+      <li style="margin:.35em 0"><strong>Registers</strong>: 65,536 per SM. If your kernel uses 64 registers/thread → 1,024 threads max → 50% occupancy, from registers alone.</li>
+      <li style="margin:.35em 0"><strong>Shared memory</strong>: a block asking 48 KB when the SM has 228 KB → ≤4 blocks resident, whatever else is free.</li>
+      <li style="margin:.35em 0"><strong>Block size</strong>: 1,024-thread blocks give the scheduler coarse, clumsy units; 128–256 (4–8 warps) usually packs better.</li>
+    </ul>
+    <div class="note rose"><span class="k">The classic misconception</span>
+      Occupancy is <strong>not</strong> the goal; it's a means of hiding latency, and 100% is rarely optimal. Past the point where latency is covered, extra resident threads just shrink each thread's register budget. Highly-tuned kernels (CUTLASS GEMMs, FlashAttention) often run at 25–50% occupancy <em>deliberately</em> — fewer threads, each fat with registers and instruction-level parallelism, can beat many thin ones. What you actually maximize is <em>issue-slot utilization</em>; occupancy is one lever among several (ILP within a thread is another).</p>
+    </div>
+  </section>
+
+  <!-- 05 COMPILATION -->
+  <section>
+    <div class="sec-label"><span class="n">05</span> Down to the metal</div>
+    <h2>What the machine really runs: PTX and SASS</h2>
+    <p>Your CUDA C++ compiles twice. <code>nvcc</code> first lowers it to <strong>PTX</strong> — a <em>virtual</em> assembly, a stable ISA that abstracts over GPU generations (the same PTX from your tensor-core chapter: <code>mma.sync.aligned…</code>, <code>tcgen05.mma</code>). Then <code>ptxas</code> compiles PTX to <strong>SASS</strong>, the real, undocumented, architecture-specific machine code (<code>sm_80</code> Ampere, <code>sm_90</code> Hopper, <code>sm_100</code> Blackwell) — where actual registers are allocated and instructions scheduled. Binaries usually embed both: SASS for the arches you compiled for, PTX so the driver can <strong>JIT-compile</strong> for GPUs that didn't exist when you shipped. That two-stage design <em>is</em> the CUDA moat's technical core — twenty years of software targets a stable PTX while the silicon underneath churns.</p>
+    <pre><code><span class="c"># see the intermediate + real ISA for yourself</span>
+nvcc -arch=sm_90 -ptx  kernel.cu     <span class="c"># emit PTX (readable, virtual)</span>
+nvcc -arch=sm_90 -cubin kernel.cu &amp;&amp; cuobjdump -sass kernel.cubin   <span class="c"># real SASS</span>
+nvcc --ptxas-options=-v kernel.cu    <span class="c"># registers/SMEM per thread — your occupancy inputs</span></code></pre>
+    <p>That last flag closes the loop on this chapter: <code>ptxas -v</code> prints exactly the register and shared-memory counts that determine occupancy. When you profile in Nsight Compute during the hardware capstone, the counters you'll read — issue-slot utilization, warp stall reasons, achieved occupancy — are precisely the quantities this chapter defined.</p>
+  </section>
+
+  <!-- QUIZ -->
+  <section>
+    <div class="sec-label"><span class="n">06</span> Quiz · tap to answer</div>
+    <h2>Check yourself — live</h2>
+    <div class="quizwrap">
+      <div class="scorebar"><span class="lbl">Score</span><div class="track"><div class="fill" id="fill"></div></div><span class="score" id="score">0 / 0</span></div>
+      <div class="quiz" data-answer="1">
+        <p class="qtext"><span class="qn">Q1</span> What is the GPU's fundamental strategy for dealing with memory latency?</p>
+        <button class="opt">Big caches and branch prediction, like a CPU<span class="mk"></span></button>
+        <button class="opt">Hide it: when a warp stalls on a load, the scheduler issues from another resident warp at zero switch cost, since all warps' registers stay allocated<span class="mk"></span></button>
+        <button class="opt">Make memory as fast as registers<span class="mk"></span></button>
+        <button class="opt">Avoid memory access entirely<span class="mk"></span></button>
+        <div class="explain"><b>Hide, don't avoid.</b> A global load costs ~400–800 cycles and the GPU accepts it. The die is spent on lanes and a huge register file instead of caches/control; with up to 64 warps resident per SM, the scheduler always has ready work, and switching is free because nothing is saved or restored. That's also why oversubscription — far more threads than lanes — is a requirement, not a nicety.</div>
+      </div>
+      <div class="quiz" data-answer="2">
+        <p class="qtext"><span class="qn">Q2</span> Why is <code>if (threadIdx.x % 2 == 0)</code> a performance disaster while <code>if (blockIdx.x == 0)</code> is free?</p>
+        <button class="opt">Modulo is a slow instruction<span class="mk"></span></button>
+        <button class="opt">blockIdx is cached and threadIdx is not<span class="mk"></span></button>
+        <button class="opt">Divergence is per-warp: %2 splits every warp 16/16 so both paths serialize with lanes masked; blockIdx is uniform within a warp, so no warp ever splits<span class="mk"></span></button>
+        <button class="opt">They're equally bad<span class="mk"></span></button>
+        <div class="explain"><b>The unit that must agree is the warp.</b> SIMT issues one instruction for 32 lanes. If lanes disagree at a branch, the warp runs each path in turn with the other side's lanes masked idle — %2 makes that happen in every warp (up to 1/32 throughput worst-case across many branches). Conditions uniform across a warp (whole blocks, or threadIdx ranges aligned to 32) never split. Compilers also predicate tiny branches, executing both sides cheaply without a real branch.</div>
+      </div>
+      <div class="quiz" data-answer="0">
+        <p class="qtext"><span class="qn">Q3</span> Why must thread blocks be independent (no inter-block sync mid-kernel)?</p>
+        <button class="opt">So the scheduler can assign blocks to SMs in any order as capacity frees — the same binary then scales from 20 SMs to 132 without change; a global barrier requires ending the kernel<span class="mk"></span></button>
+        <button class="opt">Because blocks are on different GPUs<span class="mk"></span></button>
+        <button class="opt">It's an arbitrary API restriction<span class="mk"></span></button>
+        <button class="opt">Blocks can freely synchronize mid-kernel<span class="mk"></span></button>
+        <div class="explain"><b>Independence buys portable scalability.</b> The hardware drops blocks onto SMs in unspecified order; if block 5 could wait on block 900, a small GPU that hasn't scheduled block 900 yet would deadlock. So blocks share nothing mid-flight (SMEM and __syncthreads are intra-block), and a kernel boundary is your grid-wide barrier. Cooperative groups and Hopper's block clusters are narrow, opt-in exceptions.</div>
+      </div>
+      <div class="quiz" data-answer="3">
+        <p class="qtext"><span class="qn">Q4</span> The naive matmul does one FMA and two 4-byte global loads per inner iteration. What does that imply?</p>
+        <button class="opt">It's compute-bound and near peak<span class="mk"></span></button>
+        <button class="opt">Nothing — loads are free<span class="mk"></span></button>
+        <button class="opt">It needs more threads to go faster<span class="mk"></span></button>
+        <button class="opt">AI = 2 FLOPs / 8 bytes = 0.25 FLOP/byte, versus ~hundreds needed to be compute-bound — hopelessly memory-bound, because every element is re-fetched from HBM ~N times<span class="mk"></span></button>
+        <div class="explain"><b>Audit the loop, know the fate.</b> 0.25 FLOP/byte sits three orders of magnitude below the H100's compute-bound threshold, so the kernel crawls at a few percent of peak regardless of launch configuration. The waste is redundant traffic: neighboring threads fetch the same rows/columns from HBM over and over. The fix — staging tiles in shared memory for reuse — is Chapter II's centerpiece.</div>
+      </div>
+      <div class="quiz" data-answer="1">
+        <p class="qtext"><span class="qn">Q5</span> Why is 100% occupancy not the goal?</p>
+        <button class="opt">It is — always maximize occupancy<span class="mk"></span></button>
+        <button class="opt">Occupancy only needs to be high enough to hide latency; beyond that, more resident threads just shrink per-thread registers — tuned kernels often run at 25–50% with fat, ILP-rich threads<span class="mk"></span></button>
+        <button class="opt">Occupancy measures memory bandwidth<span class="mk"></span></button>
+        <button class="opt">GPUs can't exceed 50%<span class="mk"></span></button>
+        <div class="explain"><b>Occupancy is fuel, not the destination.</b> The real target is a never-idle issue slot. Once resident warps suffice to cover stalls, extra occupancy costs registers (SM pools are fixed: 64K registers, 228KB SMEM split among blocks) and can slow things down. CUTLASS/FlashAttention-class kernels deliberately trade occupancy for register-heavy threads with high instruction-level parallelism.</div>
+      </div>
+      <div class="quiz" data-answer="2">
+        <p class="qtext"><span class="qn">Q6</span> What are PTX and SASS?</p>
+        <button class="opt">Two names for the same thing<span class="mk"></span></button>
+        <button class="opt">PTX is Python bindings; SASS is C++<span class="mk"></span></button>
+        <button class="opt">PTX is a stable virtual ISA the driver can JIT; SASS is the real, per-architecture machine code ptxas produces — the two-stage design is the technical core of the CUDA moat<span class="mk"></span></button>
+        <button class="opt">SASS is deprecated<span class="mk"></span></button>
+        <div class="explain"><b>Compile twice, run anywhere (on NVIDIA).</b> nvcc lowers C++ to PTX (virtual, documented, stable across generations — where instructions like mma.sync and tcgen05.mma live), and ptxas lowers PTX to SASS (real, undocumented, per-sm_XX, where registers get allocated). Shipping PTX lets old binaries JIT onto new GPUs — two decades of software keeps working while silicon churns, which is much of why the moat holds.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="takeaway">
+    <span class="k">Takeaway</span>
+    <p>A GPU is a throughput machine: thousands of thin lanes fed by a scheduler that hides 500-cycle memory stalls under other warps' work, fueled by oversubscription and a register file big enough that switching is free. You program it as scalar threads, but the machine runs 32-wide warps — so divergence, block independence, and occupancy aren't API trivia, they're the hardware showing through. And one audit of a naive matmul's inner loop (0.25 FLOP/byte) tells you its fate before you ever run it — which is why Chapter II is about memory.</p>
+  </div>
+
+  <footer>
+    <a href="index.html" style='display:inline-flex;align-items:center;gap:7px;font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.03em;color:#E7EBF1;text-decoration:none;padding:8px 13px;border:1px solid #2E3947;border-radius:10px;background:#1A212B'>&#8617;&nbsp;Exploration map</a>
+    <div class="next"><small>Next · chapter II</small><a href="gpu-programming-2-memory.html">The memory model — coalescing, shared memory, and the tiled matmul that fixes 0.25 FLOP/byte</a></div>
+    <span class="stamp blink">● I of the series</span>
+  </footer>
+</div>
+<script>
+(function(){var total=0,correct=0;var s=document.getElementById('score'),f=document.getElementById('fill');var qs=document.querySelectorAll('.quiz');qs.forEach(function(q){var a=parseInt(q.getAttribute('data-answer'),10);var o=q.querySelectorAll('.opt');var e=q.querySelector('.explain');var done=false;o.forEach(function(b,i){b.addEventListener('click',function(){if(done)return;done=true;total++;var g=(i===a);if(g)correct++;o.forEach(function(x,j){x.classList.add('done');if(j===a)x.classList.add('correct');});if(!g)b.classList.add('wrong');e.classList.add('show');if(!g)e.classList.add('miss');s.textContent=correct+' / '+total;f.style.width=(correct/qs.length*100)+'%';});});});})();
+</script>
+</body>
+</html>
