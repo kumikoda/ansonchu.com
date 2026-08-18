@@ -51,15 +51,13 @@
       <p>In particular, what does this even mean? Again we have this strangeness where we are trying to get a derivative <code>l_i</code> but we don’t even see <code>l_i</code> in the expression! Well turns out <code>l_i</code> is actually in the expression if you unroll the summation into its individual terms. Since <code>j</code> spans all possible values of <code>i</code>, you can think of the sum to just be a single e to the <code>l_i</code> plus a bunch of other arbitrary constants. Since the derivative of a constant is 0 we can just ignore them. And the derivative of exponent is just exponent, so we are left with just the single e to the <code>l_i</code>.</p>
       <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-12.png" alt="unrolling the summation into individual terms"><figcaption>unrolling the summation into individual terms</figcaption></figure>
       <p>Okay so I admit it took me a bit of time to actually understand these few lines (which Karpathy does not even write out 😅). I had to google around to find some hints and I found this following article very useful.</p>
-            <a class="embed embed-video" href="https://youtu.be/q8SA3rM6ckI?t=5453">
-        <span class="embed-thumb">
-          <img src="/writing/img/yt/q8SA3rM6ckI.jpg" width="320" height="180" loading="lazy" alt="">
-          <svg class="embed-play" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)"/><path d="M9.7 7.4v9.2L16.9 12z" fill="#fff"/></svg>
-        </span>
+      <a class="embed embed-solo" href="https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5.5"/></svg>
         <span class="embed-body">
-          <span class="embed-kicker">YouTube · video</span>
-          <span class="embed-title">Building makemore Part 4: Becoming a Backprop Ninja</span>
-          <span class="embed-meta">Andrej Karpathy · exercise 2, from 1:30:53</span>
+          <span class="embed-kicker">Reference · article</span>
+          <span class="embed-title">The Softmax function and its derivative</span>
+          <span class="embed-note">The derivation that finally made the two branches click — written out in full, unlike the video.</span>
+          <span class="embed-meta">Eli Bendersky · eli.thegreenplace.net · 2016</span>
         </span>
       </a>
       <p>Now once you understand the above, getting to the final answer for this branch is quite trivial. Well deserved smiley face indeed.</p>
@@ -75,8 +73,6 @@
       <p>The rest of it is just basic math. But again, well deserved smiley face.</p>
       <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-18.png" alt="final answer for the i = y branch"><figcaption>final answer for the i = y branch</figcaption></figure>
     
-      <hr>
-      <p>Reference: <a href="https://eli.thegreenplace.net/2016/the-softmax-function-and-its-derivative">The Softmax function and its derivative — Eli Bendersky</a></p>
     </article>
     <footer class="site-footer">© 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/zero-to-hero.html">zero to hero notes</a></footer>
   </main>
