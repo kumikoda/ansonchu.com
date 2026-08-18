@@ -514,6 +514,10 @@ a:focus-visible {
 .diag-arrow { stroke: var(--muted); stroke-width: 1.5; fill: none; }
 .diag-arrowhead { fill: var(--muted); }
 
+/* lesson-preview cards: white notebook figures as thumbs */
+.embed-thumb-fig { background: #fff; }
+.embed-thumb-fig img { object-fit: contain; }
+
 /* video */
 .vidgrid {
   display: grid;
