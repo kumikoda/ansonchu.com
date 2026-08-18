@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PPO vs GRPO, side by side — Anson Chu</title>
+  <meta name="description" content="A Claude-generated lesson: what PPO actually keeps in memory, what GRPO throws away, and why group-relative advantages fit verifiable rewards so well.">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="wrap">
+
+    <a class="backlink" href="/writing/learning-rl-with-claude.html">← Learning RL with Claude</a>
+
+    <article>
+      <h1>PPO vs GRPO, side by side</h1>
+      <p class="post-meta">2026 · a claude-generated lesson · made to be read on a phone</p>
+
+      <p>Both are policy-gradient methods for the same job: nudge an LLM's weights so that higher-reward outputs become more likely, without drifting so far that the model collapses. The difference is almost entirely about <em>where the advantage comes from</em> — and what you have to keep in GPU memory to compute it.</p>
+
+      <h2>PPO</h2>
+
+      <p>PPO trains <strong>two models</strong>: the policy, and a <em>value model</em> (critic) that predicts, per token, how much reward is still coming. Advantages are computed with GAE — reward minus the critic's baseline — so every token gets its own credit assignment. The clipped objective then keeps each update inside a trust region, and a KL penalty against a frozen reference model keeps the policy from wandering off distribution.</p>
+
+      <p>The cost: the critic is a full copy of the LLM in memory, it has to be trained too, and a per-token value function for "did the final answer come out right?" is a strange thing to learn.</p>
+
+      <h2>GRPO</h2>
+
+      <p>GRPO (from DeepSeekMath, 2024) deletes the critic. Instead, for each prompt you sample a <strong>group</strong> of G completions, score each one, and define the advantage of a completion relative to its own group:</p>
+
+      <pre><code class="py"><span class="c"># PPO: per-token advantage from a learned critic</span>
+advantage<span class="o">[</span>t<span class="o">]</span> <span class="o">=</span> GAE<span class="o">(</span>rewards<span class="o">,</span> values<span class="o">)</span>          <span class="c"># needs a value model</span>
+
+<span class="c"># GRPO: one advantage per completion, from the group</span>
+rewards <span class="o">=</span> <span class="o">[</span>score<span class="o">(</span>y<span class="o">)</span> <span class="k">for</span> y <span class="o">in</span> group<span class="o">]</span>          <span class="c"># G samples, same prompt</span>
+advantage <span class="o">=</span> <span class="o">(</span>r <span class="o">-</span> mean<span class="o">(</span>rewards<span class="o">)</span><span class="o">)</span> <span class="o">/</span> std<span class="o">(</span>rewards<span class="o">)</span>   <span class="c"># no value model</span></code></pre>
+
+      <p>Every token in a completion shares that one advantage. The group mean <em>is</em> the baseline — you estimate "how good is a typical answer to this prompt" by just asking the model several times, instead of training a second network to guess it.</p>
+
+      <h2>The comparison</h2>
+
+      <figure class="fig"><div class="tablewrap"><table class="data">
+        <thead><tr><th></th><th>PPO</th><th>GRPO</th></tr></thead>
+        <tbody>
+          <tr><td>baseline</td><td>learned value model</td><td>group mean of sampled rewards</td></tr>
+          <tr><td>models in memory</td><td>policy + critic + reference (+ reward model)</td><td>policy + reference (+ verifier)</td></tr>
+          <tr><td>credit assignment</td><td>per token</td><td>per completion</td></tr>
+          <tr><td>fits best with</td><td>dense / shaped rewards</td><td>outcome rewards (right answer? tests pass?)</td></tr>
+          <tr><td>canonical use</td><td>InstructGPT-style RLHF</td><td>DeepSeekMath, R1-style reasoning</td></tr>
+        </tbody>
+      </table></div>
+      <figcaption>the trade: PPO buys per-token credit with a second model; GRPO buys memory with sampling</figcaption></figure>
+
+      <p>Why GRPO won the reasoning era: when the reward is a verifier (the answer is right or it isn't), the reward only exists at the <em>end</em> of the completion anyway. A per-token critic adds cost without adding signal. Group-relative advantages are exactly the right shape for verifiable, outcome-level rewards — which is why GRPO and RLVR took off together.</p>
+    </article>
+
+    <footer class="site-footer">
+      © 2026 Anson Chu · <a href="/">home</a> · <a href="/writing/learning-rl-with-claude.html">more lessons</a>
+    </footer>
+
+  </main>
+</body>
+</html>

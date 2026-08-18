@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RL is back — Anson Chu</title>
+  <meta name="description" content="For a few years everyone said LLM, LLM, LLM and I thought I might be the crazy one. Two parties, a DeepMind researcher who hadn't heard of the Bitter Lesson, and RL turning out to be what makes LLMs work at scale.">
+  <link rel="stylesheet" href="/style.css">
+  <meta property="og:title" content="RL is back">
+  <meta property="og:description" content="Everyone said LLM, LLM, LLM. I bet RL. The scoreboard reads funny now.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://ansonchu.com/writing/rl-is-back.html">
+</head>
+<body>
+  <main class="wrap">
+
+    <a class="backlink" href="/">← Anson Chu</a>
+
+    <article>
+      <h1>RL is back</h1>
+      <p class="post-meta">2026-08 · opinion · rl</p>
+
+      <p>At a party in 2023, during my parental leave, I ended up in a corner with two people I really respect. One is a very senior, very celebrated AI person. The other is a peer. I asked the group: what are we most excited about in AI right now? I said RL. My peer said robotics. The elder said LLMs.</p>
+
+      <p>And he didn't just say LLMs, he had a whole thesis. The winners would be embedded agents living inside each application. Your CRM gets an agent, your spreadsheet gets an agent, and whoever owns the application owns the agent. I believed the opposite: increasing returns to a single powerful agent that acts on your behalf. I don't want to talk to your app's support agent. I want my agent to talk to it for me.</p>
+
+      <p>On RL he was blunt. Dude, nobody cares about RL anymore. It's all LLMs now.</p>
+
+      <p>Some time later I met a Google DeepMind researcher, a PhD, along with another researcher friend. Same question. I said the thing I couldn't stop thinking about was the Bitter Lesson. He hadn't heard of it.</p>
+
+      <p>A DeepMind researcher who hadn't heard of the Bitter Lesson. I genuinely wondered if I was the crazy one. I'm over here reading Sutton, and the entire world is saying LLM, LLM, LLM.</p>
+
+      <a class="embed embed-solo" href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5.5"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">Essay</span>
+          <span class="embed-title">The Bitter Lesson</span>
+          <span class="embed-note">general methods + compute beat human-knowledge methods, every time, for 70 years.</span>
+          <span class="embed-meta">Rich Sutton · incompleteideas.net · 2019</span>
+        </span>
+      </a>
+
+      <p>To be fair, the world got me too. LLMs meant coding, and coding agents flipped me completely. That is where my whole think-then-write-code conviction comes from (more on that in <a href="/rl/">Player of Games</a>). So I understand the pull. I lived the pull.</p>
+
+      <p>Here is what I got wrong though. When I first learned what RL even meant for LLMs, the answer was RLHF. This talk is what made the picture click for me:</p>
+
+      <a class="embed embed-video" href="https://www.youtube.com/watch?v=bZQun8Y4L2A">
+        <span class="embed-thumb">
+          <img src="/writing/img/yt/bZQun8Y4L2A.jpg" width="320" height="180" loading="lazy" alt="">
+          <svg class="embed-play" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)"/><path d="M9.7 7.4v9.2L16.9 12z" fill="#fff"/></svg>
+        </span>
+        <span class="embed-body">
+          <span class="embed-kicker">YouTube · talk</span>
+          <span class="embed-title">State of GPT</span>
+          <span class="embed-meta">Andrej Karpathy · Microsoft Build 2023</span>
+        </span>
+      </a>
+
+      <p>And I kind of dismissed it. Human preferences in the loop felt impure to me. I was only interested in systems with no human in the loop. It's the same purist instinct that made me refuse reward shaping on mountain car, and honestly it has cost me both times.</p>
+
+      <p>Because RLHF wasn't wrong, it was early. People stuck with it, and the human in the loop kept getting replaced. Preference data became reward models, and reward models became verifiers. RLVR with GRPO, and the wave of Chinese open-source models that ran with it, was the unlock. You don't need a human to say which answer is better when the unit tests can tell you.</p>
+
+      <p>And now? Sutton went on Dwarkesh. Coding agents actually work. The math results keep landing. The entire industry is pivoting into RL wrapped around LLMs.</p>
+
+      <a class="embed embed-video" href="https://www.youtube.com/watch?v=21EYKqUsPfg&amp;t=3401s">
+        <span class="embed-thumb">
+          <img src="/writing/img/yt/21EYKqUsPfg.jpg" width="320" height="180" loading="lazy" alt="">
+          <svg class="embed-play" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)"/><path d="M9.7 7.4v9.2L16.9 12z" fill="#fff"/></svg>
+        </span>
+        <span class="embed-body">
+          <span class="embed-kicker">YouTube · podcast</span>
+          <span class="embed-title">Richard Sutton — Father of RL thinks LLMs are a dead end</span>
+          <span class="embed-meta">Dwarkesh Patel · from 56:41</span>
+        </span>
+      </a>
+
+      <p>So the scoreboard from that party reads funny now. My peer said robotics, and robotics is where I ended up working. The elder said embedded agents, and an LLM agent built half of this website. And RL, the thing nobody cared about anymore, turned out to be what makes LLMs work at scale.</p>
+
+      <p>The singularity feels very intense from here. We can all feel it accelerating. I'm keeping my bet.</p>
+    </article>
+
+    <footer class="site-footer">
+      © 2026 Anson Chu · <a href="/">home</a>
+    </footer>
+
+  </main>
+</body>
+</html>
