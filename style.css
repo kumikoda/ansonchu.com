@@ -518,6 +518,22 @@ a:focus-visible {
 .embed-thumb-fig { background: #fff; }
 .embed-thumb-fig img { object-fit: contain; }
 
+/* talk pages: notion banner + slide decks */
+.banner {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid var(--faint);
+  margin: 0 0 2rem;
+}
+.slide {
+  width: 100%;
+  display: block;
+  border: 1px solid var(--faint);
+  border-radius: 6px;
+}
+figure.slidefig { margin: 0 0 0.9rem; }
+
 /* video */
 .vidgrid {
   display: grid;
