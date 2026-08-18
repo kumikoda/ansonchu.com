@@ -14,7 +14,17 @@
       <h1>Backpropagating through cross entropy</h1>
       <p class="post-meta">2023-10 · notes · zero to hero</p>
       <p>Okay if you are like me, you probably struggled a bit to follow the math from exercise 2 in this video.</p>
-      <p><a href="https://youtu.be/q8SA3rM6ckI?si=on2Bu9lDcWlOtIwQ&amp;t=5453">https://youtu.be/q8SA3rM6ckI?si=on2Bu9lDcWlOtIwQ&amp;t=5453</a></p>
+            <a class="embed embed-video" href="https://youtu.be/q8SA3rM6ckI?t=5453">
+        <span class="embed-thumb">
+          <img src="/writing/img/yt/q8SA3rM6ckI.jpg" width="320" height="180" loading="lazy" alt="">
+          <svg class="embed-play" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)"/><path d="M9.7 7.4v9.2L16.9 12z" fill="#fff"/></svg>
+        </span>
+        <span class="embed-body">
+          <span class="embed-kicker">YouTube · video</span>
+          <span class="embed-title">Building makemore Part 4: Becoming a Backprop Ninja</span>
+          <span class="embed-meta">Andrej Karpathy · exercise 2, from 1:30:53</span>
+        </span>
+      </a>
       <p>The first section containing the problem setup was pretty clear, though some of the handwriting is barely legible 😅</p>
       <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-01.png" alt="Karpathy&#x27;s problem setup"><figcaption>Karpathy&#x27;s problem setup</figcaption></figure>
       <p>Here is my version.</p>
@@ -41,7 +51,17 @@
       <p>In particular, what does this even mean? Again we have this strangeness where we are trying to get a derivative <code>l_i</code> but we don’t even see <code>l_i</code> in the expression! Well turns out <code>l_i</code> is actually in the expression if you unroll the summation into its individual terms. Since <code>j</code> spans all possible values of <code>i</code>, you can think of the sum to just be a single e to the <code>l_i</code> plus a bunch of other arbitrary constants. Since the derivative of a constant is 0 we can just ignore them. And the derivative of exponent is just exponent, so we are left with just the single e to the <code>l_i</code>.</p>
       <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-12.png" alt="unrolling the summation into individual terms"><figcaption>unrolling the summation into individual terms</figcaption></figure>
       <p>Okay so I admit it took me a bit of time to actually understand these few lines (which Karpathy does not even write out 😅). I had to google around to find some hints and I found this following article very useful.</p>
-      <p><a href="https://youtu.be/q8SA3rM6ckI?si=on2Bu9lDcWlOtIwQ&t=5453">https://youtu.be/q8SA3rM6ckI?si=on2Bu9lDcWlOtIwQ&amp;t=5453</a></p>
+            <a class="embed embed-video" href="https://youtu.be/q8SA3rM6ckI?t=5453">
+        <span class="embed-thumb">
+          <img src="/writing/img/yt/q8SA3rM6ckI.jpg" width="320" height="180" loading="lazy" alt="">
+          <svg class="embed-play" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)"/><path d="M9.7 7.4v9.2L16.9 12z" fill="#fff"/></svg>
+        </span>
+        <span class="embed-body">
+          <span class="embed-kicker">YouTube · video</span>
+          <span class="embed-title">Building makemore Part 4: Becoming a Backprop Ninja</span>
+          <span class="embed-meta">Andrej Karpathy · exercise 2, from 1:30:53</span>
+        </span>
+      </a>
       <p>Now once you understand the above, getting to the final answer for this branch is quite trivial. Well deserved smiley face indeed.</p>
       <figure><img src="/writing/img/zth/zth-backprop-cross-entropy-13.png" alt="final answer for the i ≠ y branch"><figcaption>final answer for the i ≠ y branch</figcaption></figure>
       <p>The other branch is actually pretty much the exact same thing except for one term.</p>

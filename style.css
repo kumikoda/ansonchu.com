@@ -356,6 +356,35 @@ pre code { background: none; padding: 0; font-size: inherit; }
   white-space: nowrap;
 }
 
+/* video cards: local thumbnail, no third-party player or requests */
+.embed-video { align-items: center; margin-bottom: 1.5rem; }
+
+.embed-thumb {
+  flex: none;
+  position: relative;
+  width: 8rem;
+  aspect-ratio: 16 / 9;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--faint);
+}
+.embed-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.embed-play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 2.1rem;
+  height: 2.1rem;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+  transition: transform 0.15s ease;
+}
+.embed:hover .embed-play { transform: scale(1.12); }
+
 /* small "current version" line under a pinned card */
 .embed-alt {
   font-family: var(--mono);
@@ -415,4 +444,5 @@ a:focus-visible {
   body { font-size: 18px; }
   .wrap { padding: 3rem 1.2rem 4rem; }
   .entry { grid-template-columns: 5rem 1fr; gap: 0.4rem 0.7rem; }
+  .embed-thumb { width: 6rem; }
 }
