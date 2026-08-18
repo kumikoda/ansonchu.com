@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RL × LLMs — Anson Chu</title>
+  <meta name="description" content="21 Claude-generated lessons exploring how RL and LLMs come together: from the Bellman equation to GRPO and RLVR, the systems that run frontier RL, and a lab to build it yourself.">
+  <link rel="stylesheet" href="/style.css">
+  <meta property="og:title" content="RL × LLMs">
+  <meta property="og:description" content="21 lessons on how RL and LLMs come together — foundations to GRPO/RLVR to the systems underneath.">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://ansonchu.com/lessons/">
+</head>
+<body>
+  <main class="wrap">
+
+    <a class="backlink" href="/">← Anson Chu</a>
+
+    <article>
+      <h1>RL × LLMs</h1>
+      <p class="post-meta">2025–2026 · 21 claude-generated lessons · interactive, made to be read on a phone</p>
+
+      <!-- INTRO — Anson writes this. One or two short paragraphs on the goal:
+           exploring how RL and LLMs come together. Delete this comment after. -->
+
+      <p class="theme-label">The spine — RL foundations</p>
+      <a class="embed" href="/lessons/rl-lesson-01.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">MDPs &amp; the Bellman equation</span>
+          <span class="embed-note">the objects of RL: states, actions, returns, and the one equation everything unrolls from</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/rl-lesson-03-policy-gradients.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Policy gradients &amp; REINFORCE</span>
+          <span class="embed-note">learn the policy directly; why it's noisy, and what baselines buy you</span>
+        </span>
+      </a>
+      <a class="embed embed-solo" href="/lessons/rl-lesson-04-ppo-gae.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">PPO + GAE</span>
+          <span class="embed-note">the clipped objective as a trust-region leash; GAE as a bias&ndash;variance dial</span>
+        </span>
+      </a>
+      <p class="theme-label">The other half — LLMs</p>
+      <a class="embed" href="/lessons/rl-primer-llm-foundations.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">LLM foundations</span>
+          <span class="embed-note">tokens, logits, and the training stack, seen from the RL side</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/rl-primer-2-kv-cache-gqa.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">KV cache &amp; GQA</span>
+          <span class="embed-note">why inference is memory-bound, and what that costs RL rollouts</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/substrate-finetuning-lora.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Fine-tuning with LoRA</span>
+          <span class="embed-note">&Delta;W = BA &mdash; and why Tinker is LoRA-only</span>
+        </span>
+      </a>
+      <a class="embed embed-solo" href="/lessons/substrate-distillation.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Distillation</span>
+          <span class="embed-note">soft targets and dark knowledge; the R1 recipe; on-policy distillation &asymp; GRPO with a dense teacher</span>
+        </span>
+      </a>
+      <p class="theme-label">The merger — RL for LLMs</p>
+      <a class="embed" href="/lessons/rl-for-llms-map.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">The orientation map</span>
+          <span class="embed-note">RLHF to RLVR in one view &mdash; where every technique sits</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/rl-lesson-05-grpo-frontier.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">GRPO &amp; RLVR</span>
+          <span class="embed-note">the frontier recipe: group-relative advantages, verifiable rewards</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/rl-lesson-06-data.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Data for RL</span>
+          <span class="embed-note">when the reward is a checker, the data job is curating prompts and hardening the verifier</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/rl-lesson-07-environments.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Environments</span>
+          <span class="embed-note">environments as the new datasets</span>
+        </span>
+      </a>
+      <a class="embed embed-solo" href="/lessons/rl-lesson-08-evals.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Evals</span>
+          <span class="embed-note">Goodhart, pass@k, contamination &mdash; the intro</span>
+        </span>
+      </a>
+      <p class="theme-label">The machinery — systems</p>
+      <a class="embed" href="/lessons/rl-systems-harnesses.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Training harnesses</span>
+          <span class="embed-note">the actor&ndash;learner split, weight sync, stragglers</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/systems-inference-engines.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Inference engines</span>
+          <span class="embed-note">vLLM vs SGLang &mdash; PagedAttention, RadixAttention, why rollouts need an engine</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/infra-sandboxes.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Sandboxes</span>
+          <span class="embed-note">safely training agents that execute code</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/infra-environments-prime-intellect.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">The environments ecosystem</span>
+          <span class="embed-note">Verifiers envs and the Environments Hub</span>
+        </span>
+      </a>
+      <a class="embed embed-solo" href="/lessons/systems-evals-deep-harbor.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Evals, the deep dive</span>
+          <span class="embed-note">eval anatomy, paired stats, unbiased pass@k, judge biases, arenas, contamination</span>
+        </span>
+      </a>
+      <p class="theme-label">Applied — where it points</p>
+      <a class="embed" href="/lessons/rl-applied-code.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">RL on code</span>
+          <span class="embed-note">tests as the perfect verifier &mdash; and reward hacking</span>
+        </span>
+      </a>
+      <a class="embed" href="/lessons/rl-applied-math.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">RL on math</span>
+          <span class="embed-note">answer-checking vs Lean; AlphaProof; the pass@k debate</span>
+        </span>
+      </a>
+      <a class="embed embed-solo" href="/lessons/agents-computer-browser-terminal-use.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">Computer, browser, terminal use</span>
+          <span class="embed-note">the grounding spectrum: text &rarr; DOM &rarr; pixels</span>
+        </span>
+      </a>
+      <p class="theme-label">The capstone</p>
+      <a class="embed embed-solo" href="/lessons/lab-grpo-on-tinker.html">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">claude-generated lesson</span>
+          <span class="embed-title">GRPO on Tinker — the lab</span>
+          <span class="embed-note">stop reading, build: run GRPO yourself</span>
+        </span>
+      </a>
+    </article>
+
+    <footer class="site-footer">
+      © 2026 Anson Chu · <a href="/">home</a>
+    </footer>
+
+  </main>
+</body>
+</html>

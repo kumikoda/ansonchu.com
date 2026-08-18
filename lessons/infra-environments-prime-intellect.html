@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infra · Environments (Prime Intellect)</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+  :root{--bg:#0E1116;--panel:#151B23;--card:#1A212B;--raised:#202935;--ink:#E7EBF1;--muted:#8C97A6;--faint:#5C6675;--value:#E8A04C;--value-dim:#5a4326;--signal:#5BA8FF;--signal-dim:#22364f;--optima:#B492FF;--optima-dim:#33285a;--good:#5BD6A6;--good-dim:#1f4538;--rose:#F2789B;--rose-dim:#54283a;--rule:#28313D;--rule-soft:#1E2630}
+  *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Newsreader",Georgia,serif;font-size:17px;line-height:1.62;font-optical-sizing:auto;background-image:radial-gradient(circle at 10% -5%,rgba(91,214,166,.07),transparent 40%),radial-gradient(circle at 95% 6%,rgba(180,146,255,.05),transparent 44%);background-attachment:fixed}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px 90px}
+  header{padding:38px 0 8px}
+  .eyebrow{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--good);display:flex;align-items:center;gap:10px}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--good);box-shadow:0 0 10px var(--good)}
+  .lesson-badge{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint);border:1px solid var(--rule);border-radius:6px;padding:3px 8px;margin-left:auto;letter-spacing:.05em}
+  h1{font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:-.02em;font-size:clamp(27px,6.2vw,42px);line-height:1.05;margin:.4em 0 .25em}
+  .standfirst{color:var(--muted);font-size:18px;max-width:64ch;margin:0 0 6px}.standfirst em{color:var(--ink);font-style:italic}
+  section{padding:30px 0;border-top:1px solid var(--rule-soft)}
+  .sec-label{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .sec-label .n{color:var(--good);font-family:"JetBrains Mono",monospace}
+  h2{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:clamp(22px,5vw,28px);letter-spacing:-.01em;margin:.1em 0 .5em}
+  h3{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:17px;margin:1.4em 0 .3em}
+  p{margin:.7em 0}strong{color:#fff;font-weight:600}
+  code{font-family:"JetBrains Mono",monospace;font-size:.85em;background:var(--raised);padding:1px 6px;border-radius:5px;color:#cdd6e2}
+  .note{border-left:3px solid var(--value);background:linear-gradient(90deg,rgba(232,160,76,.08),transparent 80%);padding:12px 16px;margin:18px 0;border-radius:0 10px 10px 0;font-size:16px}
+  .note.sig{border-color:var(--signal);background:linear-gradient(90deg,rgba(91,168,255,.08),transparent 80%)}
+  .note.opt{border-color:var(--optima);background:linear-gradient(90deg,rgba(180,146,255,.08),transparent 80%)}
+  .note.good{border-color:var(--good);background:linear-gradient(90deg,rgba(91,214,166,.08),transparent 80%)}
+  .note .k{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--value);display:block;margin-bottom:2px}
+  .note.sig .k{color:var(--signal)}.note.opt .k{color:var(--optima)}.note.good .k{color:var(--good)}
+  figure{margin:24px 0;background:var(--panel);border:1px solid var(--rule);border-radius:16px;padding:20px 16px 12px;text-align:center}
+  figure svg{max-width:100%;height:auto;display:block;margin:0 auto}
+  figcaption{font-family:"Space Grotesk",sans-serif;font-size:12.5px;color:var(--muted);margin-top:12px;letter-spacing:.01em}figcaption b{color:var(--ink)}
+  pre{background:#0c0f14;border:1px solid var(--rule);border-radius:12px;padding:16px;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:1.6;margin:18px 0}
+  pre .c{color:var(--faint)}pre .kw{color:#B492FF}pre .fn{color:#5BA8FF}pre .str{color:#5BD6A6}
+  .quizwrap{background:linear-gradient(180deg,rgba(91,214,166,.05),transparent);border:1px solid var(--rule);border-radius:18px;padding:6px 18px 20px;margin:18px 0}
+  .scorebar{position:sticky;top:8px;background:var(--card);padding:11px 15px;display:flex;align-items:center;gap:13px;z-index:5;border:1px solid var(--rule);border-radius:13px;margin:4px 0 16px;box-shadow:0 6px 18px -10px rgba(0,0,0,.6)}
+  .scorebar .lbl{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+  .scorebar .score{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;color:var(--good);margin-left:auto}
+  .track{flex:1;height:8px;background:rgba(255,255,255,.055);border-radius:5px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}.track .fill{height:100%;width:0;background:var(--good);border-radius:5px;box-shadow:0 0 8px rgba(91,214,166,.5);transition:width .45s cubic-bezier(.4,0,.2,1)}
+  .quiz{padding:16px 0;border-bottom:1px solid var(--rule-soft)}.quiz:last-child{border-bottom:none}
+  .quiz .qtext{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:16.5px;color:var(--ink);margin:0 0 12px;display:flex;gap:9px}
+  .quiz .qtext .qn{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--good);flex:0 0 auto}
+  .opt{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--rule);border-radius:11px;padding:12px 14px;margin:8px 0;color:var(--ink);font-family:"Newsreader",serif;font-size:15.5px;cursor:pointer;transition:border-color .15s,background .15s;position:relative}
+  .opt:hover:not(.done){border-color:var(--good);background:var(--raised)}
+  .opt .mk{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-family:"JetBrains Mono",monospace;font-weight:700;font-size:15px;opacity:0}
+  .opt.done{cursor:default}.opt.correct{border-color:var(--good);background:rgba(91,214,166,.10)}.opt.correct .mk{opacity:1;color:var(--good)}.opt.correct .mk::after{content:"✓"}
+  .opt.wrong{border-color:var(--rose);background:rgba(242,120,155,.10)}.opt.wrong .mk{opacity:1;color:var(--rose)}.opt.wrong .mk::after{content:"✕"}
+  .opt.done:not(.correct):not(.wrong){opacity:.5}
+  .explain{max-height:0;overflow:hidden;opacity:0;transition:max-height .35s ease,opacity .35s ease,margin .35s ease;font-size:15px;color:var(--muted)}
+  .explain.show{max-height:380px;opacity:1;padding:11px 14px;margin-top:10px;background:rgba(91,214,166,.05);border-left:3px solid var(--good);border-radius:0 10px 10px 0}
+  .explain.show.miss{border-color:var(--rose);background:rgba(242,120,155,.05)}.explain b{color:var(--ink)}
+  .takeaway{margin:30px 0 0;padding:22px;border:1px solid var(--good-dim);border-radius:16px;background:radial-gradient(120% 140% at 0% 0%,rgba(91,214,166,.10),transparent 60%)}
+  .takeaway .k{font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--good)}.takeaway p{font-size:19px;margin:.3em 0 0;font-style:italic}
+  footer{margin-top:46px;padding-top:24px;border-top:1px solid var(--rule);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .next{font-family:"Space Grotesk",sans-serif;font-weight:600}.next small{display:block;color:var(--faint);font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase}.next a{color:var(--ink);text-decoration:none;border-bottom:2px solid var(--good)}
+  .stamp{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--faint)}
+  .blink{animation:blink 2.6s ease-in-out infinite}@keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.blink{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><span class="dot"></span> Agent &amp; RL infra · deep dive <span class="lesson-badge">ENVIRONMENTS · PRIME INTELLECT</span></div>
+    <h1>Environments, Open-Sourced</h1>
+    <p class="standfirst">Lesson 7 said the verifier <em>is</em> the environment. This is what happens when you turn that into shared infrastructure. The bet behind Prime Intellect’s Environments Hub: <em>RL environments are the bottleneck to the next wave of progress, and the closed labs are locking them down</em> — so build an open commons before that gap calcifies.</p>
+  </header>
+
+  <!-- HERO: the stack -->
+  <figure>
+    <svg viewBox="0 0 500 200" role="img" aria-label="The Prime Intellect environments stack">
+      <defs><marker id="aS" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8C97A6"/></marker></defs>
+      <rect x="20" y="30" width="130" height="50" rx="11" fill="#1f4538" stroke="#5BD6A6" stroke-width="1.5"/><text x="85" y="50" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#9fe6c8">Environments Hub</text><text x="85" y="66" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">crowdsourced, shareable</text>
+      <rect x="185" y="30" width="130" height="50" rx="11" fill="#22364f" stroke="#5BA8FF" stroke-width="1.5"/><text x="250" y="50" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#9cc6ff">Verifiers</text><text x="250" y="66" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">defines an environment</text>
+      <rect x="350" y="30" width="130" height="50" rx="11" fill="#33285a" stroke="#B492FF" stroke-width="1.5"/><text x="415" y="50" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#c9b3ff">prime-rl / Tinker</text><text x="415" y="66" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">trains on it</text>
+      <g stroke="#8C97A6" stroke-width="1.4" marker-end="url(#aS)"><line x1="150" y1="55" x2="183" y2="55"/><line x1="315" y1="55" x2="348" y2="55"/></g>
+      <rect x="120" y="120" width="260" height="50" rx="12" fill="#1A212B" stroke="#E8A04C" stroke-width="1.5"/><text x="250" y="140" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="13" fill="#E8A04C">a trained open model</text><text x="250" y="157" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="10" fill="#8C97A6">e.g. INTELLECT-3, agentic + coding</text>
+      <line x1="415" y1="80" x2="280" y2="118" stroke="#8C97A6" stroke-width="1.4" marker-end="url(#aS)"/>
+      <text x="250" y="190" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="11" fill="#5C6675">install an environment as a Python module → train without touching the trainer’s code</text>
+    </svg>
+    <figcaption><b>One coherent stack.</b> The Hub distributes environments; the <span style="color:#5BA8FF">Verifiers</span> library standardizes how they’re written; <span style="color:#B492FF">prime-rl</span> (async, 1000+ GPUs) or a Tinker backend trains on them. Environments install as standalone Python modules and plug into training with no trainer-side changes.</figcaption>
+  </figure>
+
+  <!-- THE BOTTLENECK -->
+  <section>
+    <div class="sec-label"><span class="n">01</span> The thesis</div>
+    <h2>Environments are the new bottleneck</h2>
+    <p>Once RLVR works, the limiting resource shifts. It’s no longer the algorithm (GRPO is a page of code) or even compute — it’s <strong>having good environments</strong>: tasks with reliable verifiers across the domains you care about. Commercial labs realized this and a market for proprietary, closed environments emerged. The open worry: if the best environments are private, open models inherit whatever capabilities those inaccessible tools happen to shape.</p>
+    <div class="note opt"><span class="k">The startup-shaped insight</span>
+      Prime Intellect’s framing is striking: <em>the most successful future startups will emerge by creating novel, differentiated environments tailored to their needs.</em> If the model is increasingly a commodity and the algorithm is open, your <strong>environment</strong> — the task definition plus the verifier — is the defensible asset. That reframes “what do I build” for anyone in this space, you included.</p>
+    </div>
+  </section>
+
+  <!-- ANATOMY -->
+  <section>
+    <div class="sec-label"><span class="n">02</span> Anatomy</div>
+    <h2>An environment is four LEGO blocks</h2>
+    <p>The Verifiers library (by Will Brown) standardizes an environment as a self-contained Python module built from four parts — the same shape whether it’s a one-shot math problem or a multi-turn tool-using agent:</p>
+    <figure>
+      <svg viewBox="0 0 500 130" role="img" aria-label="The four blocks of a Verifiers environment">
+        <g font-family="Space Grotesk" font-size="11" text-anchor="middle">
+          <rect x="14" y="40" width="108" height="50" rx="10" fill="#1f4538" stroke="#5BD6A6" stroke-width="1.3"/><text x="68" y="60" fill="#9fe6c8" font-weight="600">dataset</text><text x="68" y="76" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">questions + answers</text>
+          <rect x="134" y="40" width="108" height="50" rx="10" fill="#22364f" stroke="#5BA8FF" stroke-width="1.3"/><text x="188" y="60" fill="#9cc6ff" font-weight="600">rollout</text><text x="188" y="76" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">how the model acts</text>
+          <rect x="254" y="40" width="108" height="50" rx="10" fill="#5a4326" stroke="#E8A04C" stroke-width="1.3"/><text x="308" y="60" fill="#E8A04C" font-weight="600">parser</text><text x="308" y="76" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">extract the answer</text>
+          <rect x="374" y="40" width="112" height="50" rx="10" fill="#33285a" stroke="#B492FF" stroke-width="1.3"/><text x="430" y="60" fill="#c9b3ff" font-weight="600">rubric</text><text x="430" y="76" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">score → reward</text>
+        </g>
+      </svg>
+      <figcaption>The <span style="color:#5BD6A6">dataset</span> supplies prompts and ground truth; the <span style="color:#5BA8FF">rollout</span> defines interaction (single-turn, or multi-turn with tools); the <span style="color:#E8A04C">parser</span> pulls the answer out of the model's text; the <span style="color:#B492FF">rubric</span> turns it into a scalar reward. Snap them together and you have a training-and-eval environment.</figcaption>
+    </figure>
+    <pre><span class="c"># pull an environment from the Hub and train on it</span>
+prime <span class="fn">login</span>
+vf.<span class="fn">load_environment</span>(<span class="str">"primeintellect/alphabet-sort"</span>,
+                   env_args={<span class="str">"max_turns"</span>: 10, <span class="str">"difficulty"</span>: <span class="str">"hard"</span>})
+<span class="c"># → plug into prime-rl, or a Tinker backend, and run GRPO</span></pre>
+    <div class="note sig"><span class="k">One artifact, four uses</span>
+      Because the environment bundles task + verifier, the same module serves <strong>RL training, evaluation, synthetic-data generation, and agent-harness experiments</strong>. That’s the data↔eval coupling from Lesson 8 made literal: the thing you train against and the thing you measure with are the same object — which is exactly why you must hold out a separate split.</p>
+    </div>
+  </section>
+
+  <!-- OPEN VS CLOSED + DISTRIBUTED -->
+  <section>
+    <div class="sec-label"><span class="n">03</span> Why crowdsource</div>
+    <h2>A commons, trained on a swarm</h2>
+    <p>The Hub is a community platform — people contribute environments (porting benchmarks like BrowseComp, building coding/agentic tasks), and those feed real models: <strong>INTELLECT-2 and -3 were trained on crowdsourced environments</strong>. Underneath, prime-rl does fully-async distributed RL, and the broader system can even run <em>decentralized</em> — a permissionless swarm of rollout workers generating trajectories, with TOPLOC verifying their inference so you can trust compute you don’t control.</p>
+    <figure>
+      <svg viewBox="0 0 500 150" role="img" aria-label="Decentralized rollout swarm verified by TOPLOC">
+        <rect x="200" y="20" width="100" height="34" rx="9" fill="#33285a" stroke="#B492FF" stroke-width="1.4"/><text x="250" y="41" text-anchor="middle" font-family="Space Grotesk" font-size="11" fill="#c9b3ff">central learner</text>
+        <g font-family="JetBrains Mono" font-size="8.5" text-anchor="middle">
+          <rect x="40" y="92" width="74" height="30" rx="7" fill="#22364f" stroke="#5BA8FF"/><text x="77" y="111" fill="#9cc6ff">rollout node</text>
+          <rect x="130" y="92" width="74" height="30" rx="7" fill="#22364f" stroke="#5BA8FF"/><text x="167" y="111" fill="#9cc6ff">rollout node</text>
+          <rect x="296" y="92" width="74" height="30" rx="7" fill="#22364f" stroke="#5BA8FF"/><text x="333" y="111" fill="#9cc6ff">rollout node</text>
+          <rect x="386" y="92" width="74" height="30" rx="7" fill="#22364f" stroke="#5BA8FF"/><text x="423" y="111" fill="#9cc6ff">rollout node</text>
+        </g>
+        <g stroke="#5C6675" stroke-width="1.1"><line x1="77" y1="92" x2="220" y2="54"/><line x1="167" y1="92" x2="235" y2="54"/><line x1="333" y1="92" x2="265" y2="54"/><line x1="423" y1="92" x2="280" y2="54"/></g>
+        <text x="250" y="140" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="10.5" fill="#5C6675">permissionless workers generate rollouts · TOPLOC verifies their inference</text>
+      </svg>
+      <figcaption><b>RL without a single data center.</b> A swarm of nodes pulls the latest policy, runs rollouts in their environment, computes rewards, and ships trajectories back — verifiable inference lets the learner trust workers it doesn't own. The EnvGroup pattern even combines many environments into one run, routing each rollout by task ID.</figcaption>
+    </figure>
+    <div class="note good"><span class="k">It closes the cluster</span>
+      Notice the loop: the Hub launched <strong>sandboxes that plug directly into Verifier environments</strong> for secure code execution (Lesson 1), the environments define the RL task (Lesson 7), and the same modules can train via a <strong>Tinker backend</strong> (your lab). Sandboxes → environments → trainer is one continuous pipeline, and it’s mostly open-source.</p>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section>
+    <div class="sec-label"><span class="n">04</span> Quiz · tap to answer</div>
+    <h2>Check yourself — live</h2>
+    <div class="quizwrap">
+      <div class="scorebar"><span class="lbl">Score</span><div class="track"><div class="fill" id="fill"></div></div><span class="score" id="score">0 / 0</span></div>
+      <div class="quiz" data-answer="2">
+        <p class="qtext"><span class="qn">Q1</span> Once RLVR works, what becomes the limiting resource — the thesis behind the Environments Hub?</p>
+        <button class="opt">A better RL algorithm than GRPO<span class="mk"></span></button>
+        <button class="opt">More raw GPU compute<span class="mk"></span></button>
+        <button class="opt">Good environments — tasks with reliable verifiers across domains<span class="mk"></span></button>
+        <button class="opt">Larger context windows<span class="mk"></span></button>
+        <div class="explain"><b>Environments.</b> The algorithm is a page of code and compute is buyable; what's scarce is well-designed tasks with trustworthy verifiers. Closed labs began hoarding proprietary environments, so an open commons is the hedge — otherwise open models inherit only the capabilities that inaccessible tools happen to shape.</div>
+      </div>
+      <div class="quiz" data-answer="0">
+        <p class="qtext"><span class="qn">Q2</span> A Verifiers environment is built from four blocks. Which set is right?</p>
+        <button class="opt">dataset · rollout · parser · rubric<span class="mk"></span></button>
+        <button class="opt">encoder · decoder · loss · optimizer<span class="mk"></span></button>
+        <button class="opt">actor · critic · buffer · target net<span class="mk"></span></button>
+        <button class="opt">tokenizer · embedder · sampler · scorer<span class="mk"></span></button>
+        <div class="explain"><b>dataset · rollout · parser · rubric.</b> Dataset supplies prompts + ground truth; rollout defines how the model interacts (single- or multi-turn with tools); parser extracts the answer from the text; rubric turns it into a scalar reward. Snap them together — the same module then serves training, eval, synthetic data, and harness experiments.</div>
+      </div>
+      <div class="quiz" data-answer="3">
+        <p class="qtext"><span class="qn">Q3</span> Why is "the environment is the defensible asset" an interesting reframe for builders?</p>
+        <button class="opt">Because environments are impossible to copy<span class="mk"></span></button>
+        <button class="opt">Because models can't be trained without them at all<span class="mk"></span></button>
+        <button class="opt">Because GPUs are free<span class="mk"></span></button>
+        <button class="opt">If models commoditize and algorithms are open, your task+verifier is what's differentiated<span class="mk"></span></button>
+        <div class="explain"><b>It relocates the moat.</b> When the base model is a commodity and GRPO is public, the differentiated thing you own is the <i>environment</i> — the novel task plus a reliable verifier tailored to your domain. Prime Intellect's bet is that the strongest future startups are environment companies. For you, that reframes "what to build" away from yet another training loop.</div>
+      </div>
+      <div class="quiz" data-answer="1">
+        <p class="qtext"><span class="qn">Q4</span> In a decentralized prime-rl run, what problem does TOPLOC solve?</p>
+        <button class="opt">It compresses the model's weights<span class="mk"></span></button>
+        <button class="opt">It verifies the inference of permissionless rollout workers you don't control<span class="mk"></span></button>
+        <button class="opt">It schedules the optimizer steps<span class="mk"></span></button>
+        <button class="opt">It writes the reward function for you<span class="mk"></span></button>
+        <div class="explain"><b>Trust in an untrusted swarm.</b> Decentralized RL has anonymous nodes generating rollouts on the latest policy. TOPLOC is verifiable inference — it efficiently checks that a worker actually ran the computation it claims, so the central learner can trust trajectories from hardware it doesn't own. That's what makes permissionless, globally distributed RL training possible.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="takeaway">
+    <span class="k">Takeaway</span>
+    <p>An environment is dataset + rollout + parser + rubric, packaged as a shareable module — and once RLVR works, the environment <em>is</em> the scarce, defensible asset. Prime Intellect's bet is to make that commons open, train real models on it, and run the whole thing on a verifiable swarm.</p>
+  </div>
+
+  <footer>
+    <a href="index.html" style='display:inline-flex;align-items:center;gap:7px;font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.03em;color:#E7EBF1;text-decoration:none;padding:8px 13px;border:1px solid #2E3947;border-radius:10px;background:#1A212B'>&#8617;&nbsp;Exploration map</a>
+    <div class="next"><small>Last in this cluster</small><a href="#">Computer / browser / terminal use → agents</a></div>
+    <span class="stamp blink">● 2 of 3</span>
+  </footer>
+</div>
+<script>
+(function(){var total=0,correct=0;var s=document.getElementById('score'),f=document.getElementById('fill');var qs=document.querySelectorAll('.quiz');qs.forEach(function(q){var a=parseInt(q.getAttribute('data-answer'),10);var o=q.querySelectorAll('.opt');var e=q.querySelector('.explain');var done=false;o.forEach(function(b,i){b.addEventListener('click',function(){if(done)return;done=true;total++;var g=(i===a);if(g)correct++;o.forEach(function(x,j){x.classList.add('done');if(j===a)x.classList.add('correct');});if(!g)b.classList.add('wrong');e.classList.add('show');if(!g)e.classList.add('miss');s.textContent=correct+' / '+total;f.style.width=(correct/qs.length*100)+'%';});});});})();
+</script>
+</body>
+</html>

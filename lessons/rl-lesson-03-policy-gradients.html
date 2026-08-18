@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RL → Frontier · Lesson 03 — Policy Gradients &amp; REINFORCE</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1116; --panel:#151B23; --card:#1A212B; --raised:#202935;
+    --ink:#E7EBF1; --muted:#8C97A6; --faint:#5C6675;
+    --value:#E8A04C; --value-dim:#5a4326;
+    --signal:#5BA8FF; --signal-dim:#22364f;
+    --optima:#B492FF; --optima-dim:#33285a;
+    --good:#5BD6A6; --good-dim:#1f4538;
+    --rule:#28313D; --rule-soft:#1E2630;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:"Newsreader",Georgia,serif; font-size:17px; line-height:1.62; font-optical-sizing:auto;
+    background-image:radial-gradient(circle at 10% -5%, rgba(91,168,255,.06), transparent 40%),radial-gradient(circle at 95% 6%, rgba(91,214,166,.05), transparent 44%); background-attachment:fixed}
+  .wrap{max-width:760px; margin:0 auto; padding:0 20px 90px}
+  header{padding:38px 0 8px}
+  .eyebrow{font-family:"Space Grotesk",sans-serif; font-weight:600; font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--signal); display:flex; align-items:center; gap:10px}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--signal);box-shadow:0 0 10px var(--signal)}
+  .lesson-badge{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--faint); border:1px solid var(--rule); border-radius:6px; padding:3px 8px; margin-left:auto; letter-spacing:.05em}
+  h1{font-family:"Space Grotesk",sans-serif; font-weight:700; letter-spacing:-.02em; font-size:clamp(29px,6.6vw,44px); line-height:1.05; margin:.4em 0 .25em}
+  .standfirst{color:var(--muted); font-size:18px; max-width:64ch; margin:0 0 6px}
+  .standfirst em{color:var(--ink); font-style:italic}
+  section{padding:30px 0; border-top:1px solid var(--rule-soft)}
+  .sec-label{font-family:"Space Grotesk",sans-serif; font-weight:600; font-size:12.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); display:flex; align-items:center; gap:10px; margin-bottom:14px}
+  .sec-label .n{color:var(--signal); font-family:"JetBrains Mono",monospace}
+  h2{font-family:"Space Grotesk",sans-serif; font-weight:600; font-size:clamp(22px,5vw,28px); letter-spacing:-.01em; margin:.1em 0 .5em}
+  h3{font-family:"Space Grotesk",sans-serif; font-weight:600; font-size:17px; margin:1.4em 0 .3em}
+  p{margin:.7em 0}
+  strong{color:#fff; font-weight:600}
+  .tag-val{color:var(--value);font-weight:500}.tag-sig{color:var(--signal);font-weight:500}.tag-opt{color:var(--optima);font-weight:500}.tag-good{color:var(--good);font-weight:500}
+  code{font-family:"JetBrains Mono",monospace; font-size:.85em; background:var(--raised); padding:1px 6px; border-radius:5px; color:#cdd6e2}
+  .eq{font-family:"JetBrains Mono",monospace; font-size:14.5px; line-height:1.8; background:var(--card); border:1px solid var(--rule); border-radius:12px; padding:16px 18px; margin:18px 0; overflow-x:auto; position:relative}
+  .eq .lbl{position:absolute; top:-9px; left:14px; background:var(--bg); padding:0 8px; font-family:"Space Grotesk",sans-serif; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint)}
+  .eq b{color:var(--value);font-weight:500}.eq i{color:var(--signal);font-style:normal}.eq u{color:var(--optima);text-decoration:none}.eq .g{color:var(--good)}
+  .eq .step{color:var(--faint); font-size:12px}
+  .note{border-left:3px solid var(--value); background:linear-gradient(90deg,rgba(232,160,76,.08),transparent 80%); padding:12px 16px; margin:18px 0; border-radius:0 10px 10px 0; font-size:16px}
+  .note.sig{border-color:var(--signal); background:linear-gradient(90deg,rgba(91,168,255,.08),transparent 80%)}
+  .note.opt{border-color:var(--optima); background:linear-gradient(90deg,rgba(180,146,255,.08),transparent 80%)}
+  .note.good{border-color:var(--good); background:linear-gradient(90deg,rgba(91,214,166,.08),transparent 80%)}
+  .note .k{font-family:"Space Grotesk",sans-serif; font-weight:600; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--value); display:block; margin-bottom:2px}
+  .note.sig .k{color:var(--signal)}.note.opt .k{color:var(--optima)}.note.good .k{color:var(--good)}
+  figure{margin:24px 0; background:var(--panel); border:1px solid var(--rule); border-radius:16px; padding:20px 16px 12px; text-align:center}
+  figure svg{max-width:100%; height:auto; display:block; margin:0 auto}
+  figcaption{font-family:"Space Grotesk",sans-serif; font-size:12.5px; color:var(--muted); margin-top:12px; letter-spacing:.01em}
+  figcaption b{color:var(--ink)}
+  .key{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:10px; font-family:"Space Grotesk",sans-serif; font-size:11px; letter-spacing:.03em; color:var(--muted)}
+  .key span{display:inline-flex; align-items:center; gap:6px}
+  .swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+  details{background:var(--card); border:1px solid var(--rule); border-radius:14px; padding:4px 18px; margin:20px 0}
+  details[open]{padding-bottom:16px}
+  summary{cursor:pointer; list-style:none; font-family:"Space Grotesk",sans-serif; font-weight:600; padding:14px 0; display:flex; align-items:center; gap:10px; color:var(--ink)}
+  summary::-webkit-details-marker{display:none}
+  summary .chev{margin-left:auto; transition:transform .25s; color:var(--faint)}
+  details[open] summary .chev{transform:rotate(90deg)}
+  summary .x{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--optima); border:1px solid var(--optima-dim); border-radius:5px; padding:2px 7px}
+  .answer{border-top:1px solid var(--rule-soft); padding-top:12px; color:var(--ink); font-size:16px}
+  .takeaway{margin:30px 0 0; padding:22px; border:1px solid var(--signal-dim); border-radius:16px; background:radial-gradient(120% 140% at 0% 0%, rgba(91,168,255,.10), transparent 60%)}
+  .takeaway .k{font-family:"Space Grotesk",sans-serif; font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--signal)}
+  .takeaway p{font-size:19px; margin:.3em 0 0; font-style:italic}
+  footer{margin-top:46px; padding-top:24px; border-top:1px solid var(--rule); display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .next{font-family:"Space Grotesk",sans-serif; font-weight:600}
+  .next small{display:block; color:var(--faint); font-weight:500; font-size:11px; letter-spacing:.14em; text-transform:uppercase}
+  .next a{color:var(--ink); text-decoration:none; border-bottom:2px solid var(--signal)}
+  .stamp{margin-left:auto; font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--faint)}
+  .blink{animation:blink 2.6s ease-in-out infinite}
+  @keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+  .pulse{animation:travel 4.5s linear infinite}
+  @keyframes travel{to{offset-distance:100%}}
+  @media (prefers-reduced-motion:reduce){.blink,.pulse{animation:none}.pulse{opacity:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow"><span class="dot"></span> RL → Frontier · The keystone <span class="lesson-badge">RUNG 3 · YOUR GAP</span></div>
+    <h1>Policy Gradients &amp; REINFORCE</h1>
+    <p class="standfirst">DQN learned <em>what a state is worth</em> and acted greedily. Policy gradients skip that and optimize the <em>policy itself</em>. One trick — the score function — makes it possible even when the reward is a black box. Get this and PPO, GRPO, and the whole LLM frontier become variations on a theme.</p>
+  </header>
+
+  <!-- HERO: value-based vs policy-based architectures -->
+  <figure>
+    <svg viewBox="0 0 500 300" role="img" aria-label="Value-based versus policy-based architecture">
+      <defs>
+        <marker id="aS" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#8C97A6"/></marker>
+        <marker id="aBlue" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5BA8FF"/></marker>
+      </defs>
+      <!-- ROW 1: DQN (value-based) -->
+      <text x="14" y="26" font-family="Space Grotesk" font-weight="600" font-size="13" fill="#8C97A6">VALUE-BASED · what you know (DQN)</text>
+      <rect x="14" y="38" width="58" height="40" rx="9" fill="#1A212B" stroke="#8C97A6" stroke-width="1.3"/><text x="43" y="62" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#E7EBF1">state</text>
+      <rect x="104" y="34" width="92" height="48" rx="10" fill="#1A212B" stroke="#E8A04C" stroke-width="1.5"/><text x="150" y="55" text-anchor="middle" font-family="Space Grotesk" font-size="11.5" fill="#E8A04C">Q-network</text><text x="150" y="70" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8C97A6">Q(s,a)</text>
+      <g font-family="JetBrains Mono" font-size="10" text-anchor="middle">
+        <rect x="228" y="34" width="58" height="15" rx="3" fill="#2a2330" stroke="#5C6675" stroke-width="1"/><text x="257" y="45" fill="#8C97A6">2.1</text>
+        <rect x="228" y="52" width="58" height="15" rx="3" fill="#5a4326" stroke="#E8A04C" stroke-width="1.2"/><text x="257" y="63" fill="#E8A04C">5.3 ◀ max</text>
+        <rect x="228" y="70" width="58" height="15" rx="3" fill="#2a2330" stroke="#5C6675" stroke-width="1"/><text x="257" y="81" fill="#8C97A6">0.8</text>
+      </g>
+      <rect x="322" y="44" width="78" height="30" rx="8" fill="#1A212B" stroke="#8C97A6" stroke-width="1.3"/><text x="361" y="63" text-anchor="middle" font-family="Space Grotesk" font-size="11" fill="#E7EBF1">argmax → a</text>
+      <line x1="72" y1="58" x2="102" y2="58" stroke="#8C97A6" stroke-width="1.5" marker-end="url(#aS)"/>
+      <line x1="196" y1="58" x2="226" y2="58" stroke="#8C97A6" stroke-width="1.5" marker-end="url(#aS)"/>
+      <line x1="286" y1="59" x2="320" y2="59" stroke="#8C97A6" stroke-width="1.5" marker-end="url(#aS)"/>
+      <text x="408" y="62" font-family="Newsreader" font-style="italic" font-size="10.5" fill="#5C6675">policy</text>
+      <text x="412" y="74" font-family="Newsreader" font-style="italic" font-size="10.5" fill="#5C6675">implicit</text>
+
+      <line x1="14" y1="100" x2="486" y2="100" stroke="#1E2630" stroke-width="1"/>
+
+      <!-- ROW 2: REINFORCE (policy-based) -->
+      <text x="14" y="128" font-family="Space Grotesk" font-weight="600" font-size="13" fill="#5BA8FF">POLICY-BASED · the new idea (REINFORCE)</text>
+      <rect x="14" y="140" width="58" height="40" rx="9" fill="#1A212B" stroke="#8C97A6" stroke-width="1.3"/><text x="43" y="164" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#E7EBF1">state</text>
+      <rect x="104" y="136" width="92" height="48" rx="10" fill="#1A212B" stroke="#5BA8FF" stroke-width="1.5"/><text x="150" y="157" text-anchor="middle" font-family="Space Grotesk" font-size="11.5" fill="#5BA8FF">policy net</text><text x="150" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#8C97A6">π_θ(a|s)</text>
+      <g font-family="JetBrains Mono" font-size="10" text-anchor="middle">
+        <rect x="228" y="136" width="58" height="15" rx="3" fill="#22364f" stroke="#5BA8FF" stroke-width="1"/><text x="257" y="147" fill="#9cc6ff">0.2</text>
+        <rect x="228" y="154" width="58" height="15" rx="3" fill="#22364f" stroke="#5BA8FF" stroke-width="1.3"/><text x="257" y="165" fill="#9cc6ff">0.7</text>
+        <rect x="228" y="172" width="58" height="15" rx="3" fill="#22364f" stroke="#5BA8FF" stroke-width="1"/><text x="257" y="183" fill="#9cc6ff">0.1</text>
+      </g>
+      <rect x="322" y="146" width="78" height="30" rx="8" fill="#1A212B" stroke="#5BA8FF" stroke-width="1.3"/><text x="361" y="165" text-anchor="middle" font-family="Space Grotesk" font-size="11" fill="#E7EBF1">sample → a</text>
+      <line x1="72" y1="160" x2="102" y2="160" stroke="#5BA8FF" stroke-width="1.5" marker-end="url(#aBlue)"/>
+      <line x1="196" y1="160" x2="226" y2="160" stroke="#5BA8FF" stroke-width="1.5" marker-end="url(#aBlue)"/>
+      <line x1="286" y1="161" x2="320" y2="161" stroke="#5BA8FF" stroke-width="1.5" marker-end="url(#aBlue)"/>
+      <text x="408" y="164" font-family="Newsreader" font-style="italic" font-size="10.5" fill="#5BA8FF">policy</text>
+      <text x="412" y="176" font-family="Newsreader" font-style="italic" font-size="10.5" fill="#5BA8FF">explicit</text>
+
+      <!-- training note row -->
+      <line x1="14" y1="206" x2="486" y2="206" stroke="#1E2630" stroke-width="1"/>
+      <text x="14" y="232" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#8C97A6">HOW EACH IS TRAINED</text>
+      <rect x="14" y="244" width="222" height="44" rx="10" fill="#1A212B" stroke="#E8A04C" stroke-width="1.2"/>
+      <text x="125" y="263" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#E8A04C">minimize TD error on Q</text>
+      <text x="125" y="279" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="11" fill="#8C97A6">regression toward a target</text>
+      <rect x="264" y="244" width="222" height="44" rx="10" fill="#1A212B" stroke="#5BA8FF" stroke-width="1.2"/>
+      <text x="375" y="263" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#5BA8FF">ascend  R · ∇ log π</text>
+      <text x="375" y="279" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="11" fill="#8C97A6">weighted by how good it went</text>
+    </svg>
+    <figcaption><b>The mental shift.</b> DQN scores actions and takes the best; the policy is a by-product of the Q-values. A policy network <i>is</i> the policy — it emits a distribution you sample from, and you train it by nudging probabilities in the direction return tells you.</figcaption>
+    <div class="key">
+      <span><i class="swatch" style="background:#E8A04C"></i> value / Q</span>
+      <span><i class="swatch" style="background:#5BA8FF"></i> policy / actor</span>
+      <span><i class="swatch" style="background:#8C97A6"></i> state</span>
+    </div>
+  </figure>
+
+  <!-- THE OBJECTIVE + TRICK -->
+  <section>
+    <div class="sec-label"><span class="n">01</span> The trick that makes it work</div>
+    <h2>The score function</h2>
+    <p>We want to maximize expected return <code>J(θ) = E_{τ∼π_θ}[R(τ)]</code> by gradient ascent. The problem: the thing we sample from <em>depends on</em> <code>θ</code>, so we can’t naively move the gradient inside the expectation. The <strong>log-derivative trick</strong> fixes it with one identity, <code>∇p = p·∇log p</code>:</p>
+    <div class="eq"><span class="lbl">the derivation, 3 moves</span>
+      <span class="step">// expectation is an integral over a θ-dependent density</span><br>
+      ∇<sub>θ</sub> J = ∇<sub>θ</sub> ∫ <i>π_θ(τ)</i> <b>R(τ)</b> dτ = ∫ ∇<sub>θ</sub><i>π_θ(τ)</i> <b>R(τ)</b> dτ<br>
+      <span class="step">// multiply &amp; divide by π — the ∇p = p·∇log p identity</span><br>
+      = ∫ <i>π_θ(τ)</i> <u>∇<sub>θ</sub> log π_θ(τ)</u> <b>R(τ)</b> dτ<br>
+      <span class="step">// it’s an expectation again — now estimable by sampling</span><br>
+      = E<sub>τ</sub>[ <b>R(τ)</b> · <u>Σ<sub>t</sub> ∇<sub>θ</sub> log π_θ(a<sub>t</sub>|s<sub>t</sub>)</u> ]
+    </div>
+    <div class="note opt"><span class="k">Why this is the whole ballgame</span>
+      Look at what survived: the gradient touches <strong>only the policy’s log-prob</strong>. The reward <b>R(τ)</b> and the environment dynamics are never differentiated — they can be a game engine, a unit-test runner, a human rating. That’s exactly why the same math drives a verifiable-reward LLM: you don’t need a differentiable reward, just a number.</p>
+    </div>
+  </section>
+
+  <!-- REINFORCE + intuition -->
+  <section>
+    <div class="sec-label"><span class="n">02</span> The algorithm</div>
+    <h2>REINFORCE is weighted imitation</h2>
+    <p>Drop the expectation, sample trajectories, and you have the entire algorithm:</p>
+    <div class="eq"><span class="lbl">reinforce update</span>θ ← θ + α · <b>G<sub>t</sub></b> · <u>∇<sub>θ</sub> log π_θ(a<sub>t</sub>|s<sub>t</sub>)</u></div>
+    <p>Here’s the intuition that connects it straight to your Karpathy background. Ordinary next-token training maximizes <code>log π(correct token)</code> — plain maximum likelihood. REINFORCE maximizes <code>R · log π(the token you actually sampled)</code>. Same gradient shape, one extra scalar:</p>
+    <figure>
+      <svg viewBox="0 0 480 150" role="img" aria-label="Supervised learning versus REINFORCE gradient">
+        <rect x="14" y="40" width="210" height="70" rx="12" fill="#1A212B" stroke="#5C6675" stroke-width="1.3"/>
+        <text x="119" y="30" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#8C97A6">SUPERVISED (Karpathy)</text>
+        <text x="119" y="72" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#E7EBF1">∇ log π(y*)</text>
+        <text x="119" y="94" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="11.5" fill="#8C97A6">“copy the labelled answer”</text>
+        <rect x="256" y="40" width="210" height="70" rx="12" fill="#1A212B" stroke="#5BA8FF" stroke-width="1.5"/>
+        <text x="361" y="30" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#5BA8FF">REINFORCE</text>
+        <text x="361" y="72" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#E7EBF1"><tspan fill="#E8A04C">R</tspan> · ∇ log π(<tspan fill="#5BA8FF">a</tspan>)</text>
+        <text x="361" y="94" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="11.5" fill="#8C97A6">“copy your own good samples”</text>
+        <text x="240" y="80" text-anchor="middle" font-family="JetBrains Mono" font-size="16" fill="#5C6675">+</text>
+      </svg>
+      <figcaption>The only structural difference is the scalar <b style="color:#E8A04C">R</b> out front. Positive return → climb toward that action; negative → push away. REINFORCE is supervised learning where <i>you</i> generate the labels and weight them by outcome.</figcaption>
+    </figure>
+    <div class="note good"><span class="k">What no longer flows where</span>
+      In your gym setups the environment was a black box and that felt incidental. Now it’s the point: gradient flows back through the <span class="tag-sig">policy network only</span>. The env and reward sit outside the computation graph entirely — they just hand you the scalar that scales the gradient.</p>
+    </div>
+  </section>
+
+  <!-- BASELINES -->
+  <section>
+    <div class="sec-label"><span class="n">03</span> Making it usable</div>
+    <h2>Baselines kill the variance</h2>
+    <p>REINFORCE is correct but <strong>brutally noisy</strong> — returns swing wildly between episodes, so the gradient estimate is too. The fix: subtract a <strong>baseline</strong> <code>b(s)</code> that doesn’t depend on the action. It leaves the gradient <em>unbiased</em> (proof in the exercise) but slashes variance. The best simple choice is the state value <code>V(s)</code> — and then the weight becomes the <strong>advantage</strong>:</p>
+    <div class="eq"><span class="lbl">advantage = how much better than average</span><b>A(s,a)</b> = <span class="g">G<sub>t</sub></span> − <span class="g">V(s)</span>　　→　　θ ← θ + α · <b>A(s,a)</b> · ∇ log π</div>
+    <figure>
+      <svg viewBox="0 0 480 200" role="img" aria-label="Raw returns versus advantage-centered returns">
+        <!-- left: raw returns, all positive, high spread -->
+        <text x="110" y="24" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#E8A04C">raw returns G</text>
+        <line x1="60" y1="40" x2="60" y2="180" stroke="#28313D" stroke-width="1.5"/>
+        <g fill="#E8A04C"><circle cx="90" cy="60" r="5"/><circle cx="130" cy="78" r="5"/><circle cx="100" cy="92" r="5"/><circle cx="145" cy="110" r="5"/><circle cx="85" cy="128" r="5"/><circle cx="125" cy="150" r="5"/></g>
+        <line x1="62" y1="105" x2="160" y2="105" stroke="#8C97A6" stroke-dasharray="4 3" stroke-width="1.3"/>
+        <text x="165" y="108" font-family="JetBrains Mono" font-size="10" fill="#8C97A6">mean</text>
+        <text x="110" y="196" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="11" fill="#8C97A6">all positive → every action pushed up</text>
+        <!-- arrow -->
+        <text x="240" y="115" text-anchor="middle" font-family="JetBrains Mono" font-size="20" fill="#5C6675">→</text>
+        <text x="240" y="135" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#5C6675">− V(s)</text>
+        <!-- right: advantage, centered at 0 -->
+        <text x="370" y="24" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#5BD6A6">advantage G − V</text>
+        <line x1="320" y1="110" x2="460" y2="110" stroke="#5BD6A6" stroke-width="1.5"/>
+        <text x="464" y="113" font-family="JetBrains Mono" font-size="10" fill="#5BD6A6">0</text>
+        <g><circle cx="345" cy="70" r="5" fill="#5BD6A6"/><circle cx="385" cy="84" r="5" fill="#5BD6A6"/><circle cx="360" cy="96" r="5" fill="#5BD6A6"/>
+           <circle cx="400" cy="128" r="5" fill="#8C97A6"/><circle cx="340" cy="142" r="5" fill="#8C97A6"/><circle cx="380" cy="156" r="5" fill="#8C97A6"/></g>
+        <text x="390" y="196" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="11" fill="#8C97A6">above-avg ↑, below-avg ↓</text>
+      </svg>
+      <figcaption><b>Why centering matters.</b> If all returns are positive, vanilla REINFORCE reinforces <i>everything</i>, just by different amounts — slow and noisy. Subtracting <span style="color:#5BD6A6">V(s)</span> recenters around zero so genuinely good actions go up and bad ones go down. Same expected gradient, far less jitter.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ACTOR-CRITIC ARCHITECTURE -->
+  <section>
+    <div class="sec-label"><span class="n">04</span> The architecture</div>
+    <h2>Actor-critic: bolt your value function back on</h2>
+    <p>Where do you get <code>V(s)</code>? You <strong>learn</strong> it — with a second network, the <span class="tag-good">critic</span>. And a learned value function is exactly the thing DQN already taught you. So actor-critic = the new policy-gradient idea (<span class="tag-sig">actor</span>) + the value function you already own (<span class="tag-good">critic</span>) acting as the baseline.</p>
+    <figure>
+      <svg viewBox="0 0 500 290" role="img" aria-label="Actor-critic architecture and data flow">
+        <defs>
+          <marker id="aSig2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5BA8FF"/></marker>
+          <marker id="aGood2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5BD6A6"/></marker>
+          <marker id="aVal2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#E8A04C"/></marker>
+          <marker id="aMute2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#8C97A6"/></marker>
+        </defs>
+        <!-- state + trunk -->
+        <rect x="14" y="118" width="54" height="40" rx="9" fill="#1A212B" stroke="#8C97A6" stroke-width="1.3"/><text x="41" y="142" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#E7EBF1">state</text>
+        <rect x="96" y="110" width="74" height="56" rx="10" fill="#1A212B" stroke="#8C97A6" stroke-width="1.3"/><text x="133" y="134" text-anchor="middle" font-family="Space Grotesk" font-size="11" fill="#E7EBF1">encoder</text><text x="133" y="150" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">(often shared)</text>
+        <line x1="68" y1="138" x2="94" y2="138" stroke="#8C97A6" stroke-width="1.4" marker-end="url(#aMute2)"/>
+        <!-- actor head -->
+        <rect x="206" y="58" width="96" height="48" rx="10" fill="#1A212B" stroke="#5BA8FF" stroke-width="1.6"/><text x="254" y="79" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#5BA8FF">ACTOR</text><text x="254" y="95" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#9cc6ff">π_θ(a|s)</text>
+        <!-- critic head -->
+        <rect x="206" y="170" width="96" height="48" rx="10" fill="#1A212B" stroke="#5BD6A6" stroke-width="1.6"/><text x="254" y="191" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#5BD6A6">CRITIC</text><text x="254" y="207" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#9fe6c8">V_φ(s)</text>
+        <line x1="170" y1="130" x2="204" y2="92" stroke="#5BA8FF" stroke-width="1.4" marker-end="url(#aSig2)"/>
+        <line x1="170" y1="146" x2="204" y2="190" stroke="#5BD6A6" stroke-width="1.4" marker-end="url(#aGood2)"/>
+        <!-- action + env -->
+        <rect x="338" y="60" width="68" height="44" rx="9" fill="#1A212B" stroke="#5BA8FF" stroke-width="1.2"/><text x="372" y="79" text-anchor="middle" font-family="Space Grotesk" font-size="10.5" fill="#E7EBF1">sample a</text><text x="372" y="94" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9" fill="#8C97A6">→ env → R</text>
+        <line x1="302" y1="82" x2="336" y2="82" stroke="#5BA8FF" stroke-width="1.4" marker-end="url(#aSig2)"/>
+        <!-- advantage node -->
+        <rect x="332" y="150" width="150" height="48" rx="10" fill="#161B22" stroke="#E8A04C" stroke-width="1.5"/>
+        <text x="407" y="170" text-anchor="middle" font-family="Space Grotesk" weight="600" font-size="11" fill="#E8A04C">advantage</text>
+        <text x="407" y="187" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#E7EBF1">A = R − V(s)</text>
+        <line x1="406" y1="104" x2="407" y2="148" stroke="#E8A04C" stroke-width="1.3" marker-end="url(#aVal2)"/>
+        <line x1="302" y1="200" x2="330" y2="182" stroke="#5BD6A6" stroke-width="1.3" marker-end="url(#aVal2)"/>
+        <!-- update arrows back -->
+        <path d="M332,162 C250,150 250,130 256,108" fill="none" stroke="#E8A04C" stroke-width="1.4" stroke-dasharray="5 3" marker-end="url(#aVal2)"/>
+        <text x="150" y="250" font-family="JetBrains Mono" font-size="10.5" fill="#5BA8FF">actor update:  A · ∇ log π_θ</text>
+        <text x="150" y="270" font-family="JetBrains Mono" font-size="10.5" fill="#5BD6A6">critic update:  minimize (R − V_φ)²</text>
+        <circle cx="100" cy="250" r="4" fill="#5BA8FF"/><circle cx="100" cy="266" r="4" fill="#5BD6A6"/>
+      </svg>
+      <figcaption><b>Two heads, two jobs.</b> The <span style="color:#5BA8FF">actor</span> proposes actions; the <span style="color:#5BD6A6">critic</span> predicts the baseline. Their difference is the <span style="color:#E8A04C">advantage</span>, which trains the actor — while the critic trains itself by regressing toward observed return, exactly like a DQN value head. <i>New idea + old idea, wired together.</i></figcaption>
+    </figure>
+    <div class="note sig"><span class="k">This is the unlock</span>
+      You now have the full template the frontier is built on. <strong>PPO</strong> = this, plus a clipped update so you can reuse samples without the policy lurching. <strong>GRPO</strong> = this, but it <em>deletes the critic</em> and uses the average reward of a group of samples as the baseline instead. Same skeleton every time.</p>
+    </div>
+  </section>
+
+  <!-- LINEAGE -->
+  <section>
+    <div class="sec-label"><span class="n">05</span> The payoff</div>
+    <h2>The frontier is this, stabilized</h2>
+    <figure>
+      <svg viewBox="0 0 500 150" role="img" aria-label="Lineage from REINFORCE to GRPO">
+        <defs><marker id="aL" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#5C6675"/></marker></defs>
+        <rect x="10" y="56" width="92" height="44" rx="10" fill="#22364f" stroke="#5BA8FF" stroke-width="1.5"/><text x="56" y="76" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="11" fill="#9cc6ff">REINFORCE</text><text x="56" y="91" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">the seed</text>
+        <rect x="142" y="56" width="92" height="44" rx="10" fill="#1f4538" stroke="#5BD6A6" stroke-width="1.5"/><text x="188" y="76" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="11" fill="#9fe6c8">Actor-Critic</text><text x="188" y="91" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">+ baseline</text>
+        <rect x="274" y="56" width="92" height="44" rx="10" fill="#1A212B" stroke="#E8A04C" stroke-width="1.5"/><text x="320" y="76" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#E8A04C">PPO</text><text x="320" y="91" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">+ clip / trust</text>
+        <rect x="406" y="56" width="92" height="44" rx="10" fill="#33285a" stroke="#B492FF" stroke-width="1.6"/><text x="452" y="76" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="12" fill="#B492FF">GRPO</text><text x="452" y="91" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="9.5" fill="#8C97A6">− critic</text>
+        <g stroke="#5C6675" stroke-width="1.5" marker-end="url(#aL)">
+          <line x1="102" y1="78" x2="140" y2="78"/><line x1="234" y1="78" x2="272" y2="78"/><line x1="366" y1="78" x2="404" y2="78"/>
+        </g>
+        <text x="250" y="28" text-anchor="middle" font-family="Space Grotesk" font-weight="600" font-size="12" fill="#8C97A6">every arrow is just “add one stabilizer”</text>
+        <text x="250" y="130" text-anchor="middle" font-family="Newsreader" font-style="italic" font-size="12" fill="#5C6675">nothing past here is conceptually new — it’s all variance &amp; safety engineering</text>
+      </svg>
+      <figcaption>Once REINFORCE and the baseline click, the rest of the field is incremental: actor-critic learns the baseline, PPO makes the update safe to repeat, GRPO swaps the learned baseline for a group average. You’re standing on the seed of all of it.</figcaption>
+    </figure>
+  </section>
+
+  <!-- EXERCISE -->
+  <section>
+    <div class="sec-label"><span class="n">06</span> Check yourself</div>
+    <h2>One exercise</h2>
+    <p>Prove the key claim: subtracting a baseline <code>b(s)</code> that depends only on the state (not the action) leaves the policy gradient <strong>unbiased</strong>. Why does its contribution vanish in expectation?</p>
+    <details>
+      <summary><span class="x">SOLVE</span> Reveal the answer <span class="chev">▸</span></summary>
+      <div class="answer">
+        <p>The baseline’s contribution to the gradient is <code>E_a[ b(s) · ∇ log π(a|s) ]</code>. Pull the action-independent <code>b(s)</code> out, and use the same <code>∇log p = ∇p / p</code> identity in reverse:</p>
+        <div class="eq">b(s) · Σ<sub>a</sub> π(a|s) ∇ log π(a|s) = b(s) · Σ<sub>a</sub> ∇ π(a|s) = b(s) · ∇ <span class="g">Σ<sub>a</sub> π(a|s)</span> = b(s) · ∇ <span class="g">1</span> = 0</div>
+        <p>The probabilities sum to 1, and the gradient of a constant is zero — so the baseline adds <strong>exactly nothing</strong> to the expected gradient. It can’t bias you. But it <em>can</em> shrink the variance of the sample estimate, which is the entire reason to use it. This is the cleanest example of a deep RL pattern: a term that’s zero in expectation but enormously helpful for the estimator.</p>
+      </div>
+    </details>
+  </section>
+
+  <div class="takeaway">
+    <span class="k">Takeaway</span>
+    <p>Push up the log-prob of actions that beat the baseline, push down the ones that don’t. REINFORCE is that sentence; everything else — actor-critic, PPO, GRPO — is making that one update less noisy and less reckless.</p>
+  </div>
+
+  <footer>
+    <a href="index.html" style='display:inline-flex;align-items:center;gap:7px;font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.03em;color:#E7EBF1;text-decoration:none;padding:8px 13px;border:1px solid #2E3947;border-radius:10px;background:#1A212B'>&#8617;&nbsp;Exploration map</a>
+    <div class="next">
+      <small>Up next</small>
+      <a href="#">Rung 4 — PPO core: the clipped objective &amp; GAE</a>
+    </div>
+    <span class="stamp blink">● say “go”</span>
+  </footer>
+
+</div>
+</body>
+</html>
