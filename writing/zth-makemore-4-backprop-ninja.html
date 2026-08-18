@@ -201,7 +201,16 @@ cmp<span class="o">(</span><span class="s">'</span><span class="s">C</span><span
       <p><strong>Derivative of matrix multiplication</strong></p>
       <p>The only thing that is a bit complicated is how we actually find the derivative of the matrix multiplication in the linear layer. We will go through a toy example to help us understand the general principle.</p>
       <p>I will just put my final work here. My full notes can be found here.</p>
-      <p><a href="/writing/zth-backprop-matmul.html">Backpropagating through matrix multiplication</a></p>
+            <a class="embed embed-solo" href="/writing/zth-backprop-matmul.html">
+        <span class="embed-thumb embed-thumb-fig">
+          <img src="/writing/img/zth/zth-backprop-matmul-01.png" loading="lazy" alt="">
+        </span>
+        <span class="embed-body">
+          <span class="embed-kicker">notes · full derivation</span>
+          <span class="embed-title">Backpropagating through matrix multiplication</span>
+          <span class="embed-note">deriving dW and dx on paper until they matched PyTorch</span>
+        </span>
+      </a>
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-01.png" alt="final work for the matrix multiplication derivative"><figcaption>final work for the matrix multiplication derivative</figcaption></figure>
       <h2>Exercise 2: Back propagating cross entropy analytically</h2>
       <p>So instead of implementing the cross entropy loss manually, we would normally just call the PyTorch implementation.</p>
@@ -218,7 +227,16 @@ loss <span class="o">=</span> <span class="o">-</span>logprobs<span class="o">[<
 loss_fast <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class="o">(</span>logits<span class="o">,</span> Yb<span class="o">)</span></code></pre>
       <p><strong>Math</strong></p>
       <p>Again I will only put my final work here, full notes can be found in this post.</p>
-      <p><a href="/writing/zth-backprop-cross-entropy.html">Backpropagating through cross entropy</a></p>
+            <a class="embed embed-solo" href="/writing/zth-backprop-cross-entropy.html">
+        <span class="embed-thumb embed-thumb-fig">
+          <img src="/writing/img/zth/zth-backprop-cross-entropy-02.png" loading="lazy" alt="">
+        </span>
+        <span class="embed-body">
+          <span class="embed-kicker">notes · full derivation</span>
+          <span class="embed-title">Backpropagating through cross entropy</span>
+          <span class="embed-note">the softmax + NLL derivative, both branches, written in full</span>
+        </span>
+      </a>
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-02.png" alt="cross entropy backprop final work (1 of 3)"><figcaption>cross entropy backprop final work (1 of 3)</figcaption></figure>
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-03.png" alt="cross entropy backprop final work (2 of 3)"><figcaption>cross entropy backprop final work (2 of 3)</figcaption></figure>
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-04.png" alt="cross entropy backprop final work (3 of 3)"><figcaption>cross entropy backprop final work (3 of 3)</figcaption></figure>
@@ -241,7 +259,16 @@ hpreact <span class="o">=</span> bngain <span class="o">*</span> bnraw <span cla
 hpreact_fast <span class="o">=</span> bngain <span class="o">*</span> <span class="o">(</span>hprebn <span class="o">-</span> hprebn<span class="o">.</span>mean<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">)</span><span class="o">)</span> <span class="o">/</span> torch<span class="o">.</span>sqrt<span class="o">(</span>hprebn<span class="o">.</span>var<span class="o">(</span><span class="m">0</span><span class="o">,</span> keepdim<span class="o">=</span><span class="k">True</span><span class="o">,</span> unbiased<span class="o">=</span><span class="k">True</span><span class="o">)</span> <span class="o">+</span> <span class="m">1e-5</span><span class="o">)</span> <span class="o">+</span> bnbias</code></pre>
       <p><strong>Math</strong></p>
       <p>I will only show my final result here, full notes can be found in this post.</p>
-      <p><a href="/writing/zth-backprop-batchnorm.html">Backpropagating through batch norm</a></p>
+            <a class="embed embed-solo" href="/writing/zth-backprop-batchnorm.html">
+        <span class="embed-thumb embed-thumb-fig">
+          <img src="/writing/img/zth/zth-backprop-batchnorm-02.png" loading="lazy" alt="">
+        </span>
+        <span class="embed-body">
+          <span class="embed-kicker">notes · full derivation</span>
+          <span class="embed-title">Backpropagating through batch norm</span>
+          <span class="embed-note">the batch norm backward pass, node by node</span>
+        </span>
+      </a>
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-05.png" alt="batch norm backprop final work (1 of 5)"><figcaption>batch norm backprop final work (1 of 5)</figcaption></figure>
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-06.png" alt="batch norm backprop final work (2 of 5)"><figcaption>batch norm backprop final work (2 of 5)</figcaption></figure>
       <figure><img src="/writing/img/zth/zth-makemore-4-backprop-ninja-07.png" alt="batch norm backprop final work (3 of 5)"><figcaption>batch norm backprop final work (3 of 5)</figcaption></figure>

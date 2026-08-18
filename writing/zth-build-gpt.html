@@ -27,7 +27,15 @@
       <h2>Background</h2>
       <p><strong>Transformers</strong></p>
       <p>The Transformer architecture comes from the landmark paper <em>Attention Is All You Need</em>.</p>
-      <p><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a></p>
+            <a class="embed embed-solo" href="https://arxiv.org/abs/1706.03762">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">arXiv · paper</span>
+          <span class="embed-title">Attention Is All You Need</span>
+          <span class="embed-note">the Transformer paper — self-attention replaces recurrence entirely.</span>
+          <span class="embed-meta">Vaswani et al. · 2017 · arXiv:1706.03762</span>
+        </span>
+      </a>
       <p>At the time of the paper, the dominant language translation models were recurrent neural networks (RNN) with an encoder-decoder structure. During inference, the encoder processes each input token sequentially, updating its own hidden state at each time step. Using the final hidden state of the encoder, the “autoregressive” decoder then starts generating output tokens sequentially, taking generated output tokens as additional input, updating its hidden state at each time step.</p>
       <figure><img src="/writing/img/zth/zth-build-gpt-01.png" alt="RNN encoder-decoder diagram (no caption in Notion)"><figcaption>RNN encoder-decoder diagram (no caption in Notion)</figcaption></figure>
       <p>The hidden states of the encoder and decoder gets updated in each time step via a feedback loop that connects the output of each neuron back into itself as an input at the next time step. This feedback loop is what allows recurrent networks and its variants to have “memory” and model long range dependencies in sequences.</p>

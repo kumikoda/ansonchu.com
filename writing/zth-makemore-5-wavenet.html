@@ -152,7 +152,15 @@ loss <span class="o">=</span> F<span class="o">.</span>cross_entropy<span class=
       <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-04.png" alt="deeper MLP with more hidden layers (no caption in Notion)"><figcaption>deeper MLP with more hidden layers (no caption in Notion)</figcaption></figure>
       <p>But even though we are adding more hidden layers, we are still “crushing” the context of the input layer too soon, which limits our ability to increase the context length.</p>
       <p>Instead, we want to fuse the earlier layers together progressively (or hierarchically) like they did in the Wavenet paper.</p>
-      <p><a href="https://arxiv.org/abs/1609.03499">WaveNet: A Generative Model for Raw Audio</a></p>
+            <a class="embed embed-solo" href="https://arxiv.org/abs/1609.03499">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M8.5 12.5h7M8.5 16h7"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">arXiv · paper</span>
+          <span class="embed-title">WaveNet: A Generative Model for Raw Audio</span>
+          <span class="embed-note">dilated causal convolutions — fuse context progressively instead of crushing it at once.</span>
+          <span class="embed-meta">van den Oord et al. · 2016 · arXiv:1609.03499</span>
+        </span>
+      </a>
       <figure><img src="/writing/img/zth/zth-makemore-5-wavenet-05.png" alt="WaveNet dilated causal convolutions figure (no caption in Notion)"><figcaption>WaveNet dilated causal convolutions figure (no caption in Notion)</figcaption></figure>
       <p><strong>Batch dimensions</strong></p>
       <p>For us, we will be increasing our block_size from 3 to 8, which makes our graph look like this.</p>

@@ -40,7 +40,15 @@
       <p>Step 3 is a bit hairy. We got two sub derivatives we need to solve for. The first one was pretty straight forward. Quotient rule, easy.</p>
       <figure><img src="/writing/img/zth/zth-backprop-batchnorm-05.png" alt="step 3 first sub-derivative"><figcaption>step 3 first sub-derivative</figcaption></figure>
       <p>But for some reason I got really tripped up at the second one (maybe its the crying baby the in background), not understanding how we got that negative 2. Isn’t the derivative of <code>x^2</code> just <code>2x</code>? Surely this was a typo by Karpathy right??? I even started just googling around to see if I can get some inspiration from other people’s solution to this problem. I couldn’t find any detailed writeups for Karpathy’s course specifically (probably because everyone else finds this so easy) but I did find another person’s notes on the exact same problem.</p>
-      <p><a href="https://kevinzakka.github.io/2016/09/14/batch_normalization/">Deriving the Gradient for the Backward Pass of Batch Normalization</a></p>
+            <a class="embed embed-solo" href="https://kevinzakka.github.io/2016/09/14/batch_normalization/">
+        <svg class="embed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4.5" width="16" height="15" rx="2"/><path d="M7.5 9h9M7.5 12.5h9M7.5 16h5.5"/></svg>
+        <span class="embed-body">
+          <span class="embed-kicker">Reference · article</span>
+          <span class="embed-title">Deriving the Gradient for the Backward Pass of Batch Normalization</span>
+          <span class="embed-note">the derivation that untripped me on the second sub-derivative.</span>
+          <span class="embed-meta">Kevin Zakka · kevinzakka.github.io · 2016</span>
+        </span>
+      </a>
       <p>I stared at this line in disbelief for longer than I care to admit. How is this possible!?</p>
       <figure><img src="/writing/img/zth/zth-backprop-batchnorm-06.png" alt="the confusing line with the negative 2"><figcaption>the confusing line with the negative 2</figcaption></figure>
       <p>I even asked ChatGPT for help (even though I don’t super trust ChatGPT with symbolic math problems).</p>
